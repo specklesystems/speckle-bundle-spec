@@ -59,7 +59,7 @@ export const tableColumns = () =>
   query(
     `SELECT table_name, column_name, data_type, comment
      FROM duckdb_columns()
-     WHERE schema_name = 'main'
+     WHERE database_name = 'memory' AND schema_name = 'main'
        AND table_name NOT IN ('rel_types','node_kinds','bundle_files','meta')
      ORDER BY table_name, column_index`
   )

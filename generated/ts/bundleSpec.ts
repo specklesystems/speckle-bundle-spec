@@ -71,28 +71,14 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
 
 /** Logical table → column names, generated from the DDL. */
 export const TABLES = {
-  duckdb_columns: ['database_name', 'database_oid', 'schema_name', 'schema_oid', 'table_name', 'table_oid', 'column_name', 'column_index', 'comment', 'internal', 'column_default', 'is_nullable', 'data_type', 'data_type_id', 'character_maximum_length', 'numeric_precision', 'numeric_precision_radix', 'numeric_scale'],
-  duckdb_constraints: ['database_name', 'database_oid', 'schema_name', 'schema_oid', 'table_name', 'table_oid', 'constraint_index', 'constraint_type', 'constraint_text', 'expression', 'constraint_column_indexes', 'constraint_column_names', 'constraint_name', 'referenced_table', 'referenced_column_names'],
-  duckdb_databases: ['database_name', 'database_oid', 'path', 'comment', 'tags', 'internal', 'type', 'readonly', 'encrypted', 'cipher', 'options'],
-  duckdb_indexes: ['database_name', 'database_oid', 'schema_name', 'schema_oid', 'index_name', 'index_oid', 'table_name', 'table_oid', 'comment', 'tags', 'is_unique', 'is_primary', 'expressions', 'sql'],
-  duckdb_logs: ['context_id', 'scope', 'connection_id', 'transaction_id', 'query_id', 'thread_id', 'timestamp', 'type', 'log_level', 'message'],
-  duckdb_schemas: ['oid', 'database_name', 'database_oid', 'schema_name', 'comment', 'tags', 'internal', 'sql'],
-  duckdb_tables: ['database_name', 'database_oid', 'schema_name', 'schema_oid', 'table_name', 'table_oid', 'comment', 'tags', 'internal', 'temporary', 'has_primary_key', 'estimated_size', 'column_count', 'index_count', 'check_constraint_count', 'sql'],
-  duckdb_types: ['database_name', 'database_oid', 'schema_name', 'schema_oid', 'type_oid', 'type_name', 'type_size', 'logical_type', 'type_category', 'comment', 'tags', 'internal', 'labels'],
-  duckdb_views: ['database_name', 'database_oid', 'schema_name', 'schema_oid', 'view_name', 'view_oid', 'comment', 'tags', 'internal', 'temporary', 'column_count', 'sql', 'is_bound'],
   eav: ['object_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   geometries: ['geometryIndex', 'content', 'id', 'type'],
   nodes: ['id', 'kind', 'name', 'def_ref', 'transform', 'units', 'subtype', 'argb', 'opacity', 'metalness', 'roughness', 'elevation'],
   object_type: ['object_index', 'type_index'],
   objects: ['object_index', 'application_id'],
   paths: ['path_index', 'path'],
-  pragma_database_list: ['seq', 'name', 'file'],
   relations: ['rel', 'src', 'dst', 'ord'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
-  sqlite_master: ['type', 'name', 'tbl_name', 'rootpage', 'sql'],
-  sqlite_schema: ['type', 'name', 'tbl_name', 'rootpage', 'sql'],
-  sqlite_temp_master: ['type', 'name', 'tbl_name', 'rootpage', 'sql'],
-  sqlite_temp_schema: ['type', 'name', 'tbl_name', 'rootpage', 'sql'],
   type_eav: ['type_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   types: ['type_index', 'type_key'],
 } as const

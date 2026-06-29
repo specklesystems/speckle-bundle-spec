@@ -63,13 +63,16 @@ for (const k of usedKinds) {
   check(st === 'live', `node kind=${k} is known & live (status=${st ?? 'UNKNOWN'})`)
 }
 
-// 4. nodes table carries the spec's columns.
-if (present('nodes')) {
-  const specCols = tableColumns().filter((c) => c.table_name === 'nodes').map((c) => c.column_name)
+// 4. every produced table carries the spec's columns (validates the generated schemas).
+const byTable = {}
+for (const c of tableColumns()) (byTable[c.table_name] ??= []).push(c.column_name)
+for (const [table, specCols] of Object.entries(byTable)) {
+  if (!present(table)) continue
   const cols = new Set(
-    query(`DESCRIBE SELECT * FROM ${pq('nodes')}`, { withSpec: false }).map((d) => d.column_name)
+    query(`DESCRIBE SELECT * FROM ${pq(table)}`, { withSpec: false }).map((d) => d.column_name)
   )
-  for (const c of specCols) check(cols.has(c), `nodes has spec column: ${c}`)
+  const missing = specCols.filter((c) => !cols.has(c))
+  check(missing.length === 0, `${table}: all spec columns present${missing.length ? ` (missing: ${missing.join(', ')})` : ''}`)
 }
 
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)
