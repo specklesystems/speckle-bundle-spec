@@ -57,7 +57,7 @@ export const bundleFiles = () =>
 /** Logical tables with their columns + comments, from information_schema/duckdb_columns. */
 export const tableColumns = () =>
   query(
-    `SELECT table_name, column_name, data_type, comment
+    `SELECT table_name, column_name, data_type, is_nullable, comment
      FROM duckdb_columns()
      WHERE database_name = 'memory' AND schema_name = 'main'
        AND table_name NOT IN ('rel_types','node_kinds','bundle_files','meta')

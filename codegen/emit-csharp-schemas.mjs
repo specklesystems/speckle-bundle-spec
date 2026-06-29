@@ -20,7 +20,10 @@ export function emitCsharpSchemas() {
   const tableProps = Object.entries(byTable)
     .map(([table, cs]) => {
       const fields = cs
-        .map((c) => `        new("${c.column_name}", ArrowType.${mapType(c.data_type).cs}),`)
+        .map(
+          (c) =>
+            `        new("${c.column_name}", ArrowType.${mapType(c.data_type).cs}, ${c.is_nullable ? 'true' : 'false'}),`
+        )
         .join('\n')
       return `    public static readonly ColumnSpec[] ${pascal(table)} =\n    {\n${fields}\n    };`
     })
@@ -41,7 +44,7 @@ public enum ArrowType
 ${CS_TYPES.map((t) => `    ${t},`).join('\n')}
 }
 
-public readonly record struct ColumnSpec(string Name, ArrowType Type);
+public readonly record struct ColumnSpec(string Name, ArrowType Type, bool Nullable);
 
 public static class BundleSchemas
 {
