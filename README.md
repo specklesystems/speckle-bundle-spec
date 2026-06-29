@@ -11,7 +11,9 @@ tables, so its schema is described in the language its consumers already speak.
 spec/bundle-spec.sql      ← THE SOURCE OF TRUTH (edit this)
 codegen/                  runs the spec in DuckDB, SELECTs the catalogs, templates outputs
 generated/{cpp,csharp,ts} constants for producers & consumers — NEVER hand-edit
+CONTEXT.md                glossary — the ubiquitous language of the bundle
 docs/reference.md         human reference (generated)
+docs/adr/                 architecture decision records (why the format is shaped this way)
 docs/rationale/           long-form "why" essays (hand-written; link to the reference)
 validator/                checks a real bundle against the spec
 tests/conformance/        guards the spec's own invariants
