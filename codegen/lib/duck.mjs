@@ -1,0 +1,72 @@
+// Run a query against the spec: execute bundle-spec.sql in an in-memory DuckDB,
+// then the given SELECT, and return the rows as JS objects. No SQL parser — we
+// let DuckDB (already in the stack) be the spec interpreter.
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+const here = dirname(fileURLToPath(import.meta.url))
+export const REPO = join(here, '..', '..')
+export const SPEC = join(REPO, 'spec', 'bundle-spec.sql')
+const DUCKDB = process.env.DUCKDB_BIN || 'duckdb'
+
+let specSql = null
+const spec = () => (specSql ??= readFileSync(SPEC, 'utf8'))
+
+/** Execute arbitrary SQL with the spec already loaded; return parsed rows. */
+export function query(sql, { withSpec = true } = {}) {
+  const input = (withSpec ? spec() + '\n' : '') + sql + '\n'
+  const out = execFileSync(DUCKDB, ['-json'], {
+    input,
+    encoding: 'utf8',
+    maxBuffer: 1 << 28
+  })
+  const t = out.trim()
+  if (!t) return []
+  // DuckDB's -json mode encodes BOOLEAN as the strings "true"/"false" — and
+  // "false" is truthy in JS. Coerce those exact tokens back to real booleans so
+  // callers can branch on them. (No catalog text value is exactly true/false.)
+  return JSON.parse(t).map((row) => {
+    for (const k in row) {
+      if (row[k] === 'true') row[k] = true
+      else if (row[k] === 'false') row[k] = false
+    }
+    return row
+  })
+}
+
+export const relTypes = () =>
+  query(
+    `SELECT id, name, src_ns, dst_ns, status, emitted_by, ord_semantics, description, why
+     FROM rel_types ORDER BY id`
+  )
+
+export const nodeKinds = () =>
+  query(
+    `SELECT id, name, status, columns, subtype_values, description, why
+     FROM node_kinds ORDER BY id`
+  )
+
+export const bundleFiles = () =>
+  query(
+    `SELECT ord, name, file_pattern, file_glob, sharded, required, self_describing, description
+     FROM bundle_files ORDER BY ord`
+  )
+
+/** Logical tables with their columns + comments, from information_schema/duckdb_columns. */
+export const tableColumns = () =>
+  query(
+    `SELECT table_name, column_name, data_type, comment
+     FROM duckdb_columns()
+     WHERE schema_name = 'main'
+       AND table_name NOT IN ('rel_types','node_kinds','bundle_files','meta')
+     ORDER BY table_name, column_index`
+  )
+
+export const schemaVersion = () =>
+  query(`SELECT schema_version AS v FROM meta`)[0].v
+
+export const GENERATED_HEADER = (lang) =>
+  `${lang === 'sql' ? '--' : '//'} GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.\n` +
+  `${lang === 'sql' ? '--' : '//'} Run \`npm run generate\` (or node codegen/generate-all.mjs) to refresh.\n`

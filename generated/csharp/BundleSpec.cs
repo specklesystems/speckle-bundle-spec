@@ -1,0 +1,72 @@
+// GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.
+// Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
+namespace Speckle.Bundle.Spec;
+
+public static class BundleSpec
+{
+    public const int SchemaVersion = 5;
+}
+
+public enum Rel
+{
+    DISPLAY = 1,
+    SOLID = 2,
+    SUBELEMENT = 3,
+    DEFINES = 4,
+    HAS_MATERIAL = 5,
+    HAS_COLOR = 6,
+    ON_LEVEL = 7,
+    DISPLAY_INSTANCE = 8,
+    DEFINES_INSTANCE = 9,
+    IN_COLLECTION = 10,
+    IN_MODEL = 11,
+    IN_ROOM = 12,
+    IN_SYSTEM = 14,
+    CONNECTS_TO = 21,
+    BOUNDS = 23,
+}
+
+public enum NodeKind
+{
+    DEFINITION = 1,
+    INSTANCE = 2,
+    MATERIAL = 3,
+    COLOR = 4,
+    LEVEL = 5,
+    CONTAINER = 7,
+}
+
+public readonly record struct RelTypeRow(int Id, string Name, string? SrcNs, string? DstNs, string Status);
+public readonly record struct NodeKindRow(int Id, string Name, string? SubtypeValues);
+
+public static class Catalog
+{
+    public static readonly RelTypeRow[] RelTypes =
+    {
+        new(1, "DISPLAY", "object", "geometry", "live"),
+        new(2, "SOLID", "object", "geometry", "reserved"),
+        new(3, "SUBELEMENT", "object", "object", "live"),
+        new(4, "DEFINES", "node", "geometry", "live"),
+        new(5, "HAS_MATERIAL", "geometry", "node", "live"),
+        new(6, "HAS_COLOR", "geometry|object", "node", "live"),
+        new(7, "ON_LEVEL", "object", "node", "live"),
+        new(8, "DISPLAY_INSTANCE", "object", "node", "live"),
+        new(9, "DEFINES_INSTANCE", "node", "node", "live"),
+        new(10, "IN_COLLECTION", "object", "node", "live"),
+        new(11, "IN_MODEL", "object", "node", "live"),
+        new(12, "IN_ROOM", "object", "object", "live"),
+        new(14, "IN_SYSTEM", "object", "node", "live"),
+        new(21, "CONNECTS_TO", "object", "object", "live"),
+        new(23, "BOUNDS", "object", "object", "live"),
+    };
+
+    public static readonly NodeKindRow[] NodeKinds =
+    {
+        new(1, "DEFINITION", null),
+        new(2, "INSTANCE", null),
+        new(3, "MATERIAL", null),
+        new(4, "COLOR", null),
+        new(5, "LEVEL", null),
+        new(7, "CONTAINER", "Collection,Model,MEP System,Network"),
+    };
+}
