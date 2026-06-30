@@ -2,3 +2,7 @@ node_modules/
 *.log
 .DS_Store
 # generated/ is COMMITTED (vendored by consumers) — do not ignore it.
+
+# Python
+__pycache__/
+*.pyc
