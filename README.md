@@ -42,6 +42,38 @@ npm run check       # CI: fail if generated/ is stale vs the spec
 
 Requires the `duckdb` CLI on `PATH` (or set `DUCKDB_BIN`).
 
+## Publish and pin
+
+`generated/` is the source of truth for consumers, but a bare sibling checkout gives no
+version guarantee. `npm run publish:artifacts` packages the **cpp** and **python** targets
+as versioned, checksummed, self-describing artifacts so the native C++ extractors
+(`rvextract`/`nwextract`) and `specklepy` provably build against **one** spec version.
+
+```bash
+npm run publish:artifacts        # → dist/
+```
+
+produces (deterministic — same spec ⇒ byte-identical lockfile):
+
+```
+dist/bundle-spec.lock.json           canonical pin: version, specHash (sha256 of the SQL), per-file sha256
+dist/bundle-spec-cpp-<version>.tar.gz fetchable C++ artifact; extracts to generated/cpp/ (+ bundle_spec_version.h)
+dist/python/                          installable `speckle-bundle-spec` package (+ _version.py)
+```
+
+Consumers **pin** against `dist/bundle-spec.lock.json`, and CI enforces no drift:
+
+```bash
+npm run verify-pin -- --cpp    <dir>   # <dir> exposes generated/cpp/*.h  (extracted artifact or a checkout)
+npm run verify-pin -- --python <dir>   # <dir> holds the vendored *.py    (specklepy's bundle/spec)
+```
+
+- **C++**: the extractor build sets `-DBUNDLE_SPEC=<extracted artifact>` and, to enforce the
+  version, `-DBUNDLE_SPEC_EXPECT_VERSION=<x>` (fails the build on mismatch — see
+  `speckle-oda/native/cmake/AssertBundleSpecPin.cmake`).
+- **Python**: `specklepy/src/specklepy/bundle/spec/` vendors the target and records the pin in
+  `BUNDLE_SPEC_PIN.json`; CI runs `verify-pin -- --python` against that dir.
+
 ## Rules
 
 - **Edit `spec/bundle-spec.sql`, never `generated/`.** CI (`npm run check`) fails on stale output.
