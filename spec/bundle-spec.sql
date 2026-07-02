@@ -185,6 +185,33 @@ COMMENT ON COLUMN camera_views.aspect IS 'Frame aspect ratio (width/height), if 
 COMMENT ON COLUMN camera_views.near IS 'Near clipping distance, in `units`.';
 COMMENT ON COLUMN camera_views.far IS 'Far clipping distance, in `units`.';
 
+-- ── structural_results (optional, per-domain purpose file) ───────────────────
+--  Long/tidy analysis + design results. One scalar per row; columns are ORTHOGONAL
+--  AXES and each result type lights up only the axes it has (unused = NULL). Rule:
+--  one file PER ANALYSIS DOMAIN, shared by every producer in it (ETABS/CSi/SAP/TSD
+--  all write THIS schema); a non-structural domain (environmental/energy) gets its
+--  own eav.{domain}-results.parquet rather than overloading these axes. Kept OUT of
+--  eav.eav (whose single (object,path,value) triple can't hold case/station/step
+--  without exploding the shared path dictionary). Additive nullable columns are safe
+--  to add later; renaming/retyping is not — see docs/rationale/structural-results.md.
+CREATE TABLE structural_results (
+  object_index   INTEGER,           -- object-level identity → objects.object_index; NULL for group/model-level
+  element_name   VARCHAR,           -- group-level identity (pier/spandrel name — a named group, not an interned object); NULL otherwise
+  location       VARCHAR,           -- model/story-level identity (story name; blank = whole model); NULL for object-level
+  result_type    VARCHAR NOT NULL,  -- frameForce | jointReaction | baseReaction | modalPeriod | pierForce | spandrelForce | storyDrift | storyForce | (TSD) memberForce | utilization | designCheck
+  load_case      VARCHAR NOT NULL,  -- load case / combo / mode name (Dead, EQx, Modal)
+  component      VARCHAR NOT NULL,  -- the quantity (P,V2,V3,T,M2,M3 | F1..M3 | FX..MZ | Period | drift | axial,majorShear,… | ratio | status)
+  position_label VARCHAR,           -- CATEGORICAL position/direction that isn't a numeric station: Top/Bottom (pier/spandrel/story force), X/Y (story drift)
+  station        DOUBLE,            -- NUMERIC position along a member (frame ElmSta); NULL for point/group/model results
+  step           INTEGER,           -- time-history step / mode index; NULL or 1 for a static case
+  value          DOUBLE,            -- the numeric result
+  value_text     VARCHAR            -- non-numeric verdict (TSD PASS/FAIL). Exactly one of value / value_text is set per row
+);
+COMMENT ON TABLE structural_results IS 'Optional per-domain purpose file: structural analysis + design results in long/tidy form. Three identity shapes: object-level (object_index set), group-level (element_name set, e.g. a pier = named wall group), model/story-level (both NULL; identity is location/step). Opt-in — emitted only when the user selected cases + result types AND the model is locked (analysis run); a results failure is logged + skipped so geometry/properties still send.';
+COMMENT ON COLUMN structural_results.object_index IS 'Object-level results only (frame/joint) → objects.object_index. Piers/spandrels are NOT interned objects (named groups of walls) → NULL, identity via element_name.';
+COMMENT ON COLUMN structural_results.position_label IS 'Categorical position/direction (Top/Bottom, X/Y). Distinct from the numeric member station.';
+COMMENT ON COLUMN structural_results.value_text IS 'Exactly one of value (numeric) / value_text (verdict) is set; consumer coalesces. value_text is NULL for all analysis results.';
+
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 2 — semantic catalogs (data). These tables carry the vocabulary AND its
 --  meaning. rel_types / node_kinds also SHIP in the bundle (a consumer may read
@@ -283,4 +310,5 @@ INSERT INTO bundle_files VALUES
   (11, 'meta',        '{base}.envelope.meta.parquet',       '{base}.envelope.meta.parquet',       false, true,  true,  'schema_version + producer.'),
   (12, 'scene_views', '{base}.envelope.scene_views.parquet','{base}.envelope.scene_views.parquet',false, false, true,  'Producer-authored default projection.'),
   (13, 'geometries',  '{base}.geometries.parquet',          '{base}.geometries*.parquet',         true,  true,  false, 'SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob.'),
-  (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).');
+  (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).'),
+  (15, 'structural_results', '{base}.eav.structural-results.parquet', '{base}.eav.structural-results.parquet', false, false, false, 'OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model.');

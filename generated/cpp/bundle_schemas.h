@@ -125,6 +125,23 @@ inline std::shared_ptr<arrow::Schema> sceneViewsSchema() {
   });
 }
 
+// structural_results
+inline std::shared_ptr<arrow::Schema> structuralResultsSchema() {
+  return arrow::schema({
+      arrow::field("object_index", arrow::int32()),
+      arrow::field("element_name", arrow::utf8()),
+      arrow::field("location", arrow::utf8()),
+      arrow::field("result_type", arrow::utf8()),
+      arrow::field("load_case", arrow::utf8()),
+      arrow::field("component", arrow::utf8()),
+      arrow::field("position_label", arrow::utf8()),
+      arrow::field("station", arrow::float64()),
+      arrow::field("step", arrow::int32()),
+      arrow::field("value", arrow::float64()),
+      arrow::field("value_text", arrow::utf8())
+  });
+}
+
 // type_eav
 inline std::shared_ptr<arrow::Schema> typeEavSchema() {
   return arrow::schema({

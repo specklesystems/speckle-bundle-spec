@@ -82,6 +82,7 @@ export const TABLES = {
   paths: ['path_index', 'path'],
   relations: ['rel', 'src', 'dst', 'ord'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
+  structural_results: ['object_index', 'element_name', 'location', 'result_type', 'load_case', 'component', 'position_label', 'station', 'step', 'value', 'value_text'],
   type_eav: ['type_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   types: ['type_index', 'type_key'],
 } as const
