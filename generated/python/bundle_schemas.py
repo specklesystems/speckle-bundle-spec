@@ -18,6 +18,32 @@ class ColumnSpec(NamedTuple):
 
 # table name -> ordered column descriptors (matches the parquet field order producers write).
 BY_TABLE: dict[str, list[ColumnSpec]] = {
+    "camera_views": [
+        ColumnSpec("view", "int32", False),
+        ColumnSpec("name", "string", True),
+        ColumnSpec("is_default", "bool", True),
+        ColumnSpec("ord", "int32", True),
+        ColumnSpec("pos_x", "float64", False),
+        ColumnSpec("pos_y", "float64", False),
+        ColumnSpec("pos_z", "float64", False),
+        ColumnSpec("forward_x", "float64", False),
+        ColumnSpec("forward_y", "float64", False),
+        ColumnSpec("forward_z", "float64", False),
+        ColumnSpec("up_x", "float64", False),
+        ColumnSpec("up_y", "float64", False),
+        ColumnSpec("up_z", "float64", False),
+        ColumnSpec("target_x", "float64", True),
+        ColumnSpec("target_y", "float64", True),
+        ColumnSpec("target_z", "float64", True),
+        ColumnSpec("units", "string", True),
+        ColumnSpec("is_ortho", "bool", True),
+        ColumnSpec("fov", "float64", True),
+        ColumnSpec("lens_mm", "float64", True),
+        ColumnSpec("ortho_height", "float64", True),
+        ColumnSpec("aspect", "float64", True),
+        ColumnSpec("near", "float64", True),
+        ColumnSpec("far", "float64", True),
+    ],
     "eav": [
         ColumnSpec("object_index", "int32", False),
         ColumnSpec("path_index", "int32", False),

@@ -60,8 +60,38 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `meta` | `{base}.envelope.meta.parquet` | no | yes | yes | schema_version + producer. |
 | `scene_views` | `{base}.envelope.scene_views.parquet` | no | no | yes | Producer-authored default projection. |
 | `geometries` | `{base}.geometries*.parquet` | yes | yes | no | SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob. |
+| `camera_views` | `{base}.envelope.camera_views.parquet` | no | no | yes | Named camera viewpoints (eye/forward/up + projection). |
 
 ## Table shapes
+
+### `camera_views`
+
+| column | type | note |
+|---|---|---|
+| view | INTEGER | Dense ordinal, unique per row (the camera-view K-space; references nothing). |
+| name | VARCHAR | Display label; consumer shows name ?? view. |
+| is_default | BOOLEAN | Producer-nominated home/startup view. At most one row true. |
+| ord | INTEGER | Display order in view menus. |
+| pos_x | DOUBLE | Camera eye position, in `units` (model units — consumer scales like geometry). |
+| pos_y | DOUBLE | · |
+| pos_z | DOUBLE | · |
+| forward_x | DOUBLE | View direction. UNIT VECTOR, unitless. Required — target is derivable as pos + forward. |
+| forward_y | DOUBLE | · |
+| forward_z | DOUBLE | · |
+| up_x | DOUBLE | Camera up. UNIT VECTOR, unitless. |
+| up_y | DOUBLE | · |
+| up_z | DOUBLE | · |
+| target_x | DOUBLE | Explicit look-at point, in `units`. Optional — null when the host has no real target (e.g. Revit). |
+| target_y | DOUBLE | · |
+| target_z | DOUBLE | · |
+| units | VARCHAR | Units of pos/target/ortho_height/near/far. |
+| is_ortho | BOOLEAN | True = parallel/orthographic projection; false = perspective. |
+| fov | DOUBLE | VERTICAL field of view in DEGREES. Perspective only; null for ortho. |
+| lens_mm | DOUBLE | 35mm-equivalent lens / focal length in millimetres (Rhino Camera35mmLensLength, SketchUp focal_length). Perspective only. |
+| ortho_height | DOUBLE | Ortho view height, in `units`. Null for perspective. |
+| aspect | DOUBLE | Frame aspect ratio (width/height), if the host has one. |
+| near | DOUBLE | Near clipping distance, in `units`. |
+| far | DOUBLE | Far clipping distance, in `units`. |
 
 ### `eav`
 
