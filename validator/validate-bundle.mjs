@@ -75,5 +75,33 @@ for (const [table, specCols] of Object.entries(byTable)) {
   check(missing.length === 0, `${table}: all spec columns present${missing.length ? ` (missing: ${missing.join(', ')})` : ''}`)
 }
 
+// 5. K-space columns are dense, contiguous and unique (exactly {0..N-1}). Each spec
+// comment already calls these "Dense int K"; this enforces it. The renderer's .dat
+// builder sizes typed arrays to max(K)+1 and indexes positionally by K, so a gap or
+// a duplicate is not cosmetic drift — it OOMs or corrupts the build. A parallel
+// producer that mis-numbers a shard (or a merge that double-mints) fails HERE,
+// loudly, instead of at GPU-buffer allocation in a consumer. geometries is sharded,
+// so pq() reads the glob and the check spans all shards. Empty table = vacuously dense.
+const kSpaces = [
+  { table: 'objects', col: 'object_index' },
+  { table: 'nodes', col: 'id' },
+  { table: 'geometries', col: 'geometryIndex' }
+]
+for (const { table, col } of kSpaces) {
+  if (!present(table)) continue
+  const [r] = query(
+    `SELECT count(*) AS n, count(DISTINCT "${col}") AS d,
+            min("${col}") AS lo, max("${col}") AS hi FROM ${pq(table)}`,
+    { withSpec: false }
+  )
+  const n = Number(r.n)
+  const dense = n === 0 || (Number(r.d) === n && Number(r.lo) === 0 && Number(r.hi) === n - 1)
+  check(
+    dense,
+    `${table}.${col}: dense contiguous K-space (0..N-1, unique)` +
+      (dense ? '' : ` — count=${r.n} distinct=${r.d} min=${r.lo} max=${r.hi} (expected 0..${n - 1})`)
+  )
+}
+
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)
