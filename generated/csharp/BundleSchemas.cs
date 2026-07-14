@@ -20,6 +20,34 @@ public readonly record struct ColumnSpec(string Name, ArrowType Type, bool Nulla
 
 public static class BundleSchemas
 {
+    public static readonly ColumnSpec[] CameraViews =
+    {
+        new("view", ArrowType.Int32, false),
+        new("name", ArrowType.Utf8, true),
+        new("is_default", ArrowType.Boolean, true),
+        new("ord", ArrowType.Int32, true),
+        new("pos_x", ArrowType.Float64, false),
+        new("pos_y", ArrowType.Float64, false),
+        new("pos_z", ArrowType.Float64, false),
+        new("forward_x", ArrowType.Float64, false),
+        new("forward_y", ArrowType.Float64, false),
+        new("forward_z", ArrowType.Float64, false),
+        new("up_x", ArrowType.Float64, false),
+        new("up_y", ArrowType.Float64, false),
+        new("up_z", ArrowType.Float64, false),
+        new("target_x", ArrowType.Float64, true),
+        new("target_y", ArrowType.Float64, true),
+        new("target_z", ArrowType.Float64, true),
+        new("units", ArrowType.Utf8, true),
+        new("is_ortho", ArrowType.Boolean, true),
+        new("fov", ArrowType.Float64, true),
+        new("lens_mm", ArrowType.Float64, true),
+        new("ortho_height", ArrowType.Float64, true),
+        new("aspect", ArrowType.Float64, true),
+        new("near", ArrowType.Float64, true),
+        new("far", ArrowType.Float64, true),
+    };
+
     public static readonly ColumnSpec[] Eav =
     {
         new("object_index", ArrowType.Int32, false),
@@ -111,6 +139,7 @@ public static class BundleSchemas
     public static readonly IReadOnlyDictionary<string, ColumnSpec[]> ByTable =
         new Dictionary<string, ColumnSpec[]>
         {
+        ["camera_views"] = CameraViews,
         ["eav"] = Eav,
         ["geometries"] = Geometries,
         ["nodes"] = Nodes,

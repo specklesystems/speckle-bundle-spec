@@ -2,6 +2,18 @@
 
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
+## unreleased (schema_version 5, additive)
+
+**New optional file: `{base}.envelope.camera_views.parquet`** (`camera_views`, `bundle_files` ord 14)
+- Named camera viewpoints authored in the source model (Rhino named views, Revit 3D views,
+  SketchUp scenes). One row per view: eye position + forward/up unit vectors (+ optional
+  target), projection (`is_ortho`, `fov` = vertical degrees, `lens_mm`, `ortho_height`),
+  optional `aspect`/`near`/`far`, `is_default` home-view flag, `units` for all length-bearing
+  columns (model units, consumer scales like geometry).
+- Distinct from `scene_views` (the explorer *grouping* projection — not viewpoints).
+- Additive + `required=false` ⇒ **no `schema_version` bump**: old consumers skip the unknown
+  optional file; consumers feature-detect and fall back when absent.
+
 ## schema_version 5 — vocabulary harmonization
 
 First version published as a standalone spec (extracted from the producers'

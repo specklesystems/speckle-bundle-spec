@@ -8,6 +8,36 @@
 // markers are validation intent, not parquet constraints.
 namespace bundlespec {
 
+// camera_views
+inline std::shared_ptr<arrow::Schema> cameraViewsSchema() {
+  return arrow::schema({
+      arrow::field("view", arrow::int32()),
+      arrow::field("name", arrow::utf8()),
+      arrow::field("is_default", arrow::boolean()),
+      arrow::field("ord", arrow::int32()),
+      arrow::field("pos_x", arrow::float64()),
+      arrow::field("pos_y", arrow::float64()),
+      arrow::field("pos_z", arrow::float64()),
+      arrow::field("forward_x", arrow::float64()),
+      arrow::field("forward_y", arrow::float64()),
+      arrow::field("forward_z", arrow::float64()),
+      arrow::field("up_x", arrow::float64()),
+      arrow::field("up_y", arrow::float64()),
+      arrow::field("up_z", arrow::float64()),
+      arrow::field("target_x", arrow::float64()),
+      arrow::field("target_y", arrow::float64()),
+      arrow::field("target_z", arrow::float64()),
+      arrow::field("units", arrow::utf8()),
+      arrow::field("is_ortho", arrow::boolean()),
+      arrow::field("fov", arrow::float64()),
+      arrow::field("lens_mm", arrow::float64()),
+      arrow::field("ortho_height", arrow::float64()),
+      arrow::field("aspect", arrow::float64()),
+      arrow::field("near", arrow::float64()),
+      arrow::field("far", arrow::float64())
+  });
+}
+
 // eav
 inline std::shared_ptr<arrow::Schema> eavSchema() {
   return arrow::schema({

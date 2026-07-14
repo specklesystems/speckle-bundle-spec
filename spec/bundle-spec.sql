@@ -130,6 +130,51 @@ CREATE TABLE scene_views (
 );
 COMMENT ON TABLE scene_views IS 'Ordered tiers (outermost-first) of the producer-authored default scene-explorer grouping. Absent ⇒ consumer falls back to a heuristic.';
 
+-- ── camera_views (optional, named camera viewpoints) ─────────────────────────
+CREATE TABLE camera_views (
+  view         INTEGER NOT NULL,
+  name         VARCHAR,
+  is_default   BOOLEAN,
+  ord          INTEGER,
+  pos_x        DOUBLE NOT NULL,
+  pos_y        DOUBLE NOT NULL,
+  pos_z        DOUBLE NOT NULL,
+  forward_x    DOUBLE NOT NULL,
+  forward_y    DOUBLE NOT NULL,
+  forward_z    DOUBLE NOT NULL,
+  up_x         DOUBLE NOT NULL,
+  up_y         DOUBLE NOT NULL,
+  up_z         DOUBLE NOT NULL,
+  target_x     DOUBLE,
+  target_y     DOUBLE,
+  target_z     DOUBLE,
+  units        VARCHAR,
+  is_ortho     BOOLEAN,
+  fov          DOUBLE,
+  lens_mm      DOUBLE,
+  ortho_height DOUBLE,
+  aspect       DOUBLE,
+  near         DOUBLE,
+  far          DOUBLE
+);
+COMMENT ON TABLE camera_views IS 'Named camera viewpoints authored in the source model (named views / scenes / 3D views). NOT scene_views (which is the explorer grouping). One row per view. Absent ⇒ the model ships no viewpoints.';
+COMMENT ON COLUMN camera_views.view IS 'Dense ordinal, unique per row (the camera-view K-space; references nothing).';
+COMMENT ON COLUMN camera_views.name IS 'Display label; consumer shows name ?? view.';
+COMMENT ON COLUMN camera_views.is_default IS 'Producer-nominated home/startup view. At most one row true.';
+COMMENT ON COLUMN camera_views.ord IS 'Display order in view menus.';
+COMMENT ON COLUMN camera_views.pos_x IS 'Camera eye position, in `units` (model units — consumer scales like geometry).';
+COMMENT ON COLUMN camera_views.forward_x IS 'View direction. UNIT VECTOR, unitless. Required — target is derivable as pos + forward.';
+COMMENT ON COLUMN camera_views.up_x IS 'Camera up. UNIT VECTOR, unitless.';
+COMMENT ON COLUMN camera_views.target_x IS 'Explicit look-at point, in `units`. Optional — null when the host has no real target (e.g. Revit).';
+COMMENT ON COLUMN camera_views.units IS 'Units of pos/target/ortho_height/near/far.';
+COMMENT ON COLUMN camera_views.is_ortho IS 'True = parallel/orthographic projection; false = perspective.';
+COMMENT ON COLUMN camera_views.fov IS 'VERTICAL field of view in DEGREES. Perspective only; null for ortho.';
+COMMENT ON COLUMN camera_views.lens_mm IS '35mm-equivalent lens / focal length in millimetres (Rhino Camera35mmLensLength, SketchUp focal_length). Perspective only.';
+COMMENT ON COLUMN camera_views.ortho_height IS 'Ortho view height, in `units`. Null for perspective.';
+COMMENT ON COLUMN camera_views.aspect IS 'Frame aspect ratio (width/height), if the host has one.';
+COMMENT ON COLUMN camera_views.near IS 'Near clipping distance, in `units`.';
+COMMENT ON COLUMN camera_views.far IS 'Far clipping distance, in `units`.';
+
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 2 — semantic catalogs (data). These tables carry the vocabulary AND its
 --  meaning. rel_types / node_kinds also SHIP in the bundle (a consumer may read
@@ -227,4 +272,5 @@ INSERT INTO bundle_files VALUES
   (10, 'node_kinds',  '{base}.envelope.node_kinds.parquet', '{base}.envelope.node_kinds.parquet', false, true,  true,  'Self-describing node-kind catalog.'),
   (11, 'meta',        '{base}.envelope.meta.parquet',       '{base}.envelope.meta.parquet',       false, true,  true,  'schema_version + producer.'),
   (12, 'scene_views', '{base}.envelope.scene_views.parquet','{base}.envelope.scene_views.parquet',false, false, true,  'Producer-authored default projection.'),
-  (13, 'geometries',  '{base}.geometries.parquet',          '{base}.geometries*.parquet',         true,  true,  false, 'SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob.');
+  (13, 'geometries',  '{base}.geometries.parquet',          '{base}.geometries*.parquet',         true,  true,  false, 'SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob.'),
+  (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).');
