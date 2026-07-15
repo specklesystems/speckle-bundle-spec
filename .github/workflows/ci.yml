@@ -1,0 +1,69 @@
+# First CI for this repo. Two independent tracks:
+#   • spec  — the pure-Node pipeline (codegen→generated invariant + conformance tests);
+#             never gated on Arrow.
+#   • cpp   — compiles the shared C++ package (cpp/{core,writer,reader}) against Arrow
+#             and runs the write→read smoke test, on Linux and Windows/MSVC.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install DuckDB CLI (codegen + conformance parse the SQL spec with it)
+        run: |
+          curl -sSL -o duckdb.zip https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-amd64.zip
+          unzip -o duckdb.zip -d "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: npm run check      # codegen → generated/ must be committed in sync
+      - run: npm test           # conformance
+      - run: npm run publish:artifacts   # the artifact must always be buildable
+
+  cpp-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arrow (apache apt repo, pinned major)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y -V ca-certificates lsb-release wget
+          wget "https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb"
+          sudo apt-get install -y ./apache-arrow-apt-source-latest-*.deb
+          sudo apt-get update
+          sudo apt-get install -y libarrow-dev libparquet-dev
+      - name: Build + run smoke
+        run: |
+          cmake -S cpp/test -B build-cpp -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-cpp --parallel
+          ctest --test-dir build-cpp --output-on-failure
+
+  cpp-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arrow (conda-forge)
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: arrow
+          create-args: libarrow-all=24
+      - name: Build + run smoke
+        shell: pwsh
+        run: |
+          $prefix = "$env:MAMBA_ROOT_PREFIX\envs\arrow\Library"
+          cmake -S cpp/test -B build-cpp -A x64 "-DCMAKE_PREFIX_PATH=$prefix"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          cmake --build build-cpp --config Release --parallel
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $env:PATH = "$prefix\bin;$env:PATH"   # arrow/parquet DLLs for the test run
+          ctest --test-dir build-cpp -C Release --output-on-failure
+          exit $LASTEXITCODE
