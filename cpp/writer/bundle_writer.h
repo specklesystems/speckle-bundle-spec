@@ -312,6 +312,7 @@ class BundleWriter {
 
   // ── stats (for RESULT_JSON) ──────────────────────────────────────────────────
   long long eavRows() const { return eavRows_; }
+  size_t objectCount() const { return objIndex_.size(); }
   size_t pathCount() const { return pathIndex_.size(); }
   size_t typeCount() const { return typeIndex_.size(); }
   long long geomRows() const { return geomRows_; }
