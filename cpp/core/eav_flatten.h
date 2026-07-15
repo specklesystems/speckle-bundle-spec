@@ -259,9 +259,22 @@ inline void makeRow(const std::string& path, const PVal& v,
       EavRow{path, toText(v), num, type, std::move(units), std::move(idn)});
 }
 
+// Producer-shape options. The defaults reproduce the Revit/Navis-shaped walk the
+// managed SDK defined (and the converters baseline depends on); producers whose
+// property trees are user-definable (archicad) disable the key-name special-cases
+// so a user group that happens to be called "Material Quantities" isn't swallowed.
+struct WalkOptions {
+  // Skip {…}.Type Parameters.Structure subtrees (Revit type-parameter noise).
+  bool skipTypeParamsStructure = true;
+  // Treat a depth-anywhere "Material Quantities" dict as reserved: walk() skips it
+  // and flatten() emits it through the dedicated materialQuantities() shape.
+  bool materialQuantitiesSpecialCase = true;
+};
+
 inline void walk(const PDict& obj, const std::string& prefix, int depth,
                  std::vector<EavRow>& rows,
-                 const std::vector<std::string>* excluded) {
+                 const std::vector<std::string>* excluded,
+                 const WalkOptions& opts = WalkOptions()) {
   if (depth >= MAX_DEPTH) return;
   for (const auto& kv : obj.items) {
     const std::string& key = kv.first;
@@ -296,11 +309,13 @@ inline void walk(const PDict& obj, const std::string& prefix, int depth,
         makeRow(path, *valueV, units, idn, rows);
         continue;
       }
-      if (key == "Structure" && prefix.size() >= 16 &&
+      if (opts.skipTypeParamsStructure && key == "Structure" &&
+          prefix.size() >= 16 &&
           prefix.compare(prefix.size() - 16, 16, ".Type Parameters") == 0)
         continue;
-      if (key == "Material Quantities") continue;  // handled separately
-      walk(rec, path, depth + 1, rows, nullptr);
+      if (opts.materialQuantitiesSpecialCase && key == "Material Quantities")
+        continue;  // handled separately (flatten()'s materialQuantities pass)
+      walk(rec, path, depth + 1, rows, nullptr, opts);
       continue;
     }
 
@@ -335,16 +350,19 @@ inline void materialQuantities(const PDict& mq, std::vector<EavRow>& rows) {
 inline void flatten(
     const PDict& properties,
     const std::vector<std::pair<std::string, PVal>>& rootScalars,
-    const std::vector<std::string>* excluded, std::vector<EavRow>& rows) {
+    const std::vector<std::string>* excluded, std::vector<EavRow>& rows,
+    const WalkOptions& opts = WalkOptions()) {
   for (const auto& kv : rootScalars)
     if (kv.second.isScalar())
       makeRow(kv.first, kv.second, std::nullopt, std::nullopt, rows);
 
-  walk(properties, "properties", 0, rows, excluded);
+  walk(properties, "properties", 0, rows, excluded, opts);
 
-  if (const PVal* mq = properties.find("Material Quantities");
-      mq && mq->t == VT::Dict)
-    materialQuantities(*mq->dict, rows);
+  if (opts.materialQuantitiesSpecialCase) {
+    if (const PVal* mq = properties.find("Material Quantities");
+        mq && mq->t == VT::Dict)
+      materialQuantities(*mq->dict, rows);
+  }
 }
 
 }  // namespace eav

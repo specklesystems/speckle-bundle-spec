@@ -212,9 +212,13 @@ class BundleWriter {
   // ── envelope nodes / relations / geometry ────────────────────────────────────
   // Mint a node K (first-write order) and write the row. Only MATERIAL fills argb/opacity/
   // metalness/roughness; elevation is always null here (use addLevelNode for LEVEL).
+  // roughness defaults to the historical fixed 1.0; producers with real surface data
+  // (archicad: 1 − shining/100) pass it explicitly. Metalness stays fixed at 0.0 —
+  // no producer has real metalness today.
   int addNode(bundlespec::NodeKind kind, const std::string* name, int defRef,
               const std::string* xf, const std::string* units,
-              const std::string* subtype, bool isMat, int argb, double opacity) {
+              const std::string* subtype, bool isMat, int argb, double opacity,
+              double roughness = 1.0) {
     int id = nextNodeK_++;
     envNodesT_.putInt(0, id);
     envNodesT_.putInt(1, (int)kind);
@@ -242,7 +246,7 @@ class BundleWriter {
       envNodesT_.putInt(7, argb);
       envNodesT_.putDouble(8, opacity);
       envNodesT_.putDouble(9, 0.0);
-      envNodesT_.putDouble(10, 1.0);
+      envNodesT_.putDouble(10, roughness);
     } else {
       envNodesT_.putIntNull(7);
       envNodesT_.putDouble(8, std::nullopt);

@@ -68,7 +68,39 @@ inline void writeCatalogTables(const std::string& outdir,
   }
 }
 
-// Producer-authored default scene_views projection (SOT §8), source-format-aware:
+// One scene-view tier: source is "rel" (ref = a Rel id as decimal text) or "eav"
+// (ref = an eav path). Tiers are ordered outermost-first.
+struct SceneViewTier {
+  std::string source;
+  std::string ref;
+};
+
+// Generic producer-authored default scene_views projection (SOT §8): write the given
+// ordered tier list as the single default view. No-op on an empty list (consumer
+// falls back to its own default grouping).
+inline void writeSceneViewTiers(const std::string& outdir,
+                                const std::string& base,
+                                const std::vector<SceneViewTier>& tiers,
+                                const std::string& viewName = "Default") {
+  if (tiers.empty()) return;
+  PqTable sv(outdir + "/" + base + ".envelope.scene_views.parquet",
+             arrow::schema({I("view"), S("name"),
+                            arrow::field("is_default", arrow::boolean()),
+                            I("ord"), S("source"), S("ref")}));
+  for (int i = 0; i < (int)tiers.size(); ++i) {
+    sv.putInt(0, 0);
+    sv.putStr(1, viewName);
+    sv.putBool(2, true);
+    sv.putInt(3, i);
+    sv.putStr(4, tiers[(size_t)i].source);
+    sv.putStr(5, tiers[(size_t)i].ref);
+    sv.endRow();
+  }
+  sv.complete();
+}
+
+// Source-format-aware convenience wrapper (byte-identical to the pre-consolidation
+// converters writer):
 //   • federated (>1 model)  ⇒ IN_MODEL (rel 11) is the outermost tier;
 //   • nativeRevit           ⇒ Revit's default tiers level → category → family, where category/family
 //                              are the BARE root-scalar eav paths the native extractor emits;
@@ -76,33 +108,18 @@ inline void writeCatalogTables(const std::string& outdir,
 //   • other formats (IFC …) ⇒ TBD — IN_MODEL only when federated, else no table (consumer falls back).
 inline void writeSceneViews(const std::string& outdir, const std::string& base,
                             bool federated, bool anyRevit, bool nativeRevit = false) {
-  std::vector<std::pair<const char*, const char*>>
-      keys;  // (source, ref), outermost-first
+  std::vector<SceneViewTier> keys;  // outermost-first
   if (federated)
-    keys.emplace_back("rel", "11");  // IN_MODEL (federated: >1 source file)
+    keys.push_back({"rel", "11"});  // IN_MODEL (federated: >1 source file)
   if (nativeRevit) {
-    keys.emplace_back("rel", "7");  // ON_LEVEL
-    keys.emplace_back("eav", "category");
-    keys.emplace_back("eav", "family");
+    keys.push_back({"rel", "7"});  // ON_LEVEL
+    keys.push_back({"eav", "category"});
+    keys.push_back({"eav", "family"});
   } else if (anyRevit) {
-    keys.emplace_back("rel", "7");  // ON_LEVEL
-    keys.emplace_back("eav", "properties.Element.Category");
-    keys.emplace_back("eav", "properties.Element.Family");
+    keys.push_back({"rel", "7"});  // ON_LEVEL
+    keys.push_back({"eav", "properties.Element.Category"});
+    keys.push_back({"eav", "properties.Element.Family"});
   }
-  if (keys.empty()) return;
-  PqTable sv(outdir + "/" + base + ".envelope.scene_views.parquet",
-             arrow::schema({I("view"), S("name"),
-                            arrow::field("is_default", arrow::boolean()),
-                            I("ord"), S("source"), S("ref")}));
-  for (int i = 0; i < (int)keys.size(); ++i) {
-    sv.putInt(0, 0);
-    sv.putStr(1, "Default");
-    sv.putBool(2, true);
-    sv.putInt(3, i);
-    sv.putStr(4, keys[(size_t)i].first);
-    sv.putStr(5, keys[(size_t)i].second);
-    sv.endRow();
-  }
-  sv.complete();
+  writeSceneViewTiers(outdir, base, keys);
 }
 }  // namespace envcat

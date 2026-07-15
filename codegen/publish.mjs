@@ -79,6 +79,27 @@ inline constexpr int         kSchemaVersionPinned = ${SCHEMA_VERSION};
 `
 writeFileSync(join(cppOutDir, 'bundle_spec_version.h'), cppVersionHeader)
 
+// ── hand-written shared C++ package (cpp/{core,writer,reader} + cmake/) rides along in
+//    the artifact so a consumer building from the tarball (archicad release builds) gets
+//    the writer/reader implementation, not just the generated schema headers. Mirrors
+//    the repo layout so BUNDLE_SPEC points at either a checkout or an extracted tarball
+//    interchangeably. ──
+const copyTree = (srcDir, dstDir, ext) => {
+  mkdirSync(dstDir, { recursive: true })
+  let copied = []
+  for (const f of readdirSync(srcDir, { withFileTypes: true })) {
+    if (f.isDirectory()) {
+      copied = copied.concat(copyTree(join(srcDir, f.name), join(dstDir, f.name), ext))
+    } else if (ext.some((e) => f.name.endsWith(e))) {
+      copyFileSync(join(srcDir, f.name), join(dstDir, f.name))
+      copied.push(join(srcDir, f.name))
+    }
+  }
+  return copied
+}
+const cppPkgFiles = copyTree(join(REPO, 'cpp'), join(DIST, 'cpp', 'cpp'), ['.h'])
+const cmakeFiles = copyTree(join(REPO, 'cmake'), join(DIST, 'cpp', 'cmake'), ['.cmake'])
+
 // ── python target: an installable package `speckle-bundle-spec` ──
 const pySrcDir = join(REPO, 'generated', 'python')
 const pyPkgDir = join(DIST, 'python', 'speckle_bundle_spec')
@@ -142,6 +163,15 @@ const lock = {
   specHash: SPEC_HASH,
   targets: {
     cpp: { include: 'generated/cpp', files: hashTree(cppSrcDir, '.h', 'generated/cpp/') },
+    cppPackage: {
+      include: 'cpp',
+      files: Object.fromEntries(
+        [...cppPkgFiles, ...cmakeFiles]
+          .map((p) => rel(p).replaceAll('\\', '/'))
+          .sort()
+          .map((p) => [p, sha256File(join(REPO, p))])
+      )
+    },
     python: { package: 'speckle_bundle_spec', files: hashTree(pySrcDir, '.py', '') }
   }
 }
@@ -159,8 +189,11 @@ try {
 } catch {
   /* --version unsupported → assume bsdtar */
 }
+// --force-local: GNU tar (git-bash/msys on Windows dev boxes) would otherwise parse
+// the drive letter in "C:\…" as a remote-host prefix.
+const gnuLocal = isGnuTar && process.platform === 'win32' ? ['--force-local'] : []
 const tarArgs = isGnuTar
-  ? ['--sort=name', '--mtime=1970-01-01 00:00:00Z', '--owner=0', '--group=0', '--numeric-owner',
+  ? [...gnuLocal, '--sort=name', '--mtime=1970-01-01 00:00:00Z', '--owner=0', '--group=0', '--numeric-owner',
      '-czf', join(DIST, tarball), '-C', join(DIST, 'cpp'), '.']
   : ['-czf', join(DIST, tarball), '-C', join(DIST, 'cpp'), '.']
 execFileSync('tar', tarArgs, { stdio: 'inherit' })

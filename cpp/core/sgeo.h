@@ -1,27 +1,29 @@
-// SGEO v1 mesh encoder + CRC32 + SHA256 — port of Speckle.Objects SgeoEncoder.EncodeMesh /
-// SgeoFormat. Navis geometry is meshes only (vertices + faces, no normals/uvs/colors).
+// SGEO v1 mesh codec + CRC32 + SHA256 — port of Speckle.Objects SgeoEncoder.EncodeMesh /
+// SgeoFormat, extended with the archicad producer's colors flag and the decoder.
 // Header (16B LE): "SGEO" | ver=1 | type=0(Mesh) | flags u16 | units u16 | reserved u16 | crc32 u32.
-// Body: u32 vertexCount(=verts/3) | u32 faceCount(=faces.size) | f64 verts[] | i32 faces[].
+// Body: u32 vertexCount(=verts/3) | u32 faceCount(=faces.size) | f64 verts[] | i32 faces[]
+//       | [i32 argb colors[vertexCount] when FLAG_HAS_COLORS].
+// encodeMesh with no colors is byte-identical to the pre-consolidation converters encoder
+// (flags=0) — the snowden md5 baseline depends on that.
 #pragma once
+#include "units.h"
+
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace sgeo {
 
+inline constexpr uint16_t FLAG_QUANTIZED = 1 << 0;
+inline constexpr uint16_t FLAG_HAS_NORMALS = 1 << 4;
+inline constexpr uint16_t FLAG_HAS_UVS = 1 << 5;
+inline constexpr uint16_t FLAG_HAS_COLORS = 1 << 6;
+
 // Units.GetEncodingFromUnit (SDK) — short unit string → uint16 code.
-inline uint16_t unitsCode(const std::string& u) {
-  if (u == "mm") return 1;
-  if (u == "cm") return 2;
-  if (u == "m") return 3;
-  if (u == "km") return 4;
-  if (u == "in") return 5;
-  if (u == "ft") return 6;
-  if (u == "yd") return 7;
-  if (u == "mi") return 8;
-  return 0;
-}
+// Kept as a delegate so existing sgeo::unitsCode callers survive the units.h split.
+inline uint16_t unitsCode(const std::string& u) { return units::code(u); }
 
 // Canonical CRC-32 (IEEE 802.3, reflected poly 0xEDB88320) over the SGEO body — the
 // standard CRC-32 (matches zlib.crc32 / System.IO.Hashing.Crc32). The whole stack uses
@@ -153,12 +155,20 @@ inline std::string sha256hex(const std::string& s) {
   return sha256hex((const uint8_t*)s.data(), s.size());
 }
 
-// Encode a mesh (flat verts xyz, flat faces [3,i,j,k,...]) into an SGEO blob.
+// Encode a mesh (flat verts xyz, flat faces [3,i,j,k,...], optional per-vertex ARGB
+// colors) into an SGEO blob. With empty colors the output is byte-identical to the
+// pre-consolidation converters encoder (flags=0); with colors it matches the archicad
+// SgeoEncoder (FLAG_HAS_COLORS, colors appended after faces).
 inline std::vector<uint8_t> encodeMesh(const std::vector<double>& verts,
                                        const std::vector<int32_t>& faces,
-                                       uint16_t uc) {
+                                       uint16_t uc,
+                                       const std::vector<int32_t>& colors =
+                                           std::vector<int32_t>()) {
+  if (verts.size() % 3 != 0)
+    throw std::runtime_error("SGEO mesh: vertices length must be a multiple of 3");
+  const uint16_t flags = colors.empty() ? 0 : FLAG_HAS_COLORS;
   std::vector<uint8_t> body;
-  body.reserve(8 + verts.size() * 8 + faces.size() * 4);
+  body.reserve(8 + verts.size() * 8 + faces.size() * 4 + colors.size() * 4);
   auto u32 = [&](uint32_t v) {
     for (int i = 0; i < 4; i++) body.push_back((uint8_t)(v >> (8 * i)));
   };
@@ -174,6 +184,7 @@ inline std::vector<uint8_t> encodeMesh(const std::vector<double>& verts,
   u32((uint32_t)faces.size());
   for (double v : verts) f64(v);
   for (int32_t f : faces) i32(f);
+  for (int32_t c : colors) i32(c);
 
   std::vector<uint8_t> buf(16 + body.size(), 0);
   buf[0] = 'S';
@@ -182,8 +193,8 @@ inline std::vector<uint8_t> encodeMesh(const std::vector<double>& verts,
   buf[3] = 'O';
   buf[4] = 1;
   buf[5] = 0;  // magic, ver, type=Mesh
-  buf[6] = 0;
-  buf[7] = 0;  // flags=0 (no normals/uvs/colors)
+  buf[6] = (uint8_t)(flags & 0xFF);
+  buf[7] = (uint8_t)(flags >> 8);
   buf[8] = (uint8_t)(uc & 0xFF);
   buf[9] = (uint8_t)(uc >> 8);  // units
   buf[10] = 0;
@@ -195,6 +206,81 @@ inline std::vector<uint8_t> encodeMesh(const std::vector<double>& verts,
   buf[14] = (uint8_t)((crc >> 16) & 0xFF);
   buf[15] = (uint8_t)((crc >> 24) & 0xFF);
   return buf;
+}
+
+// ── decoder (ported from the archicad SgeoDecoder; mirrors the SDK decoder) ──
+
+struct DecodedMesh {
+  std::vector<double> vertices;  // flat xyz
+  std::vector<int32_t> faces;    // [3, i, j, k, ...]
+  std::string units;
+};
+
+// Decode an SGEO blob into verts/faces/units. Returns false for non-mesh primitives
+// and quantized payloads (unsupported); throws on structural corruption (short buffer,
+// magic/version/CRC mismatch, truncated body). Normals/uvs are skipped with the SDK's
+// 8-byte-alignment rule; trailing colors are ignored.
+inline bool decodeMesh(const uint8_t* data, size_t length, DecodedMesh& mesh) {
+  constexpr size_t kHeader = 16;
+  if (length < kHeader)
+    throw std::runtime_error("SGEO buffer too small to contain a header");
+  if (memcmp(data, "SGEO", 4) != 0)
+    throw std::runtime_error("SGEO magic mismatch");
+  if (data[4] != 1)
+    throw std::runtime_error("SGEO version " + std::to_string(data[4]) +
+                             " unsupported");
+
+  const uint8_t primitiveType = data[5];
+  uint16_t flags;
+  memcpy(&flags, data + 6, 2);
+  uint16_t uc;
+  memcpy(&uc, data + 8, 2);
+  uint32_t crc;
+  memcpy(&crc, data + 12, 4);
+
+  if (crc32(data + kHeader, length - kHeader) != crc)
+    throw std::runtime_error("SGEO CRC mismatch");
+  if (primitiveType != 0 /*Mesh*/ || (flags & FLAG_QUANTIZED) != 0) return false;
+
+  // Cursor over the little-endian body (incl. the SDK's Align8 rule for f64 arrays).
+  size_t pos = kHeader;
+  auto ensure = [&](size_t bytes) {
+    if (pos + bytes > length) throw std::runtime_error("SGEO buffer truncated");
+  };
+  auto u = [&]() {
+    ensure(4);
+    uint32_t v;
+    memcpy(&v, data + pos, 4);
+    pos += 4;
+    return v;
+  };
+
+  const uint32_t vCount = u();
+  const uint32_t fCount = u();
+
+  mesh.units = units::fromCode(uc);
+  mesh.vertices.resize((size_t)vCount * 3);
+  ensure(mesh.vertices.size() * 8);
+  memcpy(mesh.vertices.data(), data + pos, mesh.vertices.size() * 8);
+  pos += mesh.vertices.size() * 8;
+  mesh.faces.resize(fCount);
+  ensure((size_t)fCount * 4);
+  memcpy(mesh.faces.data(), data + pos, (size_t)fCount * 4);
+  pos += (size_t)fCount * 4;
+
+  if ((flags & FLAG_HAS_NORMALS) != 0) {
+    pos = (pos + 7) & ~(size_t)7;
+    ensure((size_t)vCount * 3 * 8);
+    pos += (size_t)vCount * 3 * 8;
+  }
+  if ((flags & FLAG_HAS_UVS) != 0) {
+    pos = (pos + 7) & ~(size_t)7;
+    ensure((size_t)vCount * 2 * 8);
+    pos += (size_t)vCount * 2 * 8;
+  }
+  // FLAG_HAS_COLORS payload trails; current consumers don't read it.
+
+  return true;
 }
 
 }  // namespace sgeo
