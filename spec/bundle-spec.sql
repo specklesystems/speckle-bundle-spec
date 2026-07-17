@@ -97,7 +97,7 @@ COMMENT ON COLUMN nodes.kind IS 'NodeKind discriminator (see node_kinds catalog)
 COMMENT ON COLUMN nodes.def_ref IS 'Node→node K reference: INSTANCE→DEFINITION, or CONTAINER→parent container (tree nesting).';
 COMMENT ON COLUMN nodes.transform IS 'INSTANCE only. Row-major 4x4 as CSV. HOT: bulk-scanned per instance (100k–1M) on load — must stay columnar.';
 COMMENT ON COLUMN nodes.units IS 'INSTANCE placement units; read in the same hot scan as transform.';
-COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network. The single grouping discriminator (replaced the former units-overload).';
+COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network | Clash Test. The single grouping discriminator (replaced the former units-overload).';
 COMMENT ON COLUMN nodes.argb IS 'MATERIAL/COLOR packed colour.';
 COMMENT ON COLUMN nodes.elevation IS 'LEVEL height — lets the scene tree order storeys architecturally.';
 
@@ -220,7 +220,8 @@ INSERT INTO rel_types
   (20, 'XREF',             NULL,              NULL,       'retired',  NULL,                  NULL,      'External reference link.',                        'Retired in v5: never emitted.'),
   (21, 'CONNECTS_TO',      'object',          'object',   'live',     'rvextract,nwextract', 'scope',   'Object → object connectivity (directed).',        'The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped).'),
   (22, 'HOSTED_ON',        NULL,              NULL,       'retired',  NULL,                  NULL,      'Hosted element → host.',                          'Retired in v5 (deferred): clean ODA getHost exists — reintroduce when the host/hosted edge is needed.'),
-  (23, 'BOUNDS',           'object',          'object',   'live',     'rvextract',           NULL,      'Bounding wall → room object.',                    'Room footprint (which walls bound a room) for downstream egress / plan analysis.');
+  (23, 'BOUNDS',           'object',          'object',   'live',     'rvextract',           NULL,      'Bounding wall → room object.',                    'Room footprint (which walls bound a room) for downstream egress / plan analysis.'),
+  (24, 'CLASHES_WITH',     'object',          'object',   'live',     'clashdetect',         'scope',   'Clash-result object → clashing element.',         'Geometric interference. Each clash RESULT is an object (eav carries Clash.Type/Distance/Point — edges cannot); exactly two edges link it to the clashing pair. ord = CONTAINER(Clash Test) node K grouping one detection run, 0 = unscoped.');
 
 -- ── node_kinds ───────────────────────────────────────────────────────────────
 CREATE TABLE node_kinds (
@@ -240,7 +241,7 @@ INSERT INTO node_kinds
   (4, 'COLOR',       'live',    'argb,opacity',                           NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).'),
   (5, 'LEVEL',       'live',    'name,elevation',                         NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
   (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),
-  (7, 'CONTAINER',   'live',    'name,def_ref,subtype',                   'Collection,Model,MEP System,Network','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM.');
+  (7, 'CONTAINER',   'live',    'name,def_ref,subtype',                   'Collection,Model,MEP System,Network,Clash Test','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM; CLASHES_WITH ord-scope (Clash Test).');
 
 -- ── bundle_files (the manifest) ──────────────────────────────────────────────
 --   sharded   : true ⇒ the table rolls across multiple parquet files; read via read_glob.

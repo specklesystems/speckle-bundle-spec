@@ -30,6 +30,7 @@ class Rel(IntEnum):
     IN_SYSTEM = 14
     CONNECTS_TO = 21
     BOUNDS = 23
+    CLASHES_WITH = 24
 
 
 class NodeKind(IntEnum):
@@ -85,6 +86,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(21, "CONNECTS_TO", "object", "object", "live", "scope"),
     RelTypeRow(22, "HOSTED_ON", None, None, "retired", None),
     RelTypeRow(23, "BOUNDS", "object", "object", "live", None),
+    RelTypeRow(24, "CLASHES_WITH", "object", "object", "live", "scope"),
 ]
 
 NODE_KINDS: list[NodeKindRow] = [
@@ -94,5 +96,5 @@ NODE_KINDS: list[NodeKindRow] = [
     NodeKindRow(4, "COLOR", "live", None),
     NodeKindRow(5, "LEVEL", "live", None),
     NodeKindRow(6, "COLLECTION", "retired", None),
-    NodeKindRow(7, "CONTAINER", "live", "Collection,Model,MEP System,Network"),
+    NodeKindRow(7, "CONTAINER", "live", "Collection,Model,MEP System,Network,Clash Test"),
 ]

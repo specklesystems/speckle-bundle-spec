@@ -23,6 +23,7 @@ enum class Rel : int {
   IN_SYSTEM = 14,
   CONNECTS_TO = 21,
   BOUNDS = 23,
+  CLASHES_WITH = 24,
 };
 
 enum class NodeKind : int {
@@ -55,6 +56,7 @@ static const RelTypeRow kRelTypes[] = {
   {14, "IN_SYSTEM", "object", "node", "live"},
   {21, "CONNECTS_TO", "object", "object", "live"},
   {23, "BOUNDS", "object", "object", "live"},
+  {24, "CLASHES_WITH", "object", "object", "live"},
 };
 static const NodeKindRow kNodeKinds[] = {
   {1, "DEFINITION", nullptr},
@@ -62,7 +64,7 @@ static const NodeKindRow kNodeKinds[] = {
   {3, "MATERIAL", nullptr},
   {4, "COLOR", nullptr},
   {5, "LEVEL", nullptr},
-  {7, "CONTAINER", "Collection,Model,MEP System,Network"},
+  {7, "CONTAINER", "Collection,Model,MEP System,Network,Clash Test"},
 };
 
 }  // namespace bundlespec

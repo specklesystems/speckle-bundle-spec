@@ -26,6 +26,7 @@ public enum Rel
     IN_SYSTEM = 14,
     CONNECTS_TO = 21,
     BOUNDS = 23,
+    CLASHES_WITH = 24,
 }
 
 public enum NodeKind
@@ -60,6 +61,7 @@ public static class Catalog
         new(14, "IN_SYSTEM", "object", "node", "live"),
         new(21, "CONNECTS_TO", "object", "object", "live"),
         new(23, "BOUNDS", "object", "object", "live"),
+        new(24, "CLASHES_WITH", "object", "object", "live"),
     };
 
     public static readonly NodeKindRow[] NodeKinds =
@@ -69,6 +71,6 @@ public static class Catalog
         new(3, "MATERIAL", null),
         new(4, "COLOR", null),
         new(5, "LEVEL", null),
-        new(7, "CONTAINER", "Collection,Model,MEP System,Network"),
+        new(7, "CONTAINER", "Collection,Model,MEP System,Network,Clash Test"),
     };
 }
