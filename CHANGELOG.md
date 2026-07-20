@@ -4,6 +4,17 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**`IN_GROUP` (17) un-retired** (`object → node`, emitted by managed connectors)
+- Authored scene-group membership (Rhino groups, AutoCAD groups) → `CONTAINER`
+  with new subtype `Group`; groups nest via `def_ref` and may overlap.
+- Deliberately NOT `IN_COLLECTION`: the receive side stores IN_COLLECTION
+  last-wins single-valued (it *is* the scene tree) — reusing it for groups would
+  pull members out of their layer collection. IN_GROUP is a separate,
+  multi-valued axis: an object keeps its layer AND its group(s).
+- Additive ⇒ no `schema_version` bump: the id was retired in place (never
+  reused), the catalog is self-describing, and consumers feature-detect by
+  rel presence.
+
 **New optional file: `{base}.envelope.camera_views.parquet`** (`camera_views`, `bundle_files` ord 14)
 - Named camera viewpoints authored in the source model (Rhino named views, Revit 3D views,
   SketchUp scenes). One row per view: eye position + forward/up unit vectors (+ optional

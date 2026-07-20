@@ -28,6 +28,7 @@ class Rel(IntEnum):
     IN_MODEL = 11
     IN_ROOM = 12
     IN_SYSTEM = 14
+    IN_GROUP = 17
     CONNECTS_TO = 21
     BOUNDS = 23
 
@@ -78,7 +79,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(14, "IN_SYSTEM", "object", "node", "live", None),
     RelTypeRow(15, "IN_NETWORK", None, None, "retired", None),
     RelTypeRow(16, "IN_LINE", None, None, "retired", None),
-    RelTypeRow(17, "IN_GROUP", None, None, "retired", None),
+    RelTypeRow(17, "IN_GROUP", "object", "node", "live", None),
     RelTypeRow(18, "IN_ASSEMBLY", None, None, "retired", None),
     RelTypeRow(19, "IN_SUBASSEMBLY", None, None, "retired", None),
     RelTypeRow(20, "XREF", None, None, "retired", None),
@@ -94,5 +95,5 @@ NODE_KINDS: list[NodeKindRow] = [
     NodeKindRow(4, "COLOR", "live", None),
     NodeKindRow(5, "LEVEL", "live", None),
     NodeKindRow(6, "COLLECTION", "retired", None),
-    NodeKindRow(7, "CONTAINER", "live", "Collection,Model,MEP System,Network"),
+    NodeKindRow(7, "CONTAINER", "live", "Collection,Model,MEP System,Network,Group"),
 ]
