@@ -30,6 +30,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 21 | **CONNECTS_TO** | object → object | 🟢 live | rvextract,nwextract | scope | Object → object connectivity (directed). — *The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped).* |
 | 22 | **HOSTED_ON** | · | ⚪ retired | · | · | Hosted element → host. — *Retired in v5 (deferred): clean ODA getHost exists — reintroduce when the host/hosted edge is needed.* |
 | 23 | **BOUNDS** | object → object | 🟢 live | rvextract | · | Bounding wall → room object. — *Room footprint (which walls bound a room) for downstream egress / plan analysis.* |
+| 24 | **CLASHES_WITH** | object → object | 🟢 live | clashdetect | scope | Clash-result object → clashing element. — *Geometric interference. Each clash RESULT is an object (eav carries Clash.Type/Distance/Point — edges cannot); exactly two edges link it to the clashing pair. ord = CONTAINER(Clash Test) node K grouping one detection run, 0 = unscoped.* |
 
 ## Node kinds (`node_kinds`)
 
@@ -41,7 +42,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 4 | **COLOR** | 🟢 live | argb,opacity | · | Raw colour override. — *Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).* |
 | 5 | **LEVEL** | 🟢 live | name,elevation | · | A storey. — *Target of ON_LEVEL; elevation drives architectural ordering.* |
 | 6 | **COLLECTION** | ⚪ retired | · | · | Authored layer/collection node. — *Retired in v5: folded into CONTAINER (subtype=Collection).* |
-| 7 | **CONTAINER** | 🟢 live | name,def_ref,subtype | Collection,Model,MEP System,Network | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM.* |
+| 7 | **CONTAINER** | 🟢 live | name,def_ref,subtype | Collection,Model,MEP System,Network,Clash Test | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM; CLASHES_WITH ord-scope (Clash Test).* |
 
 ## Bundle manifest (`bundle_files`)
 
@@ -124,7 +125,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | def_ref | INTEGER | Node→node K reference: INSTANCE→DEFINITION, or CONTAINER→parent container (tree nesting). |
 | transform | VARCHAR | INSTANCE only. Row-major 4x4 as CSV. HOT: bulk-scanned per instance (100k–1M) on load — must stay columnar. |
 | units | VARCHAR | INSTANCE placement units; read in the same hot scan as transform. |
-| subtype | VARCHAR | CONTAINER polymorphism: Collection \| Model \| MEP System \| Network. The single grouping discriminator (replaced the former units-overload). |
+| subtype | VARCHAR | CONTAINER polymorphism: Collection \| Model \| MEP System \| Network \| Clash Test. The single grouping discriminator (replaced the former units-overload). |
 | argb | INTEGER | MATERIAL/COLOR packed colour. |
 | opacity | DOUBLE | · |
 | metalness | DOUBLE | · |

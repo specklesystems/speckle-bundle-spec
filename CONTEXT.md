@@ -71,7 +71,8 @@ On each rel type, declares which K-space its `src`/`dst` reference: `object` |
 
 **Producer**:
 A writer that emits bundles: `rvextract` (native Revit, C++), `nwextract`
-(native Navis, C++), or `managed` (the C# EnvelopeWriter).
+(native Navis, C++), `managed` (the C# EnvelopeWriter), or `clashdetect` (the
+native post-extraction clash-detection pass, C++ — appends to existing bundles).
 
 **Consumer**:
 A reader of bundles: the viewer geometry path (`buildDatFromBundle`) and the

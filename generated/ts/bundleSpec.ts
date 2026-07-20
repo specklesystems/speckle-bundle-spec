@@ -20,6 +20,7 @@ export const Rel = {
   IN_SYSTEM: 14,
   CONNECTS_TO: 21,
   BOUNDS: 23,
+  CLASHES_WITH: 24,
 } as const
 export type RelName = keyof typeof Rel
 
@@ -67,6 +68,7 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 21, name: 'CONNECTS_TO', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: 'scope' },
   { id: 22, name: 'HOSTED_ON', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
   { id: 23, name: 'BOUNDS', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: null },
+  { id: 24, name: 'CLASHES_WITH', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: 'scope' },
 ]
 
 /** Logical table → column names, generated from the DDL. */

@@ -49,7 +49,7 @@ const container = kinds.find((k) => k.name === 'CONTAINER')
 check(container?.subtype_values?.split(',').length >= 2, 'CONTAINER declares ≥2 subtype values')
 
 // 6. emitted_by only references known producers.
-const PRODUCERS = new Set(['rvextract', 'nwextract', 'managed'])
+const PRODUCERS = new Set(['rvextract', 'nwextract', 'managed', 'clashdetect'])
 check(
   rels
     .filter((r) => r.emitted_by)
