@@ -18,6 +18,7 @@ export const Rel = {
   IN_MODEL: 11,
   IN_ROOM: 12,
   IN_SYSTEM: 14,
+  IN_GROUP: 17,
   CONNECTS_TO: 21,
   BOUNDS: 23,
 } as const
@@ -60,7 +61,7 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 14, name: 'IN_SYSTEM', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 15, name: 'IN_NETWORK', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
   { id: 16, name: 'IN_LINE', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
-  { id: 17, name: 'IN_GROUP', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
+  { id: 17, name: 'IN_GROUP', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 18, name: 'IN_ASSEMBLY', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
   { id: 19, name: 'IN_SUBASSEMBLY', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
   { id: 20, name: 'XREF', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },

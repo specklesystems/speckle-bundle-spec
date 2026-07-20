@@ -24,6 +24,7 @@ public enum Rel
     IN_MODEL = 11,
     IN_ROOM = 12,
     IN_SYSTEM = 14,
+    IN_GROUP = 17,
     CONNECTS_TO = 21,
     BOUNDS = 23,
 }
@@ -58,6 +59,7 @@ public static class Catalog
         new(11, "IN_MODEL", "object", "node", "live"),
         new(12, "IN_ROOM", "object", "object", "live"),
         new(14, "IN_SYSTEM", "object", "node", "live"),
+        new(17, "IN_GROUP", "object", "node", "live"),
         new(21, "CONNECTS_TO", "object", "object", "live"),
         new(23, "BOUNDS", "object", "object", "live"),
     };
@@ -69,6 +71,6 @@ public static class Catalog
         new(3, "MATERIAL", null),
         new(4, "COLOR", null),
         new(5, "LEVEL", null),
-        new(7, "CONTAINER", "Collection,Model,MEP System,Network"),
+        new(7, "CONTAINER", "Collection,Model,MEP System,Network,Group"),
     };
 }
