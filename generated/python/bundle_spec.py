@@ -30,6 +30,7 @@ class Rel(IntEnum):
     IN_SYSTEM = 14
     IN_GROUP = 17
     CONNECTS_TO = 21
+    HOSTED_ON = 22
     BOUNDS = 23
 
 
@@ -84,7 +85,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(19, "IN_SUBASSEMBLY", None, None, "retired", None),
     RelTypeRow(20, "XREF", None, None, "retired", None),
     RelTypeRow(21, "CONNECTS_TO", "object", "object", "live", "scope"),
-    RelTypeRow(22, "HOSTED_ON", None, None, "retired", None),
+    RelTypeRow(22, "HOSTED_ON", "object", "object", "live", None),
     RelTypeRow(23, "BOUNDS", "object", "object", "live", None),
 ]
 

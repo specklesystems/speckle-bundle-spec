@@ -26,6 +26,7 @@ public enum Rel
     IN_SYSTEM = 14,
     IN_GROUP = 17,
     CONNECTS_TO = 21,
+    HOSTED_ON = 22,
     BOUNDS = 23,
 }
 
@@ -61,6 +62,7 @@ public static class Catalog
         new(14, "IN_SYSTEM", "object", "node", "live"),
         new(17, "IN_GROUP", "object", "node", "live"),
         new(21, "CONNECTS_TO", "object", "object", "live"),
+        new(22, "HOSTED_ON", "object", "object", "live"),
         new(23, "BOUNDS", "object", "object", "live"),
     };
 

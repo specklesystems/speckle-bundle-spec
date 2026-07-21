@@ -28,7 +28,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 19 | **IN_SUBASSEMBLY** | · | ⚪ retired | · | · | Object → subassembly. — *Retired in v5: never emitted.* |
 | 20 | **XREF** | · | ⚪ retired | · | · | External reference link. — *Retired in v5: never emitted.* |
 | 21 | **CONNECTS_TO** | object → object | 🟢 live | rvextract,nwextract | scope | Object → object connectivity (directed). — *The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped).* |
-| 22 | **HOSTED_ON** | · | ⚪ retired | · | · | Hosted element → host. — *Retired in v5 (deferred): clean ODA getHost exists — reintroduce when the host/hosted edge is needed.* |
+| 22 | **HOSTED_ON** | object → object | 🟢 live | rvextract | · | Hosted element → host. — *Revit hosting (door/window → wall, fixture → ceiling/floor/face) from ODA getHostId. A DIFFERENT semantic from SUBELEMENT ownership (owningElemId): a door is placed on a wall, not a component of it. Emitted only when the element has no owner (legacy precedence) and both endpoints are converted. Un-retired post-v5.* |
 | 23 | **BOUNDS** | object → object | 🟢 live | rvextract | · | Bounding wall → room object. — *Room footprint (which walls bound a room) for downstream egress / plan analysis.* |
 
 ## Node kinds (`node_kinds`)

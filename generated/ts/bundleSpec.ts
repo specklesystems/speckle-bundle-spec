@@ -20,6 +20,7 @@ export const Rel = {
   IN_SYSTEM: 14,
   IN_GROUP: 17,
   CONNECTS_TO: 21,
+  HOSTED_ON: 22,
   BOUNDS: 23,
 } as const
 export type RelName = keyof typeof Rel
@@ -66,7 +67,7 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 19, name: 'IN_SUBASSEMBLY', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
   { id: 20, name: 'XREF', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
   { id: 21, name: 'CONNECTS_TO', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: 'scope' },
-  { id: 22, name: 'HOSTED_ON', srcNs: null, dstNs: null, status: 'retired', ordSemantics: null },
+  { id: 22, name: 'HOSTED_ON', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: null },
   { id: 23, name: 'BOUNDS', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: null },
 ]
 
