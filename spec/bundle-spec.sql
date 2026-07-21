@@ -17,8 +17,18 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ── meta ─────────────────────────────────────────────────────────────────────
-CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR);
-INSERT INTO meta VALUES (5, 'speckle-bundle-spec');
+-- reference_point_kind/_offset (ENG-8947): set by producers that RE-BASED geometry by a
+-- source reference point (Revit project base / survey point) so the applied translation
+-- is recoverable downstream (federation/georeferencing). kind ∈ internalOrigin |
+-- projectBasePoint | surveyPoint; offset is "x,y,z" in the bundle's display units — the
+-- vector SUBTRACTED from all world-space output. kind "internalOriginFallback" = a
+-- reference point was REQUESTED but missing from the model; the producer converted at
+-- the internal origin (offset NULL) — recorded degradation, not silence. NULL/absent
+-- kind = internal origin (no re-basing). Nullable + additive: readers that ignore them
+-- are unaffected (no version bump).
+CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
+                   reference_point_kind VARCHAR, reference_point_offset VARCHAR);
+INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 1 — table shapes (DDL). Logical names match the views a consumer sees
