@@ -27,6 +27,7 @@ class Rel(IntEnum):
     IN_COLLECTION = 10
     IN_MODEL = 11
     IN_ROOM = 12
+    IN_SPACE = 13
     IN_SYSTEM = 14
     IN_GROUP = 17
     CONNECTS_TO = 21
@@ -75,7 +76,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(10, "IN_COLLECTION", "object", "node", "live", None),
     RelTypeRow(11, "IN_MODEL", "object", "node", "live", None),
     RelTypeRow(12, "IN_ROOM", "object", "object", "live", None),
-    RelTypeRow(13, "IN_SPACE", None, None, "retired", None),
+    RelTypeRow(13, "IN_SPACE", "object", "object", "live", None),
     RelTypeRow(14, "IN_SYSTEM", "object", "node", "live", None),
     RelTypeRow(15, "IN_NETWORK", None, None, "retired", None),
     RelTypeRow(16, "IN_LINE", None, None, "retired", None),
