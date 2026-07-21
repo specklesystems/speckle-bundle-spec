@@ -4,6 +4,22 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**`HOSTED_ON` (22) un-retired** (`object → object`, emitted by rvextract)
+- Revit hosting from ODA `getHostId()`: door/window → wall, fixture →
+  ceiling/floor/face, window → roof. Direction is hosted element → host,
+  as the retired vocabulary already specified.
+- Deliberately NOT `SUBELEMENT`: ownership (`owningElemId` — curtain panels,
+  mullions, railing supports) means the child is a *component* of the owner;
+  hosting means the element is *placed on* the host. Legacy collapsed both into
+  one `parentApplicationId` property; the graph keeps them distinct. Producer
+  precedence matches legacy: a valid owner wins (SUBELEMENT), host is the
+  fallback (HOSTED_ON).
+- No dangling edges: emitted only when both endpoints are converted objects
+  (a filtered-out host means no edge, not a property fallback).
+- Additive ⇒ no `schema_version` bump: the id was retired in place (never
+  reused), the catalog is self-describing, and consumers feature-detect by
+  rel presence.
+
 **`IN_GROUP` (17) un-retired** (`object → node`, emitted by managed connectors)
 - Authored scene-group membership (Rhino groups, AutoCAD groups) → `CONTAINER`
   with new subtype `Group`; groups nest via `def_ref` and may overlap.

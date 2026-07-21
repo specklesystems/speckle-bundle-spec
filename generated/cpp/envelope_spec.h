@@ -23,6 +23,7 @@ enum class Rel : int {
   IN_SYSTEM = 14,
   IN_GROUP = 17,
   CONNECTS_TO = 21,
+  HOSTED_ON = 22,
   BOUNDS = 23,
 };
 
@@ -56,6 +57,7 @@ static const RelTypeRow kRelTypes[] = {
   {14, "IN_SYSTEM", "object", "node", "live"},
   {17, "IN_GROUP", "object", "node", "live"},
   {21, "CONNECTS_TO", "object", "object", "live"},
+  {22, "HOSTED_ON", "object", "object", "live"},
   {23, "BOUNDS", "object", "object", "live"},
 };
 static const NodeKindRow kNodeKinds[] = {
