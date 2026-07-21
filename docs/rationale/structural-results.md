@@ -11,7 +11,7 @@
 An **optional, per-domain purpose file** alongside the core bundle:
 
 ```
-{base}.eav.structural-results.parquet
+{base}.eav.structural_results.parquet
 ```
 
 Structural analysis + design results in **long/tidy** form — one scalar per row. The columns
