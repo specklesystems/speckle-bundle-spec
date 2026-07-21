@@ -61,6 +61,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `scene_views` | `{base}.envelope.scene_views.parquet` | no | no | yes | Producer-authored default projection. |
 | `geometries` | `{base}.geometries*.parquet` | yes | yes | no | SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob. |
 | `camera_views` | `{base}.envelope.camera_views.parquet` | no | no | yes | Named camera viewpoints (eye/forward/up + projection). |
+| `structural_results` | `{base}.eav.structural_results.parquet` | no | no | no | OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model. |
 
 ## Table shapes
 
@@ -171,6 +172,22 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | ord | INTEGER | · |
 | source | VARCHAR | · |
 | ref | VARCHAR | · |
+
+### `structural_results`
+
+| column | type | note |
+|---|---|---|
+| object_index | INTEGER | Object-level results only (frame/joint) → objects.object_index. Piers/spandrels are NOT interned objects (named groups of walls) → NULL, identity via element_name. |
+| element_name | VARCHAR | · |
+| location | VARCHAR | · |
+| result_type | VARCHAR | · |
+| load_case | VARCHAR | · |
+| component | VARCHAR | · |
+| position_label | VARCHAR | Categorical position/direction (Top/Bottom, X/Y). Distinct from the numeric member station. |
+| station | DOUBLE | · |
+| step | INTEGER | · |
+| value | DOUBLE | · |
+| value_text | VARCHAR | Exactly one of value (numeric) / value_text (verdict) is set; consumer coalesces. value_text is NULL for all analysis results. |
 
 ### `type_eav`
 

@@ -119,6 +119,21 @@ public static class BundleSchemas
         new("ref", ArrowType.Utf8, true),
     };
 
+    public static readonly ColumnSpec[] StructuralResults =
+    {
+        new("object_index", ArrowType.Int32, true),
+        new("element_name", ArrowType.Utf8, true),
+        new("location", ArrowType.Utf8, true),
+        new("result_type", ArrowType.Utf8, false),
+        new("load_case", ArrowType.Utf8, false),
+        new("component", ArrowType.Utf8, false),
+        new("position_label", ArrowType.Utf8, true),
+        new("station", ArrowType.Float64, true),
+        new("step", ArrowType.Int32, true),
+        new("value", ArrowType.Float64, true),
+        new("value_text", ArrowType.Utf8, true),
+    };
+
     public static readonly ColumnSpec[] TypeEav =
     {
         new("type_index", ArrowType.Int32, false),
@@ -148,6 +163,7 @@ public static class BundleSchemas
         ["paths"] = Paths,
         ["relations"] = Relations,
         ["scene_views"] = SceneViews,
+        ["structural_results"] = StructuralResults,
         ["type_eav"] = TypeEav,
         ["types"] = Types,
         };

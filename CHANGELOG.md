@@ -41,6 +41,18 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 - Additive + `required=false` ⇒ **no `schema_version` bump**: old consumers skip the unknown
   optional file; consumers feature-detect and fall back when absent.
 
+**New optional file: `{base}.eav.structural_results.parquet`** (`structural_results`, `bundle_files` ord 15)
+
+- New **optional per-domain purpose file** `structural_results` — structural analysis +
+  design results in long/tidy form. One file **per analysis domain**, shared by every
+  producer in it (ETABS/CSi/SAP2000/TSD write the same schema); non-structural domains
+  get their own `eav.{domain}_results.parquet`. Columns: `object_index, element_name, location,
+  result_type, load_case, component, position_label, station, step, value, value_text`.
+- **Backward-compatible, no `meta.schema_version` bump**: no existing table changed, and
+  a consumer that doesn't recognise the file simply skips it (it's `required=false` in
+  `bundle_files`). Design, the 8 ETABS/TSD type mappings, locked decisions and caveats
+  live in `docs/rationale/structural-results.md`.
+
 ## schema_version 5 — vocabulary harmonization
 
 First version published as a standalone spec (extracted from the producers'
