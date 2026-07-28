@@ -11,7 +11,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 2 | **SOLID** | object → geometry | 🟡 reserved | · | ordinal | Solid body, distinct from a display mesh. — *Reserved: Rhino/Civil3D will distinguish true solids from tessellated display meshes.* |
 | 3 | **SUBELEMENT** | object → object | 🟢 live | rvextract | ordinal | Parent → child containment. — *Railings, mullions, curtain panels — a hierarchy the flat eav cannot encode.* |
 | 4 | **DEFINES** | node → geometry | 🟢 live | rvextract,nwextract | · | DEFINITION → shared geometry. — *The instancing contract: one mesh owned by a definition, reused by placements.* |
-| 5 | **HAS_MATERIAL** | geometry → node | 🟢 live | rvextract,nwextract | · | Geometry → MATERIAL node. — *Base render appearance (full PBR).* |
+| 5 | **HAS_MATERIAL** | geometry\|instance → node | 🟢 live | rvextract,nwextract | · | Geometry/instance → MATERIAL node. — *Base render appearance (full PBR). An INSTANCE src is the placement-painted material (SketchUp instance painting, ENG-8849): shared definition geometry with no own material inherits it per placement; geometry-level material wins.* |
 | 6 | **HAS_COLOR** | geometry\|object → node | 🟢 live | managed | · | Geometry/object → COLOR node. — *Colour override — kept distinct from HAS_MATERIAL because it drives a different viewer render mode.* |
 | 7 | **ON_LEVEL** | object → node | 🟢 live | rvextract,nwextract | · | Object → LEVEL node. — *Storey membership; also the default scene-view tier.* |
 | 8 | **DISPLAY_INSTANCE** | object → node | 🟢 live | rvextract,nwextract | ordinal | Object → INSTANCE node (top level). — *Place a definition here with a transform.* |

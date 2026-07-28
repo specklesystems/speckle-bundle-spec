@@ -68,7 +68,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(2, "SOLID", "object", "geometry", "reserved", "ordinal"),
     RelTypeRow(3, "SUBELEMENT", "object", "object", "live", "ordinal"),
     RelTypeRow(4, "DEFINES", "node", "geometry", "live", None),
-    RelTypeRow(5, "HAS_MATERIAL", "geometry", "node", "live", None),
+    RelTypeRow(5, "HAS_MATERIAL", "geometry|instance", "node", "live", None),
     RelTypeRow(6, "HAS_COLOR", "geometry|object", "node", "live", None),
     RelTypeRow(7, "ON_LEVEL", "object", "node", "live", None),
     RelTypeRow(8, "DISPLAY_INSTANCE", "object", "node", "live", "ordinal"),

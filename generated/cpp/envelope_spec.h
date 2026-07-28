@@ -46,7 +46,7 @@ static const RelTypeRow kRelTypes[] = {
   {2, "SOLID", "object", "geometry", "reserved"},
   {3, "SUBELEMENT", "object", "object", "live"},
   {4, "DEFINES", "node", "geometry", "live"},
-  {5, "HAS_MATERIAL", "geometry", "node", "live"},
+  {5, "HAS_MATERIAL", "geometry|instance", "node", "live"},
   {6, "HAS_COLOR", "geometry|object", "node", "live"},
   {7, "ON_LEVEL", "object", "node", "live"},
   {8, "DISPLAY_INSTANCE", "object", "node", "live"},

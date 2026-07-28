@@ -51,7 +51,7 @@ public static class Catalog
         new(2, "SOLID", "object", "geometry", "reserved"),
         new(3, "SUBELEMENT", "object", "object", "live"),
         new(4, "DEFINES", "node", "geometry", "live"),
-        new(5, "HAS_MATERIAL", "geometry", "node", "live"),
+        new(5, "HAS_MATERIAL", "geometry|instance", "node", "live"),
         new(6, "HAS_COLOR", "geometry|object", "node", "live"),
         new(7, "ON_LEVEL", "object", "node", "live"),
         new(8, "DISPLAY_INSTANCE", "object", "node", "live"),

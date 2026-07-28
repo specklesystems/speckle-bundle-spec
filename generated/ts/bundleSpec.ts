@@ -50,7 +50,7 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 2, name: 'SOLID', srcNs: 'object', dstNs: 'geometry', status: 'reserved', ordSemantics: 'ordinal' },
   { id: 3, name: 'SUBELEMENT', srcNs: 'object', dstNs: 'object', status: 'live', ordSemantics: 'ordinal' },
   { id: 4, name: 'DEFINES', srcNs: 'node', dstNs: 'geometry', status: 'live', ordSemantics: null },
-  { id: 5, name: 'HAS_MATERIAL', srcNs: 'geometry', dstNs: 'node', status: 'live', ordSemantics: null },
+  { id: 5, name: 'HAS_MATERIAL', srcNs: 'geometry|instance', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 6, name: 'HAS_COLOR', srcNs: 'geometry|object', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 7, name: 'ON_LEVEL', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 8, name: 'DISPLAY_INSTANCE', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: 'ordinal' },
