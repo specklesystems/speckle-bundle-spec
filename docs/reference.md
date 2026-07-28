@@ -130,7 +130,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | opacity | DOUBLE | · |
 | metalness | DOUBLE | · |
 | roughness | DOUBLE | · |
-| emissive | INTEGER | MATERIAL packed emissive colour (ARGB); NULL = no emission [ENG-8791]. |
+| emissive | INTEGER | MATERIAL packed emissive colour (ARGB). NULL = no emission (producers normalize black RGB to NULL); consumers default NULL to black [ENG-8791]. |
 | ior | DOUBLE | MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791]. |
 | elevation | DOUBLE | LEVEL height — lets the scene tree order storeys architecturally. |
 

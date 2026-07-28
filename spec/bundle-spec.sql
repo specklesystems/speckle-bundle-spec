@@ -111,7 +111,7 @@ COMMENT ON COLUMN nodes.transform IS 'INSTANCE only. Row-major 4x4 as CSV. HOT: 
 COMMENT ON COLUMN nodes.units IS 'INSTANCE placement units; read in the same hot scan as transform.';
 COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network. The single grouping discriminator (replaced the former units-overload).';
 COMMENT ON COLUMN nodes.argb IS 'MATERIAL/COLOR packed colour.';
-COMMENT ON COLUMN nodes.emissive IS 'MATERIAL packed emissive colour (ARGB); NULL = no emission [ENG-8791].';
+COMMENT ON COLUMN nodes.emissive IS 'MATERIAL packed emissive colour (ARGB). NULL = no emission (producers normalize black RGB to NULL); consumers default NULL to black [ENG-8791].';
 COMMENT ON COLUMN nodes.ior IS 'MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791].';
 COMMENT ON COLUMN nodes.elevation IS 'LEVEL height — lets the scene tree order storeys architecturally.';
 

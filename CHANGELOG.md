@@ -9,10 +9,12 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
   columns: the authored host material name (Rhino/Revit/AutoCAD material table
   entry), so receivers recreate the host material under it instead of a
   colour-derived placeholder. Producers had always written NULL here.
-- New nullable `nodes` columns `emissive` (packed ARGB, NULL = no emission) and
-  `ior` (index of refraction, NULL = unset) complete the universal PBR scalar
-  set on MATERIAL. Host-specific material enums (e.g. Rhino `typeName`)
-  deliberately stay out — not reducible to a cross-host scalar.
+- New nullable `nodes` columns `emissive` (packed ARGB; NULL = no emission —
+  producers normalize black RGB to NULL, consumers default NULL to black) and
+  `ior` (index of refraction, NULL = the host has no IOR concept) complete the
+  universal PBR scalar set on MATERIAL. Host-specific material enums (e.g.
+  Rhino `typeName`) deliberately stay out — not reducible to a cross-host
+  scalar.
 - Additive ⇒ no `schema_version` bump: all consumers read columns by name and
   guard absence (SDK `Has()`, viewer fallback SELECT); nullable columns are
   invisible to readers that don't ask for them.
