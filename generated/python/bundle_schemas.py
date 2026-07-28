@@ -71,6 +71,8 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("opacity", "float64", True),
         ColumnSpec("metalness", "float64", True),
         ColumnSpec("roughness", "float64", True),
+        ColumnSpec("emissive", "int32", True),
+        ColumnSpec("ior", "float64", True),
         ColumnSpec("elevation", "float64", True),
     ],
     "object_type": [

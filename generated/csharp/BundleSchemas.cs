@@ -80,6 +80,8 @@ public static class BundleSchemas
         new("opacity", ArrowType.Float64, true),
         new("metalness", ArrowType.Float64, true),
         new("roughness", ArrowType.Float64, true),
+        new("emissive", ArrowType.Int32, true),
+        new("ior", ArrowType.Float64, true),
         new("elevation", ArrowType.Float64, true),
     };
 

@@ -75,6 +75,8 @@ inline std::shared_ptr<arrow::Schema> nodesSchema() {
       arrow::field("opacity", arrow::float64()),
       arrow::field("metalness", arrow::float64()),
       arrow::field("roughness", arrow::float64()),
+      arrow::field("emissive", arrow::int32()),
+      arrow::field("ior", arrow::float64()),
       arrow::field("elevation", arrow::float64())
   });
 }

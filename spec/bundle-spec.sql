@@ -99,6 +99,8 @@ CREATE TABLE nodes (
   opacity   DOUBLE,
   metalness DOUBLE,
   roughness DOUBLE,
+  emissive  INTEGER,
+  ior       DOUBLE,
   elevation DOUBLE
 );
 COMMENT ON TABLE nodes IS 'Synthetic graph nodes. Bounded STRUCTURAL scaffolding (fixed columns) — unbounded/source-variable metadata belongs on objects (eav), never here. Add a column only for a genuinely new structural scalar.';
@@ -109,6 +111,8 @@ COMMENT ON COLUMN nodes.transform IS 'INSTANCE only. Row-major 4x4 as CSV. HOT: 
 COMMENT ON COLUMN nodes.units IS 'INSTANCE placement units; read in the same hot scan as transform.';
 COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network. The single grouping discriminator (replaced the former units-overload).';
 COMMENT ON COLUMN nodes.argb IS 'MATERIAL/COLOR packed colour.';
+COMMENT ON COLUMN nodes.emissive IS 'MATERIAL packed emissive colour (ARGB); NULL = no emission [ENG-8791].';
+COMMENT ON COLUMN nodes.ior IS 'MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791].';
 COMMENT ON COLUMN nodes.elevation IS 'LEVEL height — lets the scene tree order storeys architecturally.';
 
 CREATE TABLE relations (
@@ -273,7 +277,7 @@ INSERT INTO node_kinds
   (id, name,         status,    columns,                                  subtype_values,                       description, why) VALUES
   (1, 'DEFINITION',  'live',    'name,def_ref',                           NULL,                                 'Shared geometry template.',          'Target of DEFINES; reused by many placements.'),
   (2, 'INSTANCE',    'live',    'transform,units,def_ref',                NULL,                                 'A placement / occurrence.',          'Carries the composed transform; bulk-scanned on load.'),
-  (3, 'MATERIAL',    'live',    'argb,opacity,metalness,roughness',       NULL,                                 'Full-PBR render asset.',             'Target of HAS_MATERIAL.'),
+  (3, 'MATERIAL',    'live',    'name,argb,opacity,metalness,roughness,emissive,ior', NULL,                     'Full-PBR render asset.',             'Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].'),
   (4, 'COLOR',       'live',    'argb,opacity',                           NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).'),
   (5, 'LEVEL',       'live',    'name,elevation',                         NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
   (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),

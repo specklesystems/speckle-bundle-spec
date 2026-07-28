@@ -76,7 +76,7 @@ export const TABLES = {
   camera_views: ['view', 'name', 'is_default', 'ord', 'pos_x', 'pos_y', 'pos_z', 'forward_x', 'forward_y', 'forward_z', 'up_x', 'up_y', 'up_z', 'target_x', 'target_y', 'target_z', 'units', 'is_ortho', 'fov', 'lens_mm', 'ortho_height', 'aspect', 'near', 'far'],
   eav: ['object_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   geometries: ['geometryIndex', 'content', 'id', 'type'],
-  nodes: ['id', 'kind', 'name', 'def_ref', 'transform', 'units', 'subtype', 'argb', 'opacity', 'metalness', 'roughness', 'elevation'],
+  nodes: ['id', 'kind', 'name', 'def_ref', 'transform', 'units', 'subtype', 'argb', 'opacity', 'metalness', 'roughness', 'emissive', 'ior', 'elevation'],
   object_type: ['object_index', 'type_index'],
   objects: ['object_index', 'application_id'],
   paths: ['path_index', 'path'],

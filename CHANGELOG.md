@@ -4,6 +4,19 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**MATERIAL nodes: `name` declared + new `emissive`/`ior` columns** [ENG-8791]
+- `name` (existing shared column, nullable) is now declared in MATERIAL's catalog
+  columns: the authored host material name (Rhino/Revit/AutoCAD material table
+  entry), so receivers recreate the host material under it instead of a
+  colour-derived placeholder. Producers had always written NULL here.
+- New nullable `nodes` columns `emissive` (packed ARGB, NULL = no emission) and
+  `ior` (index of refraction, NULL = unset) complete the universal PBR scalar
+  set on MATERIAL. Host-specific material enums (e.g. Rhino `typeName`)
+  deliberately stay out — not reducible to a cross-host scalar.
+- Additive ⇒ no `schema_version` bump: all consumers read columns by name and
+  guard absence (SDK `Has()`, viewer fallback SELECT); nullable columns are
+  invisible to readers that don't ask for them.
+
 **`HOSTED_ON` (22) un-retired** (`object → object`, emitted by rvextract)
 - Revit hosting from ODA `getHostId()`: door/window → wall, fixture →
   ceiling/floor/face, window → roof. Direction is hosted element → host,

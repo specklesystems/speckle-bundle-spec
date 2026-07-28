@@ -37,7 +37,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 |---|---|---|---|---|---|
 | 1 | **DEFINITION** | 🟢 live | name,def_ref | · | Shared geometry template. — *Target of DEFINES; reused by many placements.* |
 | 2 | **INSTANCE** | 🟢 live | transform,units,def_ref | · | A placement / occurrence. — *Carries the composed transform; bulk-scanned on load.* |
-| 3 | **MATERIAL** | 🟢 live | argb,opacity,metalness,roughness | · | Full-PBR render asset. — *Target of HAS_MATERIAL.* |
+| 3 | **MATERIAL** | 🟢 live | name,argb,opacity,metalness,roughness,emissive,ior | · | Full-PBR render asset. — *Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].* |
 | 4 | **COLOR** | 🟢 live | argb,opacity | · | Raw colour override. — *Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).* |
 | 5 | **LEVEL** | 🟢 live | name,elevation | · | A storey. — *Target of ON_LEVEL; elevation drives architectural ordering.* |
 | 6 | **COLLECTION** | ⚪ retired | · | · | Authored layer/collection node. — *Retired in v5: folded into CONTAINER (subtype=Collection).* |
@@ -130,6 +130,8 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | opacity | DOUBLE | · |
 | metalness | DOUBLE | · |
 | roughness | DOUBLE | · |
+| emissive | INTEGER | MATERIAL packed emissive colour (ARGB); NULL = no emission [ENG-8791]. |
+| ior | DOUBLE | MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791]. |
 | elevation | DOUBLE | LEVEL height — lets the scene tree order storeys architecturally. |
 
 ### `object_type`
