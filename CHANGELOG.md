@@ -4,6 +4,26 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**Named column-index constants for writers** (codegen-only)
+- New generated targets — `cpp/bundle_cols.h` (`bundlespec::col::<table>::<column>`,
+  include-light, no arrow), `csharp/BundleCols.cs` (`BundleCols.<Table>.<Column>`,
+  `Speckle.Bundle.Spec`), `python/bundle_cols.py` (`<TABLE>.<COLUMN>`, upper snake) —
+  one index constant per produced-table column plus a `columnCount` /
+  `ColumnCount` / `COLUMN_COUNT`, in spec order (matches the generated schemas 1:1).
+- Why: writers built their schemas FROM the spec but filled rows with hard-coded
+  ordinals; the `emissive`/`ior` insertion before `elevation` (12→14 nodes columns)
+  silently shifted `elevation`'s ordinal and native producers dropped every nodes
+  row (valid-but-empty `envelope.nodes.parquet` → invisible models, fleet-wide).
+  With named constants an insertion shifts writers automatically and a
+  rename/removal is a compile/import error, never silent drift.
+- Validator: new cross-table referential-integrity rule — every relation endpoint
+  whose namespace (per `rel_types`) is `node` must resolve to an existing
+  `nodes.id`; an EMPTY nodes table while relations reference node endpoints (the
+  incident shape) and any dangling endpoint are hard errors. Regression-tested in
+  `tests/validator/run.mjs` (fixture bundles, runs under `npm test`).
+- Codegen + validator only ⇒ **no `schema_version` bump**: no table shape or
+  catalog row changed; published cpp/python artifacts gain one file each.
+
 **MATERIAL nodes: `name` declared + new `emissive`/`ior` columns** [ENG-8791]
 - `name` (existing shared column, nullable) is now declared in MATERIAL's catalog
   columns: the authored host material name (Rhino/Revit/AutoCAD material table

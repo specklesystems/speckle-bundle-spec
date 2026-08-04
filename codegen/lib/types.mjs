@@ -21,3 +21,6 @@ export const CS_TYPES = [...new Set(Object.values(MAP).map((t) => t.cs))]
 
 /** snake_case table name → camelCase identifier (eav → eav, object_type → objectType). */
 export const camel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+
+/** any-case identifier → snake_case (geometryIndex → geometry_index, def_ref → def_ref). */
+export const snake = (s) => s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()
