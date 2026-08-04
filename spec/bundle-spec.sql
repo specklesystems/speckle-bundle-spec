@@ -27,12 +27,12 @@
 -- kind = internal origin (no re-basing). Nullable + additive: readers that ignore them
 -- are unaffected (no version bump).
 --
--- produced_by/producer_version: the slug and version of the producer of this model version 
--- sdk_name/sdk_version: name and version of the SDK used to author this version (calendar date format) 
--- migrated_from_version: for older migrated models, the original schema version, null for non-migrated models.
+-- produced_by/producer_version: the slug and version of the producer of this model version
+-- sdk_name/sdk_version: name and version of the SDK used to author this version
+-- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
                    reference_point_kind VARCHAR, reference_point_offset VARCHAR,
-                  producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
+                   producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
 INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
