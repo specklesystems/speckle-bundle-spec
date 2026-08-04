@@ -316,7 +316,7 @@ INSERT INTO bundle_files VALUES
   (8,  'relations',   '{base}.envelope.relations.parquet',  '{base}.envelope.relations.parquet',  false, true,  false, 'Typed graph edges.'),
   (9,  'rel_types',   '{base}.envelope.rel_types.parquet',  '{base}.envelope.rel_types.parquet',  false, true,  true,  'Self-describing relation catalog.'),
   (10, 'node_kinds',  '{base}.envelope.node_kinds.parquet', '{base}.envelope.node_kinds.parquet', false, true,  true,  'Self-describing node-kind catalog.'),
-  (11, 'meta',        '{base}.envelope.meta.parquet',       '{base}.envelope.meta.parquet',       false, true,  true,  'schema_version + producer provenance (host app, sdk version, migrated-from vintage).'),
+  (11, 'meta',        '{base}.envelope.meta.parquet',       '{base}.envelope.meta.parquet',       false, true,  true,  'schema_version + producer provenance.'),
   (12, 'scene_views', '{base}.envelope.scene_views.parquet','{base}.envelope.scene_views.parquet',false, false, true,  'Producer-authored default projection.'),
   (13, 'geometries',  '{base}.geometries.parquet',          '{base}.geometries*.parquet',         true,  true,  false, 'SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob.'),
   (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).'),
