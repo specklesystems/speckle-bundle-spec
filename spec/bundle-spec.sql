@@ -27,16 +27,12 @@
 -- kind = internal origin (no re-basing). Nullable + additive: readers that ignore them
 -- are unaffected (no version bump).
 --
--- host_application_slug/_version + sdk_version: the PRODUCER of this bundle — the connector
--- slug and version that wrote it (e.g. revit/2024, artefact-harness/v3) plus the Speckle SDK
--- build behind it. migrated_from_version ∈ 2 | 3 identifies the vintage of the source graph a
--- migrated bundle was produced FROM; NULL means a native send (nothing was migrated). Together
--- they make a bundle traceable to the tool that produced it — the first thing needed when
--- triaging a bad one. Nullable + additive, as above.
+-- produced_by/producer_version: the slug and version of the producer of this model version 
+-- sdk_name/sdk_version: name and version of the SDK used to author this version (calendar date format) 
+-- migrated_from_version: for older migrated models, the original schema version, null for non-migrated models.
 CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
                    reference_point_kind VARCHAR, reference_point_offset VARCHAR,
-                   host_application_slug VARCHAR, host_application_version VARCHAR,
-                   sdk_version VARCHAR, migrated_from_version INTEGER);
+                  producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
 INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
