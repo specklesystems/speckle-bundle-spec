@@ -103,5 +103,44 @@ for (const { table, col } of kSpaces) {
   )
 }
 
+// 6. cross-table referential integrity: every relation endpoint whose namespace
+// (per the rel_types catalog) is `node` must resolve to an existing nodes.id.
+// THE incident shape this guards (Jul 2025, empty-nodes fleet-wide): a producer
+// uploads a valid-but-EMPTY nodes parquet while relations still reference node
+// endpoints — every placement edge dangles and the viewer builds 0 placements.
+// Empty-nodes-with-node-refs and any individually dangling endpoint both fail
+// HERE, in producer CI, instead of rendering an invisible model. Mixed
+// namespaces (`geometry|instance`) are ambiguous by design and are not checked.
+if (present('relations') && present('nodes')) {
+  const catalog = new Map(relTypes().map((r) => [r.id, r]))
+  const nodeEndpoints = usedRels.flatMap((id) => {
+    const r = catalog.get(id)
+    return ['src', 'dst']
+      .filter((c) => r?.[`${c}_ns`] === 'node')
+      .map((c) => ({ id, name: r.name, col: c }))
+  })
+  const nodeCount = Number(
+    query(`SELECT count(*) AS n FROM ${pq('nodes')}`, { withSpec: false })[0].n
+  )
+  if (nodeEndpoints.length)
+    check(
+      nodeCount > 0,
+      `nodes non-empty while relations reference node endpoints (${[...new Set(nodeEndpoints.map((e) => e.name))].join(', ')})`
+    )
+  for (const { id, name, col } of nodeEndpoints) {
+    const [r] = query(
+      `SELECT count(*) AS total, count(*) FILTER (WHERE n.id IS NULL) AS dangling
+       FROM ${pq('relations')} r LEFT JOIN ${pq('nodes')} n ON r.${col} = n.id
+       WHERE r.rel = ${id}`,
+      { withSpec: false }
+    )
+    check(
+      Number(r.dangling) === 0,
+      `${name}(${id}).${col} → node endpoints resolve to nodes.id` +
+        (Number(r.dangling) ? ` — ${r.dangling}/${r.total} dangling (nodes rows=${nodeCount})` : '')
+    )
+  }
+}
+
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)
