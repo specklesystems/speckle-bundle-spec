@@ -4,6 +4,19 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**`IN_ASSEMBLY` (18) un-retired** (`object → object`, emitted by teklaextract)
+- A source member points to its containing source assembly object. Assemblies
+  remain objects because they carry stable source identity and arbitrary EAV
+  properties; they are not synthetic graph nodes.
+- `ord=0` identifies the main member. `ord>=1` gives secondary members and
+  nested assembly members a stable source order. An assembly object can itself
+  point to a parent assembly, so `IN_SUBASSEMBLY` (19) remains retired.
+- Deliberately NOT `SUBELEMENT`: assembly membership is a fabrication axis
+  independent from component ownership, hosting, and connectivity.
+- Additive ⇒ no `schema_version` bump: the id was retired in place (never
+  reused), the catalog is self-describing, and consumers feature-detect by
+  relation presence.
+
 **MATERIAL nodes: `name` declared + new `emissive`/`ior` columns** [ENG-8791]
 - `name` (existing shared column, nullable) is now declared in MATERIAL's catalog
   columns: the authored host material name (Rhino/Revit/AutoCAD material table
