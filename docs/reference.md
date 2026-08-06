@@ -24,7 +24,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 15 | **IN_NETWORK** | · | ⚪ retired | · | · | Object → derived MEP network. — *Retired in v5: collapsed into IN_SYSTEM (subtype=Network).* |
 | 16 | **IN_LINE** | · | ⚪ retired | · | · | Object → civil alignment/line. — *Retired in v5: never emitted; reintroduce if/when a producer needs it.* |
 | 17 | **IN_GROUP** | object → node | 🟢 live | managed | · | Object → CONTAINER(Group). — *Authored scene-group membership (Rhino/AutoCAD groups). A separate axis from IN_COLLECTION: an object keeps its layer AND its group(s); groups may nest (CONTAINER def_ref) and overlap. Un-retired post-v5.* |
-| 18 | **IN_ASSEMBLY** | · | ⚪ retired | · | · | Object → assembly. — *Retired in v5: never emitted.* |
+| 18 | **IN_ASSEMBLY** | object → object | 🟢 live | teklaextract | ordinal | Member object → containing assembly object. — *Authored fabrication membership, separate from SUBELEMENT ownership. ord=0 is the main member; ord>=1 orders secondary or nested-assembly members.* |
 | 19 | **IN_SUBASSEMBLY** | · | ⚪ retired | · | · | Object → subassembly. — *Retired in v5: never emitted.* |
 | 20 | **XREF** | · | ⚪ retired | · | · | External reference link. — *Retired in v5: never emitted.* |
 | 21 | **CONNECTS_TO** | object → object | 🟢 live | rvextract,nwextract | scope | Object → object connectivity (directed). — *The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped).* |
