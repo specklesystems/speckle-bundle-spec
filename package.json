@@ -13,7 +13,7 @@
     "publish:artifacts": "node codegen/publish.mjs",
     "verify-pin": "node codegen/verify-pin.mjs",
     "validate": "node validator/validate-bundle.mjs",
-    "test": "node tests/conformance/run.mjs",
+    "test": "node tests/conformance/run.mjs && node tests/validator/run.mjs",
     "check": "node codegen/generate-all.mjs && git diff --exit-code generated docs/reference.md"
   },
   "engines": {

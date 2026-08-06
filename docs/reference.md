@@ -57,7 +57,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `relations` | `{base}.envelope.relations.parquet` | no | yes | no | Typed graph edges. |
 | `rel_types` | `{base}.envelope.rel_types.parquet` | no | yes | yes | Self-describing relation catalog. |
 | `node_kinds` | `{base}.envelope.node_kinds.parquet` | no | yes | yes | Self-describing node-kind catalog. |
-| `meta` | `{base}.envelope.meta.parquet` | no | yes | yes | schema_version + producer. |
+| `meta` | `{base}.envelope.meta.parquet` | no | yes | yes | schema_version + producer provenance. |
 | `scene_views` | `{base}.envelope.scene_views.parquet` | no | no | yes | Producer-authored default projection. |
 | `geometries` | `{base}.geometries*.parquet` | yes | yes | no | SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob. |
 | `camera_views` | `{base}.envelope.camera_views.parquet` | no | no | yes | Named camera viewpoints (eye/forward/up + projection). |

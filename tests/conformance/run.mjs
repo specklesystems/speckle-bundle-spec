@@ -13,6 +13,8 @@ const check = (cond, msg) => {
 const rels = relTypes()
 const kinds = nodeKinds()
 
+// 'geometry|instance' entered the vocabulary with the HAS_MATERIAL src broadening
+// (ENG-8849): placement-painted materials make the src a geometry K or an INSTANCE node K.
 const NS = new Set(['object', 'node', 'geometry', 'geometry|object', 'geometry|instance'])
 const ORD = new Set(['ordinal', 'scope', null])
 const STATUS = new Set(['live', 'reserved', 'retired'])

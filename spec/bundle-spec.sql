@@ -26,9 +26,14 @@
 -- the internal origin (offset NULL) — recorded degradation, not silence. NULL/absent
 -- kind = internal origin (no re-basing). Nullable + additive: readers that ignore them
 -- are unaffected (no version bump).
+--
+-- produced_by/producer_version: the slug and version of the producer of this model version
+-- sdk_name/sdk_version: name and version of the SDK used to author this version
+-- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
-                   reference_point_kind VARCHAR, reference_point_offset VARCHAR);
-INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL);
+                   reference_point_kind VARCHAR, reference_point_offset VARCHAR,
+                   producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
+INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 1 — table shapes (DDL). Logical names match the views a consumer sees
@@ -311,7 +316,7 @@ INSERT INTO bundle_files VALUES
   (8,  'relations',   '{base}.envelope.relations.parquet',  '{base}.envelope.relations.parquet',  false, true,  false, 'Typed graph edges.'),
   (9,  'rel_types',   '{base}.envelope.rel_types.parquet',  '{base}.envelope.rel_types.parquet',  false, true,  true,  'Self-describing relation catalog.'),
   (10, 'node_kinds',  '{base}.envelope.node_kinds.parquet', '{base}.envelope.node_kinds.parquet', false, true,  true,  'Self-describing node-kind catalog.'),
-  (11, 'meta',        '{base}.envelope.meta.parquet',       '{base}.envelope.meta.parquet',       false, true,  true,  'schema_version + producer.'),
+  (11, 'meta',        '{base}.envelope.meta.parquet',       '{base}.envelope.meta.parquet',       false, true,  true,  'schema_version + producer provenance.'),
   (12, 'scene_views', '{base}.envelope.scene_views.parquet','{base}.envelope.scene_views.parquet',false, false, true,  'Producer-authored default projection.'),
   (13, 'geometries',  '{base}.geometries.parquet',          '{base}.geometries*.parquet',         true,  true,  false, 'SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob.'),
   (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).'),
