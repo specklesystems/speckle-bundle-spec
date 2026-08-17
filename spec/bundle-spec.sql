@@ -114,7 +114,7 @@ COMMENT ON COLUMN nodes.kind IS 'NodeKind discriminator (see node_kinds catalog)
 COMMENT ON COLUMN nodes.def_ref IS 'Node→node K reference: INSTANCE→DEFINITION, or CONTAINER→parent container (tree nesting).';
 COMMENT ON COLUMN nodes.transform IS 'INSTANCE only. Row-major 4x4 as CSV. HOT: bulk-scanned per instance (100k–1M) on load — must stay columnar.';
 COMMENT ON COLUMN nodes.units IS 'INSTANCE placement units; read in the same hot scan as transform.';
-COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network. The single grouping discriminator (replaced the former units-overload).';
+COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network | Group. The single grouping discriminator (replaced the former units-overload).';
 COMMENT ON COLUMN nodes.argb IS 'MATERIAL/COLOR packed colour.';
 COMMENT ON COLUMN nodes.emissive IS 'MATERIAL packed emissive colour (ARGB). NULL = no emission (producers normalize black RGB to NULL); consumers default NULL to black [ENG-8791].';
 COMMENT ON COLUMN nodes.ior IS 'MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791].';
@@ -253,7 +253,7 @@ INSERT INTO rel_types
   (7,  'ON_LEVEL',         'object',          'node',     'live',     'rvextract,nwextract', NULL,      'Object → LEVEL node.',                            'Storey membership; also the default scene-view tier.'),
   (8,  'DISPLAY_INSTANCE', 'object',          'node',     'live',     'rvextract,nwextract', 'ordinal', 'Object → INSTANCE node (top level).',             'Place a definition here with a transform.'),
   (9,  'DEFINES_INSTANCE', 'node',            'node',     'live',     'rvextract',           'ordinal', 'DEFINITION → nested INSTANCE node.',              'Nested instancing — a definition that itself contains placed instances.'),
-  (10, 'IN_COLLECTION',    'object',          'node',     'live',     'managed',             NULL,      'Object → CONTAINER(Collection).',                 'Authored layer/collection-tree membership.'),
+  (10, 'IN_COLLECTION',    'object',          'node',     'live',     'managed,nwextract',   NULL,      'Object → CONTAINER(Collection).',                 'Authored layer/collection-tree membership. THE single-valued scene-tree axis: one edge per object → its innermost container, ancestors nest via CONTAINER def_ref. Managed connectors emit layer/collection trees; nwextract emits the authored Navis selection tree — structural levels (file/layer/collection) always mint, single-object instance wrappers collapse [ENG-9218].'),
   (11, 'IN_MODEL',         'object',          'node',     'live',     'nwextract',           NULL,      'Object → CONTAINER(Model).',                      'Federation tier (source-file grouping); outermost scene-view tier when >1 model.'),
   (12, 'IN_ROOM',          'object',          'object',   'live',     'rvextract',           NULL,      'Object → containing room object.',                'Spatial occupancy (furniture/door/window → room). Rooms are objects, not nodes.'),
   (13, 'IN_SPACE',         NULL,              NULL,       'retired',  NULL,                  NULL,      'Object → containing MEP space.',                  'Retired in v5: ODA exposes no element→space membership (getRoomId only). Spaces ship as objects with eav.'),
@@ -285,7 +285,7 @@ INSERT INTO node_kinds
   (3, 'MATERIAL',    'live',    'name,argb,opacity,metalness,roughness,emissive,ior', NULL,                     'Full-PBR render asset.',             'Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].'),
   (4, 'COLOR',       'live',    'argb,opacity',                           NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).'),
   (5, 'LEVEL',       'live',    'name,elevation',                         NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
-  (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),
+  (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection). Stays retired post-ENG-9218: the revived authored-tree concept ships as CONTAINER rows, not as this kind.'),
   (7, 'CONTAINER',   'live',    'name,def_ref,subtype',                   'Collection,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP.');
 
 -- ── bundle_files (the manifest) ──────────────────────────────────────────────

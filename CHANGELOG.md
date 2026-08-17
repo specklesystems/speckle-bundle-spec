@@ -4,6 +4,31 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**`IN_COLLECTION` (10) now emitted by nwextract — authored scene trees from
+aggregators** [ENG-9218]
+- nwextract publishes the authored Navisworks selection tree: one
+  `CONTAINER(subtype='Collection')` row per surviving tree level (nesting via
+  `def_ref`), one `IN_COLLECTION` edge per object → its innermost container,
+  and a single-tier `scene_views` recipe `('rel','10')` selecting it as the
+  default explorer projection. Previously only managed connectors (layer
+  trees) emitted rel 10; aggregator trees were re-derived consumer-side.
+- Codifies the rel-10 contract the consumer already relies on: it is THE
+  single-valued scene-tree axis (exactly one edge per object; parallel axes —
+  `IN_MODEL`, `IN_SYSTEM`, `IN_GROUP` — must not steal objects from it).
+  Consumers read the tree as `kind=7` containers excluding the
+  Model/Network/MEP System subtypes, roots at `def_ref IS NULL`.
+- Producer guidance, not a validation rule: structural tree levels
+  (file/layer/collection) always mint a container; per-instance wrapper
+  levels (group/insert/composite) mint only when their subtree holds ≥2
+  objects. Collapsing single-object wrappers cut a 4.4M-container whale to
+  852k (81.8% were wrappers) with zero information loss — the object row
+  keeps the wrapper's name.
+- `COLLECTION` (6) **stays retired**: the revived authored-tree concept ships
+  as `CONTAINER` rows; the standalone kind is not un-retired.
+- Additive ⇒ no `schema_version` bump: catalog `emitted_by`/docs only — no
+  table shape or id status changed; consumers feature-detect by relation and
+  `scene_views` presence.
+
 **`IN_ASSEMBLY` (18) un-retired** (`object → object`, emitted by teklaextract)
 - A source member points to its containing source assembly object. Assemblies
   remain objects because they carry stable source identity and arbitrary EAV
