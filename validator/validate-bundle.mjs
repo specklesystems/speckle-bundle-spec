@@ -197,5 +197,31 @@ if (present('relations')) {
   }
 }
 
+// 8. container appearance invariants (NODE_HAS_MATERIAL 28 / NODE_HAS_COLOR 29).
+// Additive like section 7 — vacuous when unemitted. Both are node→node, so the
+// generic endpoint checks can't type them: a NODE_HAS_MATERIAL pointing at a COLOR
+// node (or vice versa) resolves silently to a null appearance on every consumer.
+if (present('relations') && present('nodes')) {
+  const relByName = new Map(relTypes().map((r) => [r.name, r.id]))
+  const R = pq('relations')
+  for (const [name, kind, kindName] of [
+    ['NODE_HAS_MATERIAL', 3, 'MATERIAL'],
+    ['NODE_HAS_COLOR', 4, 'COLOR'],
+  ]) {
+    const rel = relByName.get(name)
+    if (!usedRels.includes(rel)) continue
+    const [r] = query(
+      `SELECT count(*) AS total, count(*) FILTER (WHERE n.kind IS DISTINCT FROM ${kind}) AS bad
+       FROM ${R} r LEFT JOIN ${pq('nodes')} n ON r.dst = n.id WHERE r.rel = ${rel}`,
+      { withSpec: false }
+    )
+    check(
+      Number(r.bad) === 0,
+      `${name}(${rel}).dst → every target is a ${kindName} node` +
+        (Number(r.bad) ? ` — ${r.bad}/${r.total} target a non-${kindName} kind` : '')
+    )
+  }
+}
+
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

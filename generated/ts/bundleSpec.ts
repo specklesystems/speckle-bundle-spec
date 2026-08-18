@@ -27,6 +27,8 @@ export const Rel = {
   DEFINES_MEMBER: 25,
   OBJECT_HAS_MATERIAL: 26,
   OBJECT_HAS_COLOR: 27,
+  NODE_HAS_MATERIAL: 28,
+  NODE_HAS_COLOR: 29,
 } as const
 export type RelName = keyof typeof Rel
 
@@ -78,6 +80,8 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 25, name: 'DEFINES_MEMBER', srcNs: 'node', dstNs: 'object', status: 'live', ordSemantics: 'ordinal' },
   { id: 26, name: 'OBJECT_HAS_MATERIAL', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 27, name: 'OBJECT_HAS_COLOR', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: null },
+  { id: 28, name: 'NODE_HAS_MATERIAL', srcNs: 'node', dstNs: 'node', status: 'live', ordSemantics: null },
+  { id: 29, name: 'NODE_HAS_COLOR', srcNs: 'node', dstNs: 'node', status: 'live', ordSemantics: null },
 ]
 
 /** Logical table → column names, generated from the DDL. */

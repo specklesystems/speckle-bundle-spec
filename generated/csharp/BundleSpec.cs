@@ -33,6 +33,8 @@ public enum Rel
     DEFINES_MEMBER = 25,
     OBJECT_HAS_MATERIAL = 26,
     OBJECT_HAS_COLOR = 27,
+    NODE_HAS_MATERIAL = 28,
+    NODE_HAS_COLOR = 29,
 }
 
 public enum NodeKind
@@ -74,6 +76,8 @@ public static class Catalog
         new(25, "DEFINES_MEMBER", "node", "object", "live"),
         new(26, "OBJECT_HAS_MATERIAL", "object", "node", "live"),
         new(27, "OBJECT_HAS_COLOR", "object", "node", "live"),
+        new(28, "NODE_HAS_MATERIAL", "node", "node", "live"),
+        new(29, "NODE_HAS_COLOR", "node", "node", "live"),
     };
 
     public static readonly NodeKindRow[] NodeKinds =
