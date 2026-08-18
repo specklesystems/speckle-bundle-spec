@@ -93,8 +93,6 @@ export const TABLES = {
   property_set_definitions: ['set_name', 'set_key', 'set_description', 'field_name', 'field_bucket_id', 'data_type', 'default_string', 'default_double', 'default_boolean', 'unit', 'description', 'applies_to'],
   relations: ['rel', 'src', 'dst', 'ord'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
-  sgeo_flags: ['bit', 'name', 'applies_to', 'status', 'description', 'why'],
-  sgeo_primitive_types: ['id', 'name', 'status', 'description'],
   structural_results: ['object_index', 'element_name', 'location', 'result_type', 'load_case', 'component', 'position_label', 'station', 'step', 'value', 'value_text'],
   type_eav: ['type_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   types: ['type_index', 'type_key'],

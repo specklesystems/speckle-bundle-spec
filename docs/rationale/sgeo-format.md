@@ -3,7 +3,7 @@
 The byte format inside `geometries.content` (and nested inside polycurve/region
 bodies). One opaque blob per geometry: a fixed 16-byte header + a per-primitive
 body. This document + the `sgeo_primitive_types` / `sgeo_flags` catalogs in
-[`spec/bundle-spec.sql`](../../spec/bundle-spec.sql) are the **source of truth**;
+[`spec/sgeo-spec.sql`](../../spec/sgeo-spec.sql) (SGEO's own executable spec file, standalone from the bundle table spec) are the **source of truth**;
 the implementations listed in the census below mirror it and must match.
 
 Ported from the format's original spec (`speckle-sharp-sdk/plans/speckle-4.0/
@@ -37,7 +37,7 @@ non-standard `0xEDB88820` variant shipped briefly and was fixed in lockstep
 across producers; the ruby decoder deliberately skips CRC verification to stay
 lenient to stray pre-fix blobs.
 
-## Flags (offset 0x06) — see the `sgeo_flags` catalog for the authoritative rows
+## Flags (offset 0x06) — see `spec/sgeo-spec.sql` for the authoritative rows
 
 | bit | name | applies to |
 |---|---|---|

@@ -155,28 +155,6 @@ class SCENE_VIEWS:
     COLUMN_COUNT = 6
 
 
-class SGEO_FLAGS:
-    """Column indices of the sgeo_flags table (spec order)."""
-
-    BIT = 0
-    NAME = 1
-    APPLIES_TO = 2
-    STATUS = 3
-    DESCRIPTION = 4
-    WHY = 5
-    COLUMN_COUNT = 6
-
-
-class SGEO_PRIMITIVE_TYPES:
-    """Column indices of the sgeo_primitive_types table (spec order)."""
-
-    ID = 0
-    NAME = 1
-    STATUS = 2
-    DESCRIPTION = 3
-    COLUMN_COUNT = 4
-
-
 class STRUCTURAL_RESULTS:
     """Column indices of the structural_results table (spec order)."""
 

@@ -134,24 +134,6 @@ inline constexpr int ref = 5;
 inline constexpr int columnCount = 6;
 }  // namespace bundlespec::col::scene_views
 
-namespace bundlespec::col::sgeo_flags {
-inline constexpr int bit = 0;
-inline constexpr int name = 1;
-inline constexpr int applies_to = 2;
-inline constexpr int status = 3;
-inline constexpr int description = 4;
-inline constexpr int why = 5;
-inline constexpr int columnCount = 6;
-}  // namespace bundlespec::col::sgeo_flags
-
-namespace bundlespec::col::sgeo_primitive_types {
-inline constexpr int id = 0;
-inline constexpr int name = 1;
-inline constexpr int status = 2;
-inline constexpr int description = 3;
-inline constexpr int columnCount = 4;
-}  // namespace bundlespec::col::sgeo_primitive_types
-
 namespace bundlespec::col::structural_results {
 inline constexpr int object_index = 0;
 inline constexpr int element_name = 1;

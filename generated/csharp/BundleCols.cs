@@ -148,26 +148,6 @@ public static class BundleCols
         public const int ColumnCount = 6;
     }
 
-    public static class SgeoFlags
-    {
-        public const int Bit = 0;
-        public const int Name = 1;
-        public const int AppliesTo = 2;
-        public const int Status = 3;
-        public const int Description = 4;
-        public const int Why = 5;
-        public const int ColumnCount = 6;
-    }
-
-    public static class SgeoPrimitiveTypes
-    {
-        public const int Id = 0;
-        public const int Name = 1;
-        public const int Status = 2;
-        public const int Description = 3;
-        public const int ColumnCount = 4;
-    }
-
     public static class StructuralResults
     {
         public const int ObjectIndex = 0;

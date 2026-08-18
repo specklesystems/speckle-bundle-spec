@@ -123,20 +123,6 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("source", "string", True),
         ColumnSpec("ref", "string", True),
     ],
-    "sgeo_flags": [
-        ColumnSpec("bit", "int32", False),
-        ColumnSpec("name", "string", True),
-        ColumnSpec("applies_to", "string", True),
-        ColumnSpec("status", "string", False),
-        ColumnSpec("description", "string", True),
-        ColumnSpec("why", "string", True),
-    ],
-    "sgeo_primitive_types": [
-        ColumnSpec("id", "int32", False),
-        ColumnSpec("name", "string", False),
-        ColumnSpec("status", "string", False),
-        ColumnSpec("description", "string", True),
-    ],
     "structural_results": [
         ColumnSpec("object_index", "int32", True),
         ColumnSpec("element_name", "string", True),

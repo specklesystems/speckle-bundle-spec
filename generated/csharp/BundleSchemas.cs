@@ -147,24 +147,6 @@ public static class BundleSchemas
         new("ref", ArrowType.Utf8, true),
     };
 
-    public static readonly ColumnSpec[] SgeoFlags =
-    {
-        new("bit", ArrowType.Int32, false),
-        new("name", ArrowType.Utf8, true),
-        new("applies_to", ArrowType.Utf8, true),
-        new("status", ArrowType.Utf8, false),
-        new("description", ArrowType.Utf8, true),
-        new("why", ArrowType.Utf8, true),
-    };
-
-    public static readonly ColumnSpec[] SgeoPrimitiveTypes =
-    {
-        new("id", ArrowType.Int32, false),
-        new("name", ArrowType.Utf8, false),
-        new("status", ArrowType.Utf8, false),
-        new("description", ArrowType.Utf8, true),
-    };
-
     public static readonly ColumnSpec[] StructuralResults =
     {
         new("object_index", ArrowType.Int32, true),
@@ -211,8 +193,6 @@ public static class BundleSchemas
         ["property_set_definitions"] = PropertySetDefinitions,
         ["relations"] = Relations,
         ["scene_views"] = SceneViews,
-        ["sgeo_flags"] = SgeoFlags,
-        ["sgeo_primitive_types"] = SgeoPrimitiveTypes,
         ["structural_results"] = StructuralResults,
         ["type_eav"] = TypeEav,
         ["types"] = Types,

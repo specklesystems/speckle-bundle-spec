@@ -9,6 +9,7 @@ import { dirname, join } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 export const REPO = join(here, '..', '..')
 export const SPEC = join(REPO, 'spec', 'bundle-spec.sql')
+export const SGEO_SPEC = join(REPO, 'spec', 'sgeo-spec.sql')
 const DUCKDB = process.env.DUCKDB_BIN || 'duckdb'
 
 let specSql = null
@@ -34,6 +35,15 @@ export function query(sql, { withSpec = true } = {}) {
     }
     return row
   })
+}
+
+/** Query against the STANDALONE sgeo spec (spec/sgeo-spec.sql) — SGEO is its own
+ * format, not part of the bundle table spec, so it loads without bundle-spec.sql. */
+export function sgeoQuery(sql) {
+  const input = readFileSync(SGEO_SPEC, 'utf8') + '\n' + sql + '\n'
+  const out = execFileSync(DUCKDB, ['-json'], { input, encoding: 'utf8', maxBuffer: 1 << 28 })
+  const t = out.trim()
+  return t ? JSON.parse(t) : []
 }
 
 export const relTypes = () =>

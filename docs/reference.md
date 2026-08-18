@@ -209,26 +209,6 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | source | VARCHAR | · |
 | ref | VARCHAR | · |
 
-### `sgeo_flags`
-
-| column | type | note |
-|---|---|---|
-| bit | INTEGER | · |
-| name | VARCHAR | · |
-| applies_to | VARCHAR | · |
-| status | VARCHAR | · |
-| description | VARCHAR | · |
-| why | VARCHAR | · |
-
-### `sgeo_primitive_types`
-
-| column | type | note |
-|---|---|---|
-| id | INTEGER | · |
-| name | VARCHAR | · |
-| status | VARCHAR | · |
-| description | VARCHAR | · |
-
 ### `structural_results`
 
 | column | type | note |

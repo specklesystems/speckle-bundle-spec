@@ -1,6 +1,6 @@
 // Spec invariants — run in CI on every spec edit. No bundle needed; these guard
 // the spec itself (the rules a human might break while editing bundle-spec.sql).
-import { relTypes, nodeKinds, query } from '../../codegen/lib/duck.mjs'
+import { relTypes, nodeKinds, sgeoQuery } from '../../codegen/lib/duck.mjs'
 
 let fails = 0
 const check = (cond, msg) => {
@@ -86,8 +86,8 @@ check(
 
 // 8. SGEO catalogs — the flag-claiming discipline (bit 10 was nearly double-claimed;
 // bits are claimed in the catalog FIRST, implementations follow, never re-purposed).
-const sgeoFlags = query('SELECT * FROM sgeo_flags ORDER BY bit;')
-const sgeoTypes = query('SELECT * FROM sgeo_primitive_types ORDER BY id;')
+const sgeoFlags = sgeoQuery('SELECT * FROM sgeo_flags ORDER BY bit;')
+const sgeoTypes = sgeoQuery('SELECT * FROM sgeo_primitive_types ORDER BY id;')
 check(
   sgeoFlags.length === 16 && sgeoFlags.every((f, i) => f.bit === i),
   'sgeo_flags covers exactly bits 0-15, each once'
