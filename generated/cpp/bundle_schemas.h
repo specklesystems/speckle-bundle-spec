@@ -157,6 +157,28 @@ inline std::shared_ptr<arrow::Schema> sceneViewsSchema() {
   });
 }
 
+// sgeo_flags
+inline std::shared_ptr<arrow::Schema> sgeoFlagsSchema() {
+  return arrow::schema({
+      arrow::field("bit", arrow::int32()),
+      arrow::field("name", arrow::utf8()),
+      arrow::field("applies_to", arrow::utf8()),
+      arrow::field("status", arrow::utf8()),
+      arrow::field("description", arrow::utf8()),
+      arrow::field("why", arrow::utf8())
+  });
+}
+
+// sgeo_primitive_types
+inline std::shared_ptr<arrow::Schema> sgeoPrimitiveTypesSchema() {
+  return arrow::schema({
+      arrow::field("id", arrow::int32()),
+      arrow::field("name", arrow::utf8()),
+      arrow::field("status", arrow::utf8()),
+      arrow::field("description", arrow::utf8())
+  });
+}
+
 // structural_results
 inline std::shared_ptr<arrow::Schema> structuralResultsSchema() {
   return arrow::schema({
