@@ -4,6 +4,22 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**Container appearance: NODE_HAS_MATERIAL (28) / NODE_HAS_COLOR (29)**
+- Two node→node rels carrying the authored layer/tag appearance (Rhino layer
+  material, AutoCAD/Civil3D layer material, SketchUp tag material/colour) —
+  previously inexpressible: producers flatten layer-inherited materials onto
+  member geometry [ENG-9108], which preserves the render but erases the layer
+  assignment on receive.
+- Both sit at the WEAKEST tier of their ladders, so existing precedence is
+  untouched: material resolves geometry > object > container (fill, rel 26);
+  colour resolves object > geometry > container (override, rel 27). Producers
+  keep flattening — render-only consumers never need the ladder walk.
+- `NODE_HAS_COLOR` supersedes the undocumented `argb` stamped directly on
+  CONTAINER rows; consumers prefer the edge and keep the argb read fallback
+  for older bundles.
+- Validator: dst-kind invariants (28 → MATERIAL, 29 → COLOR), vacuous when
+  unemitted, fixture-tested.
+
 **Vocabulary follow-ups: OBJECT_HAS_COLOR precedence, member ordinal contract, emitted_by refresh, member invariants** (amends #15)
 - `OBJECT_HAS_COLOR` (27) precedence corrected to OVERRIDE (object > geometry >
   none) — the deliberate INVERSE of `OBJECT_HAS_MATERIAL`'s fill semantics.

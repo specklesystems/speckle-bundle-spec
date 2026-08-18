@@ -143,6 +143,34 @@ const pw = validate(placesWrongKind)
 check(pw.status !== 0, `PLACES to a non-INSTANCE node is a hard error (exit=${pw.status})`)
 check(pw.stderr.includes('every target is an INSTANCE node'), 'failure names the PLACES kind rule')
 
+// 8. healthy container appearance (NODE_HAS_MATERIAL/NODE_HAS_COLOR): a Collection
+// container carrying a MATERIAL edge and a COLOR edge.
+const goodNodeAppearance = join(tmp, 'good-node-appearance')
+writeBundle(
+  goodNodeAppearance,
+  `INSERT INTO nodes VALUES
+     (0, 7, 'Layer', NULL, NULL, NULL, 'Collection', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+     (1, 3, 'Glass', NULL, NULL, NULL, NULL, -2130706433, 0.2, NULL, NULL, NULL, NULL, NULL, NULL),
+     (2, 4, NULL, NULL, NULL, NULL, NULL, -65536, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO relations VALUES (28, 0, 1, NULL), (29, 0, 2, NULL);`
+)
+const gna = validate(goodNodeAppearance)
+check(gna.status === 0, `healthy container-appearance bundle validates (exit=${gna.status})`)
+
+// 9. a NODE_HAS_MATERIAL targeting a non-MATERIAL kind resolves to a null appearance
+// on every consumer — a silent producer bug the kind check makes loud.
+const nodeMaterialWrongKind = join(tmp, 'node-material-wrong-kind')
+writeBundle(
+  nodeMaterialWrongKind,
+  `INSERT INTO nodes VALUES
+     (0, 7, 'Layer', NULL, NULL, NULL, 'Collection', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+     (1, 4, NULL, NULL, NULL, NULL, NULL, -65536, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO relations VALUES (28, 0, 1, NULL);`
+)
+const nmw = validate(nodeMaterialWrongKind)
+check(nmw.status !== 0, `NODE_HAS_MATERIAL to a non-MATERIAL node is a hard error (exit=${nmw.status})`)
+check(nmw.stderr.includes('every target is a MATERIAL node'), 'failure names the NODE_HAS_MATERIAL kind rule')
+
 rmSync(tmp, { recursive: true, force: true })
 console.log(fails === 0 ? '\nvalidator tests: PASS' : `\nvalidator tests: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

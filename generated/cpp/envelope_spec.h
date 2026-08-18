@@ -30,6 +30,8 @@ enum class Rel : int {
   DEFINES_MEMBER = 25,
   OBJECT_HAS_MATERIAL = 26,
   OBJECT_HAS_COLOR = 27,
+  NODE_HAS_MATERIAL = 28,
+  NODE_HAS_COLOR = 29,
 };
 
 enum class NodeKind : int {
@@ -69,6 +71,8 @@ static const RelTypeRow kRelTypes[] = {
   {25, "DEFINES_MEMBER", "node", "object", "live"},
   {26, "OBJECT_HAS_MATERIAL", "object", "node", "live"},
   {27, "OBJECT_HAS_COLOR", "object", "node", "live"},
+  {28, "NODE_HAS_MATERIAL", "node", "node", "live"},
+  {29, "NODE_HAS_COLOR", "node", "node", "live"},
 };
 static const NodeKindRow kNodeKinds[] = {
   {1, "DEFINITION", nullptr},

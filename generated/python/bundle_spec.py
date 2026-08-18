@@ -37,6 +37,8 @@ class Rel(IntEnum):
     DEFINES_MEMBER = 25
     OBJECT_HAS_MATERIAL = 26
     OBJECT_HAS_COLOR = 27
+    NODE_HAS_MATERIAL = 28
+    NODE_HAS_COLOR = 29
 
 
 class NodeKind(IntEnum):
@@ -96,6 +98,8 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(25, "DEFINES_MEMBER", "node", "object", "live", "ordinal"),
     RelTypeRow(26, "OBJECT_HAS_MATERIAL", "object", "node", "live", None),
     RelTypeRow(27, "OBJECT_HAS_COLOR", "object", "node", "live", None),
+    RelTypeRow(28, "NODE_HAS_MATERIAL", "node", "node", "live", None),
+    RelTypeRow(29, "NODE_HAS_COLOR", "node", "node", "live", None),
 ]
 
 NODE_KINDS: list[NodeKindRow] = [
