@@ -234,20 +234,31 @@ COMMENT ON COLUMN structural_results.value_text IS 'Exactly one of value (numeri
 --  (application_id 'speckle:civil3d:property-set-definitions'). Receive ladder:
 --  this file → carrier object (old managed bundles) → synthesize minimal defs
 --  from the value rows themselves (name=path leaf, type=set value column,
---  unit/id from the eav row).
+--  unit/bucket-id from the eav row).
 CREATE TABLE property_set_definitions (
-  set_name       VARCHAR NOT NULL,  -- authored definition name ('Pipe Data')
-  set_key        VARCHAR NOT NULL,  -- content hash of the definition — identity under same-name collisions
-  field_name     VARCHAR NOT NULL,  -- authored field name ('Slope')
-  field_id       INTEGER,           -- FieldBucketId — joins eav.internal_definition_name
-  data_type      VARCHAR,           -- Real | Text | Integer | TrueFalse | …
-  default_string VARCHAR,           -- at most one of default_string / default_double is set
-  default_double DOUBLE,
-  unit           VARCHAR,
-  description    VARCHAR,
-  applies_to     VARCHAR            -- csv of host entity filters; NULL = applies to all
+  set_name        VARCHAR NOT NULL,
+  set_key         VARCHAR NOT NULL,
+  set_description VARCHAR,
+  field_name      VARCHAR NOT NULL,
+  field_bucket_id VARCHAR,
+  data_type       VARCHAR,
+  default_string  VARCHAR,
+  default_double  DOUBLE,
+  default_boolean BOOLEAN,
+  unit            VARCHAR,
+  description     VARCHAR,
+  applies_to      VARCHAR
 );
-COMMENT ON TABLE property_set_definitions IS 'Optional schema catalog: AEC/Civil3D property-set definitions, one row per (set, field). Values live in eav; attachment derived from value paths. Same-name sets are distinguished by set_key; a value row resolves its set via field_id when names collide.';
+COMMENT ON TABLE property_set_definitions IS 'Optional schema catalog: AEC/Civil3D property-set definitions, one row per (set, field). ROW ORDER IS FIELD ORDER (the authored palette order — recreate preserves it). Values live in eav; attachment is derived from value paths. Set-level columns (set_name/set_key/set_description/applies_to) repeat on every row of the set — tidy-form denormalization, same as structural_results.';
+COMMENT ON COLUMN property_set_definitions.set_name IS 'Authored definition name (''Pipe Data'') — the key the eav value paths carry (properties.Property Sets.{set_name}.*), so it is the first hop of the rebind join.';
+COMMENT ON COLUMN property_set_definitions.set_key IS 'Content hash of the definition (name + ordered field tuples; recipe must be byte-identical across producers). SET-level identity: C3D allows two same-named set definitions — set_key keeps their rows apart in this file and dedupes identical schemas across merged bundles. Value rows cannot carry it (paths have only the name); rebind disambiguates same-named sets by field_bucket_id membership.';
+COMMENT ON COLUMN property_set_definitions.set_description IS 'The SET''s own authored description (PropertySetDefinition.Description) — distinct from the per-field description.';
+COMMENT ON COLUMN property_set_definitions.field_bucket_id IS 'The field''s FieldBucketId — the SAME string the value rows ship in eav.internal_definition_name, so this is THE rebind join key (field-scoped: unique within its set only). NULL when the producer could not observe it (definition never attached to a sent object) — rebind falls back to matching field_name against the value path leaf.';
+COMMENT ON COLUMN property_set_definitions.data_type IS 'Host datatype enum as text (Real | Text | Integer | TrueFalse | List | …) — faithful recreate without inferring from values.';
+COMMENT ON COLUMN property_set_definitions.default_string IS 'At most ONE of default_string / default_double / default_boolean is set (the eav exactly-one-value convention); all NULL = no default.';
+COMMENT ON COLUMN property_set_definitions.unit IS 'Autodesk unit DISPLAY text (UnitType.GetTypeDisplayName), ''(none)'' filtered to NULL — same source and caveat as the value rows'' unit.';
+COMMENT ON COLUMN property_set_definitions.description IS 'The FIELD''s authored description.';
+COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-type filters the set applies to; NULL = apply-to-all (or producer could not capture it).';
 
 -- ── model (optional, model/document-scoped attributes) ────────────────────────
 --  Attributes of the MODEL itself — Revit/Civil3D/Grasshopper document settings,

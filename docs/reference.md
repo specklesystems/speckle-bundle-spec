@@ -176,16 +176,18 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 
 | column | type | note |
 |---|---|---|
-| set_name | VARCHAR | · |
-| set_key | VARCHAR | · |
+| set_name | VARCHAR | Authored definition name ('Pipe Data') — the key the eav value paths carry (properties.Property Sets.{set_name}.*), so it is the first hop of the rebind join. |
+| set_key | VARCHAR | Content hash of the definition (name + ordered field tuples; recipe must be byte-identical across producers). SET-level identity: C3D allows two same-named set definitions — set_key keeps their rows apart in this file and dedupes identical schemas across merged bundles. Value rows cannot carry it (paths have only the name); rebind disambiguates same-named sets by field_bucket_id membership. |
+| set_description | VARCHAR | The SET's own authored description (PropertySetDefinition.Description) — distinct from the per-field description. |
 | field_name | VARCHAR | · |
-| field_id | INTEGER | · |
-| data_type | VARCHAR | · |
-| default_string | VARCHAR | · |
+| field_bucket_id | VARCHAR | The field's FieldBucketId — the SAME string the value rows ship in eav.internal_definition_name, so this is THE rebind join key (field-scoped: unique within its set only). NULL when the producer could not observe it (definition never attached to a sent object) — rebind falls back to matching field_name against the value path leaf. |
+| data_type | VARCHAR | Host datatype enum as text (Real \| Text \| Integer \| TrueFalse \| List \| …) — faithful recreate without inferring from values. |
+| default_string | VARCHAR | At most ONE of default_string / default_double / default_boolean is set (the eav exactly-one-value convention); all NULL = no default. |
 | default_double | DOUBLE | · |
-| unit | VARCHAR | · |
-| description | VARCHAR | · |
-| applies_to | VARCHAR | · |
+| default_boolean | BOOLEAN | · |
+| unit | VARCHAR | Autodesk unit DISPLAY text (UnitType.GetTypeDisplayName), '(none)' filtered to NULL — same source and caveat as the value rows' unit. |
+| description | VARCHAR | The FIELD's authored description. |
+| applies_to | VARCHAR | Csv of host entity-type filters the set applies to; NULL = apply-to-all (or producer could not capture it). |
 
 ### `relations`
 

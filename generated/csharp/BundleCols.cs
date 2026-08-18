@@ -115,15 +115,17 @@ public static class BundleCols
     {
         public const int SetName = 0;
         public const int SetKey = 1;
-        public const int FieldName = 2;
-        public const int FieldId = 3;
-        public const int DataType = 4;
-        public const int DefaultString = 5;
-        public const int DefaultDouble = 6;
-        public const int Unit = 7;
-        public const int Description = 8;
-        public const int AppliesTo = 9;
-        public const int ColumnCount = 10;
+        public const int SetDescription = 2;
+        public const int FieldName = 3;
+        public const int FieldBucketId = 4;
+        public const int DataType = 5;
+        public const int DefaultString = 6;
+        public const int DefaultDouble = 7;
+        public const int DefaultBoolean = 8;
+        public const int Unit = 9;
+        public const int Description = 10;
+        public const int AppliesTo = 11;
+        public const int ColumnCount = 12;
     }
 
     public static class Relations

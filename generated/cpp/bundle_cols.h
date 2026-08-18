@@ -103,15 +103,17 @@ inline constexpr int columnCount = 2;
 namespace bundlespec::col::property_set_definitions {
 inline constexpr int set_name = 0;
 inline constexpr int set_key = 1;
-inline constexpr int field_name = 2;
-inline constexpr int field_id = 3;
-inline constexpr int data_type = 4;
-inline constexpr int default_string = 5;
-inline constexpr int default_double = 6;
-inline constexpr int unit = 7;
-inline constexpr int description = 8;
-inline constexpr int applies_to = 9;
-inline constexpr int columnCount = 10;
+inline constexpr int set_description = 2;
+inline constexpr int field_name = 3;
+inline constexpr int field_bucket_id = 4;
+inline constexpr int data_type = 5;
+inline constexpr int default_string = 6;
+inline constexpr int default_double = 7;
+inline constexpr int default_boolean = 8;
+inline constexpr int unit = 9;
+inline constexpr int description = 10;
+inline constexpr int applies_to = 11;
+inline constexpr int columnCount = 12;
 }  // namespace bundlespec::col::property_set_definitions
 
 namespace bundlespec::col::relations {

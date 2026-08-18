@@ -90,7 +90,7 @@ export const TABLES = {
   object_type: ['object_index', 'type_index'],
   objects: ['object_index', 'application_id'],
   paths: ['path_index', 'path'],
-  property_set_definitions: ['set_name', 'set_key', 'field_name', 'field_id', 'data_type', 'default_string', 'default_double', 'unit', 'description', 'applies_to'],
+  property_set_definitions: ['set_name', 'set_key', 'set_description', 'field_name', 'field_bucket_id', 'data_type', 'default_string', 'default_double', 'default_boolean', 'unit', 'description', 'applies_to'],
   relations: ['rel', 'src', 'dst', 'ord'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
   structural_results: ['object_index', 'element_name', 'location', 'result_type', 'load_case', 'component', 'position_label', 'station', 'step', 'value', 'value_text'],

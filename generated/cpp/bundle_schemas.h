@@ -122,11 +122,13 @@ inline std::shared_ptr<arrow::Schema> propertySetDefinitionsSchema() {
   return arrow::schema({
       arrow::field("set_name", arrow::utf8()),
       arrow::field("set_key", arrow::utf8()),
+      arrow::field("set_description", arrow::utf8()),
       arrow::field("field_name", arrow::utf8()),
-      arrow::field("field_id", arrow::int32()),
+      arrow::field("field_bucket_id", arrow::utf8()),
       arrow::field("data_type", arrow::utf8()),
       arrow::field("default_string", arrow::utf8()),
       arrow::field("default_double", arrow::float64()),
+      arrow::field("default_boolean", arrow::boolean()),
       arrow::field("unit", arrow::utf8()),
       arrow::field("description", arrow::utf8()),
       arrow::field("applies_to", arrow::utf8())
