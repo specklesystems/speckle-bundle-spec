@@ -142,5 +142,60 @@ if (present('relations') && present('nodes')) {
   }
 }
 
+// 7. member/association invariants (PLACES 24 / DEFINES_MEMBER 25). These rels are
+// additive — every check below is vacuous on a bundle that doesn't emit them — but
+// where they appear their contracts are load-bearing and fail silently downstream:
+// a member object that also carries a top-level render edge bakes TWICE (once
+// untransformed at the origin — the ENG-8782 shape the vocabulary exists to
+// prevent), and a DEFINES_MEMBER row with neither DEFINES rows on (definition, ord)
+// nor a PLACES placement is a member no consumer can reach (its layer and
+// properties silently vanish from rebuilt definitions).
+if (present('relations')) {
+  const relByName = new Map(relTypes().map((r) => [r.name, r.id]))
+  const PLACES = relByName.get('PLACES')
+  const DEFINES_MEMBER = relByName.get('DEFINES_MEMBER')
+  const DEFINES = relByName.get('DEFINES')
+  const renderRoots = ['DISPLAY', 'SOLID', 'DISPLAY_INSTANCE'].map((n) => relByName.get(n))
+  const R = pq('relations')
+
+  if (usedRels.includes(PLACES) && present('nodes')) {
+    const [r] = query(
+      `SELECT count(*) AS total, count(*) FILTER (WHERE n.kind IS DISTINCT FROM 2) AS bad
+       FROM ${R} r LEFT JOIN ${pq('nodes')} n ON r.dst = n.id WHERE r.rel = ${PLACES}`,
+      { withSpec: false }
+    )
+    check(
+      Number(r.bad) === 0,
+      `PLACES(${PLACES}).dst → every target is an INSTANCE node` +
+        (Number(r.bad) ? ` — ${r.bad}/${r.total} target a non-INSTANCE kind` : '')
+    )
+  }
+
+  if (usedRels.includes(DEFINES_MEMBER)) {
+    const [b] = query(
+      `SELECT count(DISTINCT m.dst) AS bad FROM ${R} m
+       JOIN ${R} r ON r.src = m.dst AND r.rel IN (${renderRoots.join(', ')})
+       WHERE m.rel = ${DEFINES_MEMBER}`,
+      { withSpec: false }
+    )
+    check(
+      Number(b.bad) === 0,
+      `DEFINES_MEMBER(${DEFINES_MEMBER}) members carry no top-level render edge (DISPLAY/SOLID/DISPLAY_INSTANCE)` +
+        (Number(b.bad) ? ` — ${b.bad} member object(s) would bake twice` : '')
+    )
+    const [u] = query(
+      `SELECT count(*) AS bad FROM ${R} m WHERE m.rel = ${DEFINES_MEMBER}
+       AND NOT EXISTS (SELECT 1 FROM ${R} g WHERE g.rel = ${DEFINES} AND g.src = m.src AND g.ord = m.ord)
+       AND NOT EXISTS (SELECT 1 FROM ${R} p WHERE p.rel = ${PLACES} AND p.src = m.dst)`,
+      { withSpec: false }
+    )
+    check(
+      Number(u.bad) === 0,
+      `DEFINES_MEMBER(${DEFINES_MEMBER}) members resolve — DEFINES on (definition, ord) or a PLACES placement` +
+        (Number(u.bad) ? ` — ${u.bad} unreachable member(s)` : '')
+    )
+  }
+}
+
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)
