@@ -60,6 +60,16 @@ public static class BundleCols
         public const int ColumnCount = 4;
     }
 
+    public static class Model
+    {
+        public const int Path = 0;
+        public const int ValueString = 1;
+        public const int ValueDouble = 2;
+        public const int ValueBoolean = 3;
+        public const int Unit = 4;
+        public const int ColumnCount = 5;
+    }
+
     public static class Nodes
     {
         public const int Id = 0;
@@ -76,7 +86,8 @@ public static class BundleCols
         public const int Emissive = 11;
         public const int Ior = 12;
         public const int Elevation = 13;
-        public const int ColumnCount = 14;
+        public const int GhTopology = 14;
+        public const int ColumnCount = 15;
     }
 
     public static class ObjectType
@@ -98,6 +109,21 @@ public static class BundleCols
         public const int PathIndex = 0;
         public const int Path = 1;
         public const int ColumnCount = 2;
+    }
+
+    public static class PropertySetDefinitions
+    {
+        public const int SetName = 0;
+        public const int SetKey = 1;
+        public const int FieldName = 2;
+        public const int FieldId = 3;
+        public const int DataType = 4;
+        public const int DefaultString = 5;
+        public const int DefaultDouble = 6;
+        public const int Unit = 7;
+        public const int Description = 8;
+        public const int AppliesTo = 9;
+        public const int ColumnCount = 10;
     }
 
     public static class Relations

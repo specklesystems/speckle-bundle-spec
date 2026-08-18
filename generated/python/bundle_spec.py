@@ -33,6 +33,10 @@ class Rel(IntEnum):
     CONNECTS_TO = 21
     HOSTED_ON = 22
     BOUNDS = 23
+    PLACES = 24
+    DEFINES_MEMBER = 25
+    OBJECT_HAS_MATERIAL = 26
+    OBJECT_HAS_COLOR = 27
 
 
 class NodeKind(IntEnum):
@@ -66,11 +70,11 @@ class NodeKindRow(NamedTuple):
 # shipped in the bundle as the self-describing rel_types / node_kinds tables.
 REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(1, "DISPLAY", "object", "geometry", "live", "ordinal"),
-    RelTypeRow(2, "SOLID", "object", "geometry", "reserved", "ordinal"),
+    RelTypeRow(2, "SOLID", "object", "geometry", "live", "ordinal"),
     RelTypeRow(3, "SUBELEMENT", "object", "object", "live", "ordinal"),
-    RelTypeRow(4, "DEFINES", "node", "geometry", "live", None),
-    RelTypeRow(5, "HAS_MATERIAL", "geometry|instance", "node", "live", None),
-    RelTypeRow(6, "HAS_COLOR", "geometry|object", "node", "live", None),
+    RelTypeRow(4, "DEFINES", "node", "geometry", "live", "ordinal"),
+    RelTypeRow(5, "HAS_MATERIAL", "geometry", "node", "live", None),
+    RelTypeRow(6, "HAS_COLOR", "geometry", "node", "live", None),
     RelTypeRow(7, "ON_LEVEL", "object", "node", "live", None),
     RelTypeRow(8, "DISPLAY_INSTANCE", "object", "node", "live", "ordinal"),
     RelTypeRow(9, "DEFINES_INSTANCE", "node", "node", "live", "ordinal"),
@@ -88,6 +92,10 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(21, "CONNECTS_TO", "object", "object", "live", "scope"),
     RelTypeRow(22, "HOSTED_ON", "object", "object", "live", None),
     RelTypeRow(23, "BOUNDS", "object", "object", "live", None),
+    RelTypeRow(24, "PLACES", "object", "node", "live", None),
+    RelTypeRow(25, "DEFINES_MEMBER", "node", "object", "live", "ordinal"),
+    RelTypeRow(26, "OBJECT_HAS_MATERIAL", "object", "node", "live", None),
+    RelTypeRow(27, "OBJECT_HAS_COLOR", "object", "node", "live", None),
 ]
 
 NODE_KINDS: list[NodeKindRow] = [

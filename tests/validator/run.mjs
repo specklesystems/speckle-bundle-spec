@@ -50,7 +50,7 @@ const good = join(tmp, 'good')
 writeBundle(
   good,
   `INSERT INTO objects VALUES (0, 'a');
-   INSERT INTO nodes VALUES (0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO nodes VALUES (0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
    INSERT INTO relations VALUES (8, 0, 0, 0);`
 )
 const g = validate(good)
@@ -75,7 +75,7 @@ const dangling = join(tmp, 'dangling')
 writeBundle(
   dangling,
   `INSERT INTO objects VALUES (0, 'a');
-   INSERT INTO nodes VALUES (0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO nodes VALUES (0, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
    INSERT INTO relations VALUES (8, 0, 7, 0);`
 )
 const d = validate(dangling)

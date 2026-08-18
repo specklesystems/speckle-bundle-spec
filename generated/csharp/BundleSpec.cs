@@ -29,6 +29,10 @@ public enum Rel
     CONNECTS_TO = 21,
     HOSTED_ON = 22,
     BOUNDS = 23,
+    PLACES = 24,
+    DEFINES_MEMBER = 25,
+    OBJECT_HAS_MATERIAL = 26,
+    OBJECT_HAS_COLOR = 27,
 }
 
 public enum NodeKind
@@ -49,11 +53,11 @@ public static class Catalog
     public static readonly RelTypeRow[] RelTypes =
     {
         new(1, "DISPLAY", "object", "geometry", "live"),
-        new(2, "SOLID", "object", "geometry", "reserved"),
+        new(2, "SOLID", "object", "geometry", "live"),
         new(3, "SUBELEMENT", "object", "object", "live"),
         new(4, "DEFINES", "node", "geometry", "live"),
-        new(5, "HAS_MATERIAL", "geometry|instance", "node", "live"),
-        new(6, "HAS_COLOR", "geometry|object", "node", "live"),
+        new(5, "HAS_MATERIAL", "geometry", "node", "live"),
+        new(6, "HAS_COLOR", "geometry", "node", "live"),
         new(7, "ON_LEVEL", "object", "node", "live"),
         new(8, "DISPLAY_INSTANCE", "object", "node", "live"),
         new(9, "DEFINES_INSTANCE", "node", "node", "live"),
@@ -66,6 +70,10 @@ public static class Catalog
         new(21, "CONNECTS_TO", "object", "object", "live"),
         new(22, "HOSTED_ON", "object", "object", "live"),
         new(23, "BOUNDS", "object", "object", "live"),
+        new(24, "PLACES", "object", "node", "live"),
+        new(25, "DEFINES_MEMBER", "node", "object", "live"),
+        new(26, "OBJECT_HAS_MATERIAL", "object", "node", "live"),
+        new(27, "OBJECT_HAS_COLOR", "object", "node", "live"),
     };
 
     public static readonly NodeKindRow[] NodeKinds =

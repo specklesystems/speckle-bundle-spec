@@ -67,6 +67,15 @@ public static class BundleSchemas
         new("type", ArrowType.Utf8, true),
     };
 
+    public static readonly ColumnSpec[] Model =
+    {
+        new("path", ArrowType.Utf8, false),
+        new("value_string", ArrowType.Utf8, true),
+        new("value_double", ArrowType.Float64, true),
+        new("value_boolean", ArrowType.Boolean, true),
+        new("unit", ArrowType.Utf8, true),
+    };
+
     public static readonly ColumnSpec[] Nodes =
     {
         new("id", ArrowType.Int32, false),
@@ -83,6 +92,7 @@ public static class BundleSchemas
         new("emissive", ArrowType.Int32, true),
         new("ior", ArrowType.Float64, true),
         new("elevation", ArrowType.Float64, true),
+        new("gh_topology", ArrowType.Utf8, true),
     };
 
     public static readonly ColumnSpec[] ObjectType =
@@ -101,6 +111,20 @@ public static class BundleSchemas
     {
         new("path_index", ArrowType.Int32, false),
         new("path", ArrowType.Utf8, false),
+    };
+
+    public static readonly ColumnSpec[] PropertySetDefinitions =
+    {
+        new("set_name", ArrowType.Utf8, false),
+        new("set_key", ArrowType.Utf8, false),
+        new("field_name", ArrowType.Utf8, false),
+        new("field_id", ArrowType.Int32, true),
+        new("data_type", ArrowType.Utf8, true),
+        new("default_string", ArrowType.Utf8, true),
+        new("default_double", ArrowType.Float64, true),
+        new("unit", ArrowType.Utf8, true),
+        new("description", ArrowType.Utf8, true),
+        new("applies_to", ArrowType.Utf8, true),
     };
 
     public static readonly ColumnSpec[] Relations =
@@ -159,10 +183,12 @@ public static class BundleSchemas
         ["camera_views"] = CameraViews,
         ["eav"] = Eav,
         ["geometries"] = Geometries,
+        ["model"] = Model,
         ["nodes"] = Nodes,
         ["object_type"] = ObjectType,
         ["objects"] = Objects,
         ["paths"] = Paths,
+        ["property_set_definitions"] = PropertySetDefinitions,
         ["relations"] = Relations,
         ["scene_views"] = SceneViews,
         ["structural_results"] = StructuralResults,
