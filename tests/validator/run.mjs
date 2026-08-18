@@ -85,6 +85,64 @@ check(
   'failure names the dangling rel endpoint'
 )
 
+// 4. healthy member shape (PLACES/DEFINES_MEMBER vocabulary): definition node 0 with a
+// geometry member (object 1, DEFINES + DEFINES_MEMBER sharing ord 0), placed by object 0.
+const goodMember = join(tmp, 'good-member')
+writeBundle(
+  goodMember,
+  `INSERT INTO objects VALUES (0, 'a'), (1, 'm');
+   INSERT INTO nodes VALUES
+     (0, 1, 'Def', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+     (1, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO relations VALUES (8, 0, 1, 0), (25, 0, 1, 0), (4, 0, 0, 0);`
+)
+const gm = validate(goodMember)
+check(gm.status === 0, `healthy member bundle validates (exit=${gm.status})`)
+
+// 5. a member object that ALSO carries a top-level render edge would bake twice
+// (once untransformed at the origin — the ENG-8782 shape).
+const memberRenders = join(tmp, 'member-renders')
+writeBundle(
+  memberRenders,
+  `INSERT INTO objects VALUES (0, 'a'), (1, 'm');
+   INSERT INTO nodes VALUES
+     (0, 1, 'Def', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+     (1, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO relations VALUES (8, 0, 1, 0), (25, 0, 1, 0), (4, 0, 0, 0), (1, 1, 0, 0);`
+)
+const mr = validate(memberRenders)
+check(mr.status !== 0, `member with a top-level render edge is a hard error (exit=${mr.status})`)
+check(
+  mr.stderr.includes('members carry no top-level render edge'),
+  'failure names the member render-edge rule'
+)
+
+// 6. a DEFINES_MEMBER row with neither DEFINES rows on (definition, ord) nor a PLACES
+// placement is a member no consumer can reach.
+const memberUnreachable = join(tmp, 'member-unreachable')
+writeBundle(
+  memberUnreachable,
+  `INSERT INTO objects VALUES (0, 'a'), (1, 'm');
+   INSERT INTO nodes VALUES (0, 1, 'Def', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO relations VALUES (25, 0, 1, 0);`
+)
+const mu = validate(memberUnreachable)
+check(mu.status !== 0, `unreachable DEFINES_MEMBER member is a hard error (exit=${mu.status})`)
+check(mu.stderr.includes('members resolve'), 'failure names the member-resolution rule')
+
+// 7. PLACES must target an INSTANCE node — association to any other kind is a
+// producer bug (the dst carries no transform to place).
+const placesWrongKind = join(tmp, 'places-wrong-kind')
+writeBundle(
+  placesWrongKind,
+  `INSERT INTO objects VALUES (0, 'a');
+   INSERT INTO nodes VALUES (0, 7, 'Layer', NULL, NULL, NULL, 'Collection', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO relations VALUES (24, 0, 0, 0);`
+)
+const pw = validate(placesWrongKind)
+check(pw.status !== 0, `PLACES to a non-INSTANCE node is a hard error (exit=${pw.status})`)
+check(pw.stderr.includes('every target is an INSTANCE node'), 'failure names the PLACES kind rule')
+
 rmSync(tmp, { recursive: true, force: true })
 console.log(fails === 0 ? '\nvalidator tests: PASS' : `\nvalidator tests: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)
