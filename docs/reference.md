@@ -69,7 +69,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `camera_views` | `{base}.envelope.camera_views.parquet` | no | no | yes | Named camera viewpoints (eye/forward/up + projection). |
 | `structural_results` | `{base}.eav.structural_results.parquet` | no | no | no | OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model. |
 | `property_set_definitions` | `{base}.eav.property_set_definitions.parquet` | no | no | no | OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths). |
-| `model` | `{base}.eav.model.parquet` | no | no | no | OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). |
+| `model` | `{base}.eav.model.parquet` | no | no | no | OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment). |
 
 ## Table shapes
 
