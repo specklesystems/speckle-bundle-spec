@@ -17,23 +17,24 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ── meta ─────────────────────────────────────────────────────────────────────
--- reference_point_kind/_offset (ENG-8947): set by producers that RE-BASED geometry by a
--- source reference point (Revit project base / survey point) so the applied translation
--- is recoverable downstream (federation/georeferencing). kind ∈ internalOrigin |
--- projectBasePoint | surveyPoint; offset is "x,y,z" in the bundle's display units — the
--- vector SUBTRACTED from all world-space output. kind "internalOriginFallback" = a
--- reference point was REQUESTED but missing from the model; the producer converted at
--- the internal origin (offset NULL) — recorded degradation, not silence. NULL/absent
--- kind = internal origin (no re-basing). Nullable + additive: readers that ignore them
--- are unaffected (no version bump).
+-- Reference point (ENG-8947 → ENG-9099): producers that RE-BASE geometry by a source
+-- reference point (Revit project base / survey point / shared coordinates) record it as
+-- MODEL-scoped eav rows in the `model` file (17), NOT here: `referencePoint.kind`
+-- (projectBasePoint | surveyPoint | sharedCoordinates | internalOriginFallback),
+-- `referencePoint.transform` (the FULL rigid transform applied — 16 row-major doubles,
+-- InstanceProxy layout) and `referencePoint.units`. "internalOriginFallback" = a reference
+-- point was REQUESTED but missing from the model; the producer converted at the internal
+-- origin (no transform row) — recorded degradation, not silence. No rows = internal origin.
+-- The former meta columns reference_point_kind/_offset are REMOVED (xyz-only offsets lost
+-- rotation and meta is the wrong home for model data); consumers tolerate them as extra
+-- columns on old bundles but must not read them.
 --
 -- produced_by/producer_version: the slug and version of the producer of this model version
 -- sdk_name/sdk_version: name and version of the SDK used to author this version
 -- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
-                   reference_point_kind VARCHAR, reference_point_offset VARCHAR,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 1 — table shapes (DDL). Logical names match the views a consumer sees
@@ -381,4 +382,4 @@ INSERT INTO bundle_files VALUES
   (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).'),
   (15, 'structural_results', '{base}.eav.structural_results.parquet', '{base}.eav.structural_results.parquet', false, false, false, 'OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model.'),
   (16, 'property_set_definitions', '{base}.eav.property_set_definitions.parquet', '{base}.eav.property_set_definitions.parquet', false, false, false, 'OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths).'),
-  (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info).');
+  (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment).');

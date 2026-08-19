@@ -4,6 +4,15 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**Reference point moves to eav.model; meta.reference_point_* removed**
+- The reference-point record now lives ONLY as model-scoped eav rows in the
+  `model` file: `referencePoint.kind` / `.transform` (full 16-double rigid
+  transform, InstanceProxy layout) / `.units`. The former meta columns
+  `reference_point_kind` / `reference_point_offset` are removed — the xyz-only
+  offset for point kinds lost rotation, and meta is the wrong home for model
+  data. Consumers tolerate the columns as extras on old bundles (the validator
+  only requires spec columns) but must not read them.
+
 **Container appearance: NODE_HAS_MATERIAL (28) / NODE_HAS_COLOR (29)**
 - Two node→node rels carrying the authored layer/tag appearance (Rhino layer
   material, AutoCAD/Civil3D layer material, SketchUp tag material/colour) —
