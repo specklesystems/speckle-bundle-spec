@@ -346,7 +346,7 @@ INSERT INTO node_kinds
   (4, 'COLOR',       'live',    'argb,opacity',                           NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).'),
   (5, 'LEVEL',       'live',    'name,elevation',                         NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
   (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),
-  (7, 'CONTAINER',   'live',    'name,def_ref,subtype,gh_topology',      'Collection,Layer,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
+  (7, 'CONTAINER',   'live',    'name,def_ref,subtype,gh_topology',      'Collection,Layer,Folder,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
 
 -- ── bundle_files (the manifest) ──────────────────────────────────────────────
 --   sharded   : true ⇒ the table rolls across multiple parquet files; read via read_glob.
