@@ -1,6 +1,6 @@
 // Spec invariants — run in CI on every spec edit. No bundle needed; these guard
 // the spec itself (the rules a human might break while editing bundle-spec.sql).
-import { relTypes, nodeKinds } from '../../codegen/lib/duck.mjs'
+import { relTypes, nodeKinds, sgeoQuery } from '../../codegen/lib/duck.mjs'
 
 let fails = 0
 const check = (cond, msg) => {
@@ -82,6 +82,35 @@ check(
 check(
   rels.find((r) => r.id === 19)?.status === 'retired',
   'IN_SUBASSEMBLY remains retired'
+)
+
+// 8. SGEO catalogs — the flag-claiming discipline (bit 10 was nearly double-claimed;
+// bits are claimed in the catalog FIRST, implementations follow, never re-purposed).
+const sgeoFlags = sgeoQuery('SELECT * FROM sgeo_flags ORDER BY bit;')
+const sgeoTypes = sgeoQuery('SELECT * FROM sgeo_primitive_types ORDER BY id;')
+check(
+  sgeoFlags.length === 16 && sgeoFlags.every((f, i) => f.bit === i),
+  'sgeo_flags covers exactly bits 0-15, each once'
+)
+const SGEO_STATUS = new Set(['assigned', 'reserved', 'free'])
+check(sgeoFlags.every((f) => SGEO_STATUS.has(f.status)), 'every sgeo flag status ∈ {assigned,reserved,free}')
+check(
+  sgeoFlags.filter((f) => f.status !== 'free').every((f) => f.name != null) &&
+    sgeoFlags.filter((f) => f.status === 'free').every((f) => f.name == null),
+  'sgeo flag names present iff the bit is claimed'
+)
+check(
+  sgeoFlags[10]?.name === 'HasMaxWidth' && sgeoFlags[10].applies_to === 'text',
+  'bit 10 is HasMaxWidth (text) — live in dwgextract; never re-claim it'
+)
+check(
+  sgeoFlags[11]?.name === 'HardEdges' && sgeoFlags[11].applies_to === 'mesh' && sgeoFlags[11].status === 'assigned',
+  'bit 11 is HardEdges (mesh), assigned'
+)
+const typeIds = sgeoTypes.map((t) => t.id)
+check(
+  new Set(typeIds).size === typeIds.length && typeIds.every((id, i) => id === i) && sgeoTypes.length === 13,
+  'sgeo primitive codes are dense 0-12, unique'
 )
 
 console.log(fails === 0 ? '\nconformance: PASS' : `\nconformance: ${fails} FAILURE(S)`)
