@@ -1,6 +1,6 @@
 {
   "name": "@speckle/bundle-spec",
-  "version": "5.0.0",
+  "version": "1.0.0",
   "description": "Single source of truth for the Speckle bundle format (eav + envelope + geometry). Schema and semantics live in spec/bundle-spec.sql; everything else is generated.",
   "type": "module",
   "main": "generated/ts/bundleSpec.ts",

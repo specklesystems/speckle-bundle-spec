@@ -69,7 +69,7 @@ for (const c of tableColumns()) (byTable[c.table_name] ??= []).push(c.column_nam
 for (const [table, specCols] of Object.entries(byTable)) {
   if (!present(table)) continue
   const cols = new Set(
-    query(`DESCRIBE SELECT * FROM ${pq(table)}`, { withSpec: false }).map((d) => d.column_name)
+    query(`SELECT column_name FROM (DESCRIBE SELECT * FROM ${pq(table)})`, { withSpec: false }).map((d) => d.column_name)
   )
   const missing = specCols.filter((c) => !cols.has(c))
   check(missing.length === 0, `${table}: all spec columns present${missing.length ? ` (missing: ${missing.join(', ')})` : ''}`)

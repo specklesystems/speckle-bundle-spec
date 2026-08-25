@@ -34,7 +34,7 @@
 -- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES (1, 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 1 — table shapes (DDL). Logical names match the views a consumer sees

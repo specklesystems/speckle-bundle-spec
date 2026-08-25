@@ -6,7 +6,7 @@ namespace Speckle.Bundle.Spec;
 
 public static class BundleSpec
 {
-    public const int SchemaVersion = 5;
+    public const int SchemaVersion = 1;
 }
 
 public enum Rel
@@ -87,6 +87,6 @@ public static class Catalog
         new(3, "MATERIAL", null),
         new(4, "COLOR", null),
         new(5, "LEVEL", null),
-        new(7, "CONTAINER", "Collection,Model,MEP System,Network,Group"),
+        new(7, "CONTAINER", "Collection,Layer,Folder,Model,MEP System,Network,Group"),
     };
 }
