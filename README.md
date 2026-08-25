@@ -80,4 +80,5 @@ npm run verify-pin -- --python <dir>   # <dir> holds the vendored *.py    (speck
 - **Retire ids in place, never reuse them** (`status='retired'`). Gaps are intentional.
 - Short semantics live in the spec (as columns); long-form rationale lives in `docs/rationale/`.
 
-See `docs/reference.md` for the current vocabulary (schema_version 5).
+See `docs/reference.md` for the current vocabulary (schema_version 1), and
+`VERSIONING.md` for how to bump `schema_version` and what to re-vendor downstream.
