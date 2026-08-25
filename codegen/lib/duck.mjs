@@ -23,7 +23,8 @@ export function query(sql, { withSpec = true } = {}) {
     maxBuffer: 1 << 28
   })
   const t = out.trim()
-  if (!t) return []
+  // DuckDB ≥1.5 -json prints the malformed literal `[{]` for an empty result set.
+  if (!t || t === '[{]') return []
   // DuckDB's -json mode encodes BOOLEAN as the strings "true"/"false" — and
   // "false" is truthy in JS. Coerce those exact tokens back to real booleans so
   // callers can branch on them. (No catalog text value is exactly true/false.)
