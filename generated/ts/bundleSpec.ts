@@ -1,7 +1,7 @@
 // GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.
 // Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
 
-export const SCHEMA_VERSION = 5 as const
+export const SCHEMA_VERSION = 1 as const
 
 /** Live relation ids. */
 export const Rel = {

@@ -1,5 +1,5 @@
 <!-- GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT. Run npm run generate. -->
-# Speckle bundle format — reference (schema_version 5)
+# Speckle bundle format — reference (schema_version 1)
 
 Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/rationale/`.
 
@@ -47,7 +47,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 4 | **COLOR** | 🟢 live | argb,opacity | · | Raw colour override. — *Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).* |
 | 5 | **LEVEL** | 🟢 live | name,elevation | · | A storey. — *Target of ON_LEVEL; elevation drives architectural ordering.* |
 | 6 | **COLLECTION** | ⚪ retired | · | · | Authored layer/collection node. — *Retired in v5: folded into CONTAINER (subtype=Collection).* |
-| 7 | **CONTAINER** | 🟢 live | name,def_ref,subtype | Collection,Model,MEP System,Network,Group | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).* |
+| 7 | **CONTAINER** | 🟢 live | name,def_ref,subtype,gh_topology | Collection,Layer,Folder,Model,MEP System,Network,Group | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).* |
 
 ## Bundle manifest (`bundle_files`)
 

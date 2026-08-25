@@ -5,7 +5,7 @@
 
 namespace bundlespec {
 
-constexpr int kSchemaVersion = 5;
+constexpr int kSchemaVersion = 1;
 
 enum class Rel : int {
   DISPLAY = 1,
@@ -80,7 +80,7 @@ static const NodeKindRow kNodeKinds[] = {
   {3, "MATERIAL", nullptr},
   {4, "COLOR", nullptr},
   {5, "LEVEL", nullptr},
-  {7, "CONTAINER", "Collection,Model,MEP System,Network,Group"},
+  {7, "CONTAINER", "Collection,Layer,Folder,Model,MEP System,Network,Group"},
 };
 
 }  // namespace bundlespec
