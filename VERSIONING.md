@@ -64,9 +64,11 @@ Every consumer gets the value one of three ways. Check all of them after a bump.
 | `speckle-sharp-sdk` | `src/Speckle.Sdk.Parquet/Speckle.Sdk.Parquet.csproj` `<Compile Include="../../../speckle-bundle-spec/generated/csharp/BundleSpec.cs">` — `EnvelopeWriter.cs` stamps `SpecBundle.SchemaVersion` |
 | `speckle-converters` native (`rvextract`, `nwextract`) | CMake `BUNDLE_SPEC` defaults to `../../../speckle-bundle-spec`; container builds point it at the extracted published artifact and set `-DBUNDLE_SPEC_EXPECT_VERSION=<n>` (build fails on mismatch) |
 
-Action: pull the sibling checkout; for the unified image, update the default in
-`speckle-converters/mise.toml` (`build` task: `BUNDLE_SPEC_VERSION:-<n>.0.0`) and the
-artifact it fetches. `BUNDLE_SPEC_EXPECT_VERSION` compares the **package** version string
+Action: pull the sibling checkout; for the unified image, update **every** `BUNDLE_SPEC_VERSION`
+source in speckle-converters — `.github/workflows/ci.yml` and `full-rhino-ci.yml` (`env:` block,
+fed to the `image` job as a build-arg) and `mise.toml` (`build` task default) — plus the artifact
+it fetches. A missed one fails the image build with `bundle-spec pin MISMATCH: want <old>,
+artifact is <new>`. `grep -rn BUNDLE_SPEC_VERSION .github mise.toml docker` must show only the new value. `BUNDLE_SPEC_EXPECT_VERSION` compares the **package** version string
 (`"1.0.0"`), not the integer `schema_version`.
 
 ### B. Vendored copy + pin file (re-vendor + verify)
