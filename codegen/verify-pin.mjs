@@ -4,6 +4,7 @@
 //
 //   node codegen/verify-pin.mjs --cpp    <dir>   # <dir> exposes generated/cpp/*.h
 //   node codegen/verify-pin.mjs --python <dir>   # <dir> holds the vendored *.py
+//   node codegen/verify-pin.mjs --query-conformance <dir>   # <dir> is a vendored conformance/query/
 //   node codegen/verify-pin.mjs --lock <path>    # override lockfile (default dist/bundle-spec.lock.json)
 //
 // Exits non-zero on any missing/mismatched file → drop-in CI drift guard. Only files
@@ -22,12 +23,20 @@ const opt = (flag) => {
   const i = args.indexOf(flag)
   return i >= 0 ? args[i + 1] : undefined
 }
-const target = args.includes('--cpp') ? 'cpp' : args.includes('--python') ? 'python' : undefined
-const dir = opt('--cpp') || opt('--python')
+const target = args.includes('--cpp')
+  ? 'cpp'
+  : args.includes('--python')
+    ? 'python'
+    : args.includes('--query-conformance')
+      ? 'queryConformance'
+      : undefined
+const dir = opt('--cpp') || opt('--python') || opt('--query-conformance')
 const lockPath = opt('--lock') || join(REPO, 'dist', 'bundle-spec.lock.json')
 
 if (!target || !dir) {
-  console.error('usage: verify-pin.mjs (--cpp <dir> | --python <dir>) [--lock <path>]')
+  console.error(
+    'usage: verify-pin.mjs (--cpp <dir> | --python <dir> | --query-conformance <dir>) [--lock <path>]'
+  )
   process.exit(2)
 }
 if (!existsSync(lockPath)) {

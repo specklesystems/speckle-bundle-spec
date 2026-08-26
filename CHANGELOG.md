@@ -19,6 +19,20 @@ string of this package (see `VERSIONING.md`).
 
 **Pinned to schema_version 1 (#22)** — the standalone spec restarts its version line at 1.
 
+**Query conformance suite** (`conformance/query/`, ENG-9305)
+- The portable suite every bundle query engine runs: one committed KB-scale synthetic
+  bundle (every `bundle_files` view incl. the type tables and catalogs, `eav` across 3
+  parquet row groups, geometries as 2 shards), golden `(sql, expected)` pairs, a
+  `read_csv()` local-data-join case, and `schema.json` pinning the mounted-schema
+  invariant (filename → view, schema-per-alias, the `object_properties` union view,
+  geometry shards never mounted). `harness.mjs` carries the loader, mount plan and
+  result comparison for the JS engines; `README.md` is the engine-facing contract.
+- Reference runner `tests/query-conformance/run.mjs` joins `npm test`;
+  `npm run build:query-fixture` regenerates the bundle from `fixture.sql`.
+- Distribution: `publish:artifacts` pins every suite file under the lock's
+  `queryConformance` target; `verify-pin -- --query-conformance <dir>` checks a
+  vendored copy. No format change.
+
 **Reference point moves to eav.model; meta.reference_point_* removed**
 - The reference-point record now lives ONLY as model-scoped eav rows in the
   `model` file: `referencePoint.kind` / `.transform` (full 16-double rigid

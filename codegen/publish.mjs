@@ -15,6 +15,7 @@
 //   dist/cpp/generated/cpp/*.h               headers + synthesized bundle_spec_version.h
 //   dist/bundle-spec-cpp-<version>.tar.gz     fetchable C++ artifact (BUNDLE_SPEC points here)
 //   dist/python/…                            installable `speckle-bundle-spec` package (+ _version.py)
+//   (lock only) queryConformance             per-file pins of conformance/query/ for engines that vendor it
 
 import {
   readFileSync,
@@ -138,6 +139,18 @@ const hashTree = (dir, ext, keyPrefix) =>
       .sort()
       .map((f) => [keyPrefix + f, sha256File(join(dir, f))])
   )
+// Recursive variant for the query conformance suite (bundle/, local/, json, harness) —
+// keys are relative to conformance/query, matching a consumer's vendored layout.
+const hashDeep = (dir, prefix = '') =>
+  Object.fromEntries(
+    readdirSync(dir, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .flatMap((e) =>
+        e.isDirectory()
+          ? Object.entries(hashDeep(join(dir, e.name), prefix + e.name + '/'))
+          : [[prefix + e.name, sha256File(join(dir, e.name))]]
+      )
+  )
 
 const lock = {
   name: pkg.name,
@@ -146,7 +159,11 @@ const lock = {
   specHash: SPEC_HASH,
   targets: {
     cpp: { include: 'generated/cpp', files: hashTree(cppSrcDir, '.h', 'generated/cpp/') },
-    python: { package: 'speckle_bundle_spec', files: hashTree(pySrcDir, '.py', '') }
+    python: { package: 'speckle_bundle_spec', files: hashTree(pySrcDir, '.py', '') },
+    queryConformance: {
+      dir: 'conformance/query',
+      files: hashDeep(join(REPO, 'conformance', 'query'))
+    }
   }
 }
 const lockJson = JSON.stringify(lock, null, 2) + '\n'
@@ -171,5 +188,6 @@ execFileSync('tar', tarArgs, { stdio: 'inherit' })
 
 console.log(`  cpp     → dist/${tarball}  (+ dist/cpp/generated/cpp/, ${cppFiles.length + 1} headers)`)
 console.log(`  python  → dist/python/  (installable speckle-bundle-spec==${VERSION})`)
+console.log(`  query   → (lock only) conformance/query/, ${Object.keys(lock.targets.queryConformance.files).length} files`)
 console.log(`  lock    → dist/bundle-spec.lock.json`)
 console.log('done.')

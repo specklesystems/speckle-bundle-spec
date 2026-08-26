@@ -1,0 +1,193 @@
+{
+  "alias": "gold",
+  "files": [
+    "gold.eav.eav.parquet",
+    "gold.eav.model.parquet",
+    "gold.eav.object_type.parquet",
+    "gold.eav.objects.parquet",
+    "gold.eav.paths.parquet",
+    "gold.eav.property_set_definitions.parquet",
+    "gold.eav.structural_results.parquet",
+    "gold.eav.type_eav.parquet",
+    "gold.eav.types.parquet",
+    "gold.envelope.camera_views.parquet",
+    "gold.envelope.meta.parquet",
+    "gold.envelope.node_kinds.parquet",
+    "gold.envelope.nodes.parquet",
+    "gold.envelope.rel_types.parquet",
+    "gold.envelope.relations.parquet",
+    "gold.envelope.scene_views.parquet",
+    "gold.geometries.1.parquet",
+    "gold.geometries.parquet"
+  ],
+  "views": {
+    "objects": [
+      "object_index",
+      "application_id"
+    ],
+    "paths": [
+      "path_index",
+      "path"
+    ],
+    "eav": [
+      "object_index",
+      "path_index",
+      "value_string",
+      "value_double",
+      "value_boolean",
+      "unit",
+      "internal_definition_name"
+    ],
+    "types": [
+      "type_index",
+      "type_key"
+    ],
+    "type_eav": [
+      "type_index",
+      "path_index",
+      "value_string",
+      "value_double",
+      "value_boolean",
+      "unit",
+      "internal_definition_name"
+    ],
+    "object_type": [
+      "object_index",
+      "type_index"
+    ],
+    "nodes": [
+      "id",
+      "kind",
+      "name",
+      "def_ref",
+      "transform",
+      "units",
+      "subtype",
+      "argb",
+      "opacity",
+      "metalness",
+      "roughness",
+      "emissive",
+      "ior",
+      "elevation",
+      "gh_topology"
+    ],
+    "relations": [
+      "rel",
+      "src",
+      "dst",
+      "ord"
+    ],
+    "rel_types": [
+      "id",
+      "name",
+      "src_ns",
+      "dst_ns",
+      "status",
+      "emitted_by",
+      "ord_semantics",
+      "description",
+      "why"
+    ],
+    "node_kinds": [
+      "id",
+      "name",
+      "status",
+      "columns",
+      "subtype_values",
+      "description",
+      "why"
+    ],
+    "meta": [
+      "schema_version",
+      "produced_by",
+      "producer_version",
+      "sdk_name",
+      "sdk_version",
+      "migrated_from_schema_version"
+    ],
+    "scene_views": [
+      "view",
+      "name",
+      "is_default",
+      "ord",
+      "source",
+      "ref"
+    ],
+    "camera_views": [
+      "view",
+      "name",
+      "is_default",
+      "ord",
+      "pos_x",
+      "pos_y",
+      "pos_z",
+      "forward_x",
+      "forward_y",
+      "forward_z",
+      "up_x",
+      "up_y",
+      "up_z",
+      "target_x",
+      "target_y",
+      "target_z",
+      "units",
+      "is_ortho",
+      "fov",
+      "lens_mm",
+      "ortho_height",
+      "aspect",
+      "near",
+      "far"
+    ],
+    "structural_results": [
+      "object_index",
+      "element_name",
+      "location",
+      "result_type",
+      "load_case",
+      "component",
+      "position_label",
+      "station",
+      "step",
+      "value",
+      "value_text"
+    ],
+    "property_set_definitions": [
+      "set_name",
+      "set_key",
+      "set_description",
+      "field_name",
+      "field_bucket_id",
+      "data_type",
+      "default_string",
+      "default_double",
+      "default_boolean",
+      "unit",
+      "description",
+      "applies_to"
+    ],
+    "model": [
+      "path",
+      "value_string",
+      "value_double",
+      "value_boolean",
+      "unit"
+    ],
+    "object_properties": [
+      "object_index",
+      "path_index",
+      "value_string",
+      "value_double",
+      "value_boolean",
+      "unit",
+      "internal_definition_name"
+    ]
+  },
+  "notMounted": [
+    "gold.geometries.1.parquet",
+    "gold.geometries.parquet"
+  ],
+  "objectPropertiesRowCount": 6597,
+  "eavRowGroups": 3
+}
