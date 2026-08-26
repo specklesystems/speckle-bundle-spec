@@ -2,9 +2,11 @@
   "alias": "gold",
   "files": [
     "gold.eav.eav.parquet",
+    "gold.eav.model.parquet",
     "gold.eav.object_type.parquet",
     "gold.eav.objects.parquet",
     "gold.eav.paths.parquet",
+    "gold.eav.property_set_definitions.parquet",
     "gold.eav.structural_results.parquet",
     "gold.eav.type_eav.parquet",
     "gold.eav.types.parquet",
@@ -67,7 +69,8 @@
       "roughness",
       "emissive",
       "ior",
-      "elevation"
+      "elevation",
+      "gh_topology"
     ],
     "relations": [
       "rel",
@@ -98,8 +101,6 @@
     "meta": [
       "schema_version",
       "produced_by",
-      "reference_point_kind",
-      "reference_point_offset",
       "producer_version",
       "sdk_name",
       "sdk_version",
@@ -151,6 +152,27 @@
       "step",
       "value",
       "value_text"
+    ],
+    "property_set_definitions": [
+      "set_name",
+      "set_key",
+      "set_description",
+      "field_name",
+      "field_bucket_id",
+      "data_type",
+      "default_string",
+      "default_double",
+      "default_boolean",
+      "unit",
+      "description",
+      "applies_to"
+    ],
+    "model": [
+      "path",
+      "value_string",
+      "value_double",
+      "value_boolean",
+      "unit"
     ],
     "object_properties": [
       "object_index",

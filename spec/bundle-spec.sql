@@ -17,23 +17,24 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ── meta ─────────────────────────────────────────────────────────────────────
--- reference_point_kind/_offset (ENG-8947): set by producers that RE-BASED geometry by a
--- source reference point (Revit project base / survey point) so the applied translation
--- is recoverable downstream (federation/georeferencing). kind ∈ internalOrigin |
--- projectBasePoint | surveyPoint; offset is "x,y,z" in the bundle's display units — the
--- vector SUBTRACTED from all world-space output. kind "internalOriginFallback" = a
--- reference point was REQUESTED but missing from the model; the producer converted at
--- the internal origin (offset NULL) — recorded degradation, not silence. NULL/absent
--- kind = internal origin (no re-basing). Nullable + additive: readers that ignore them
--- are unaffected (no version bump).
+-- Reference point (ENG-8947 → ENG-9099): producers that RE-BASE geometry by a source
+-- reference point (Revit project base / survey point / shared coordinates) record it as
+-- MODEL-scoped eav rows in the `model` file (17), NOT here: `referencePoint.kind`
+-- (projectBasePoint | surveyPoint | sharedCoordinates | internalOriginFallback),
+-- `referencePoint.transform` (the FULL rigid transform applied — 16 row-major doubles,
+-- InstanceProxy layout) and `referencePoint.units`. "internalOriginFallback" = a reference
+-- point was REQUESTED but missing from the model; the producer converted at the internal
+-- origin (no transform row) — recorded degradation, not silence. No rows = internal origin.
+-- The former meta columns reference_point_kind/_offset are REMOVED (xyz-only offsets lost
+-- rotation and meta is the wrong home for model data); consumers tolerate them as extra
+-- columns on old bundles but must not read them.
 --
 -- produced_by/producer_version: the slug and version of the producer of this model version
 -- sdk_name/sdk_version: name and version of the SDK used to author this version
 -- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
-                   reference_point_kind VARCHAR, reference_point_offset VARCHAR,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES (5, 'speckle-bundle-spec', NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES (1, 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 1 — table shapes (DDL). Logical names match the views a consumer sees
@@ -106,7 +107,8 @@ CREATE TABLE nodes (
   roughness DOUBLE,
   emissive  INTEGER,
   ior       DOUBLE,
-  elevation DOUBLE
+  elevation DOUBLE,
+  gh_topology  VARCHAR
 );
 COMMENT ON TABLE nodes IS 'Synthetic graph nodes. Bounded STRUCTURAL scaffolding (fixed columns) — unbounded/source-variable metadata belongs on objects (eav), never here. Add a column only for a genuinely new structural scalar.';
 COMMENT ON COLUMN nodes.id IS 'Dense int K (the node K-space, distinct from object_index). Overlaps geometry K numerically — disambiguate by the rel''s namespaces.';
@@ -119,6 +121,7 @@ COMMENT ON COLUMN nodes.argb IS 'MATERIAL/COLOR packed colour.';
 COMMENT ON COLUMN nodes.emissive IS 'MATERIAL packed emissive colour (ARGB). NULL = no emission (producers normalize black RGB to NULL); consumers default NULL to black [ENG-8791].';
 COMMENT ON COLUMN nodes.ior IS 'MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791].';
 COMMENT ON COLUMN nodes.elevation IS 'LEVEL height — lets the scene tree order storeys architecturally.';
+COMMENT ON COLUMN nodes.gh_topology IS 'Grasshopper collection topologies. i.e. 0-1 0;0-1 to keep them as source on receive.';
 
 CREATE TABLE relations (
   rel INTEGER NOT NULL,
@@ -221,6 +224,57 @@ COMMENT ON COLUMN structural_results.object_index IS 'Object-level results only 
 COMMENT ON COLUMN structural_results.position_label IS 'Categorical position/direction (Top/Bottom, X/Y). Distinct from the numeric member station.';
 COMMENT ON COLUMN structural_results.value_text IS 'Exactly one of value (numeric) / value_text (verdict) is set; consumer coalesces. value_text is NULL for all analysis results.';
 
+-- ── property_set_definitions (optional, AEC property-set SCHEMAS) ─────────────
+--  The definitions (SHAPE) of AEC/Civil3D property sets: one row per (set, field).
+--  VALUES stay per-object in eav (path `properties.Property Sets.{set}.{field}`,
+--  with unit + internal_definition_name = field_id) and attachment is DERIVED:
+--  an object implements a set iff it carries value rows under it. Deliberately
+--  NOT type_eav — type_eav rows are VALUES an object inherits as its own
+--  attributes; schema rows there would surface as fake properties in the
+--  documented eav ∪ type_eav read. Replaces the managed carrier pseudo-object
+--  (application_id 'speckle:civil3d:property-set-definitions'). Receive ladder:
+--  this file → carrier object (old managed bundles) → synthesize minimal defs
+--  from the value rows themselves (name=path leaf, type=set value column,
+--  unit/bucket-id from the eav row).
+CREATE TABLE property_set_definitions (
+  set_name        VARCHAR NOT NULL,
+  set_key         VARCHAR NOT NULL,
+  set_description VARCHAR,
+  field_name      VARCHAR NOT NULL,
+  field_bucket_id VARCHAR,
+  data_type       VARCHAR,
+  default_string  VARCHAR,
+  default_double  DOUBLE,
+  default_boolean BOOLEAN,
+  unit            VARCHAR,
+  description     VARCHAR,
+  applies_to      VARCHAR
+);
+COMMENT ON TABLE property_set_definitions IS 'Optional schema catalog: AEC/Civil3D property-set definitions, one row per (set, field). ROW ORDER IS FIELD ORDER (the authored palette order — recreate preserves it). Values live in eav; attachment is derived from value paths. Set-level columns (set_name/set_key/set_description/applies_to) repeat on every row of the set — tidy-form denormalization, same as structural_results.';
+COMMENT ON COLUMN property_set_definitions.set_name IS 'Authored definition name (''Pipe Data'') — the key the eav value paths carry (properties.Property Sets.{set_name}.*), so it is the first hop of the rebind join.';
+COMMENT ON COLUMN property_set_definitions.set_key IS 'Content hash of the definition (name + ordered field tuples; recipe must be byte-identical across producers). SET-level identity: C3D allows two same-named set definitions — set_key keeps their rows apart in this file and dedupes identical schemas across merged bundles. Value rows cannot carry it (paths have only the name); rebind disambiguates same-named sets by field_bucket_id membership.';
+COMMENT ON COLUMN property_set_definitions.set_description IS 'The SET''s own authored description (PropertySetDefinition.Description) — distinct from the per-field description.';
+COMMENT ON COLUMN property_set_definitions.field_bucket_id IS 'The field''s FieldBucketId — the SAME string the value rows ship in eav.internal_definition_name, so this is THE rebind join key (field-scoped: unique within its set only). NULL when the producer could not observe it (definition never attached to a sent object) — rebind falls back to matching field_name against the value path leaf.';
+COMMENT ON COLUMN property_set_definitions.data_type IS 'Host datatype enum as text (Real | Text | Integer | TrueFalse | List | …) — faithful recreate without inferring from values.';
+COMMENT ON COLUMN property_set_definitions.default_string IS 'At most ONE of default_string / default_double / default_boolean is set (the eav exactly-one-value convention); all NULL = no default.';
+COMMENT ON COLUMN property_set_definitions.unit IS 'Autodesk unit DISPLAY text (UnitType.GetTypeDisplayName), ''(none)'' filtered to NULL — same source and caveat as the value rows'' unit.';
+COMMENT ON COLUMN property_set_definitions.description IS 'The FIELD''s authored description.';
+COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-type filters the set applies to; NULL = apply-to-all (or producer could not capture it).';
+
+-- ── model (optional, model/document-scoped attributes) ────────────────────────
+--  Attributes of the MODEL itself — Revit/Civil3D/Grasshopper document settings,
+--  project information — facts with no owning object. Object-less eav rows:
+--  exactly one value column set, unit rides per row. Path is inlined (not
+--  interned via paths): the table is tiny and stays self-contained.
+CREATE TABLE model (
+  path          VARCHAR NOT NULL,
+  value_string  VARCHAR,
+  value_double  DOUBLE,
+  value_boolean BOOLEAN,
+  unit          VARCHAR
+);
+COMMENT ON TABLE model IS 'Optional model/document-scoped attributes (object-less eav): exactly one of value_string/value_double/value_boolean per row; consumer coalesces.';
+
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 2 — semantic catalogs (data). These tables carry the vocabulary AND its
 --  meaning. rel_types / node_kinds also SHIP in the bundle (a consumer may read
@@ -237,36 +291,42 @@ CREATE TABLE rel_types (
   src_ns        VARCHAR,
   dst_ns        VARCHAR,
   status        VARCHAR NOT NULL,
-  emitted_by    VARCHAR,      -- csv of producers: rvextract | nwextract | managed
+  emitted_by    VARCHAR,      -- csv of producers: rvextract | nwextract | dwgextract | dgnextract | skpextract | teklaextract | managed
   ord_semantics VARCHAR,
   description   VARCHAR,
   why           VARCHAR
 );
 INSERT INTO rel_types
   (id, name,               src_ns,            dst_ns,     status,     emitted_by,            ord_semantics, description, why) VALUES
-  (1,  'DISPLAY',          'object',          'geometry', 'live',     'rvextract',           'ordinal', 'Object → its own mesh.',                          'Top-level direct meshes (walls, in-place). Navis never uses it — everything there is an instance.'),
-  (2,  'SOLID',            'object',          'geometry', 'reserved', NULL,                  'ordinal', 'Solid body, distinct from a display mesh.',       'Reserved: Rhino/Civil3D will distinguish true solids from tessellated display meshes.'),
-  (3,  'SUBELEMENT',       'object',          'object',   'live',     'rvextract',           'ordinal', 'Parent → child containment.',                     'Railings, mullions, curtain panels — a hierarchy the flat eav cannot encode.'),
-  (4,  'DEFINES',          'node',            'geometry', 'live',     'rvextract,nwextract', NULL,      'DEFINITION → shared geometry.',                   'The instancing contract: one mesh owned by a definition, reused by placements.'),
-  (5,  'HAS_MATERIAL',     'geometry|instance', 'node',   'live',     'rvextract,nwextract', NULL,      'Geometry/instance → MATERIAL node.',              'Base render appearance (full PBR). An INSTANCE src is the placement-painted material (SketchUp instance painting, ENG-8849): shared definition geometry with no own material inherits it per placement; geometry-level material wins.'),
-  (6,  'HAS_COLOR',        'geometry|object', 'node',     'live',     'managed',             NULL,      'Geometry/object → COLOR node.',                   'Colour override — kept distinct from HAS_MATERIAL because it drives a different viewer render mode.'),
-  (7,  'ON_LEVEL',         'object',          'node',     'live',     'rvextract,nwextract', NULL,      'Object → LEVEL node.',                            'Storey membership; also the default scene-view tier.'),
-  (8,  'DISPLAY_INSTANCE', 'object',          'node',     'live',     'rvextract,nwextract', 'ordinal', 'Object → INSTANCE node (top level).',             'Place a definition here with a transform.'),
-  (9,  'DEFINES_INSTANCE', 'node',            'node',     'live',     'rvextract',           'ordinal', 'DEFINITION → nested INSTANCE node.',              'Nested instancing — a definition that itself contains placed instances.'),
-  (10, 'IN_COLLECTION',    'object',          'node',     'live',     'managed',             NULL,      'Object → CONTAINER(Collection).',                 'Authored layer/collection-tree membership.'),
-  (11, 'IN_MODEL',         'object',          'node',     'live',     'nwextract',           NULL,      'Object → CONTAINER(Model).',                      'Federation tier (source-file grouping); outermost scene-view tier when >1 model.'),
-  (12, 'IN_ROOM',          'object',          'object',   'live',     'rvextract',           NULL,      'Object → containing room object.',                'Spatial occupancy (furniture/door/window → room). Rooms are objects, not nodes.'),
+  (1,  'DISPLAY',          'object',          'geometry', 'live',     'rvextract,dwgextract,dgnextract,skpextract,teklaextract,managed', 'ordinal', 'Object → its own mesh.',                          'Top-level direct meshes (walls, in-place). Navis never uses it — everything there is an instance.'),
+  (2,  'SOLID',            'object',          'geometry', 'live',     'dwgextract,managed',  'ordinal', 'Solid body, distinct from a display mesh.',       'Rhino/Civil3D ship true solids beside tessellated display meshes; within a definition member, receive prefers the solid over its meshes.'),
+  (3,  'SUBELEMENT',       'object',          'object',   'live',     'rvextract,dwgextract,teklaextract,managed', 'ordinal', 'Parent → child containment.',                     'Railings, mullions, curtain panels — a hierarchy the flat eav cannot encode.'),
+  (4,  'DEFINES',          'node',            'geometry', 'live',     'rvextract,nwextract,dwgextract,dgnextract,skpextract,teklaextract,managed', 'ordinal', 'DEFINITION → shared geometry.',                   'The instancing contract: one mesh owned by a definition, reused by placements. ord is the MEMBER ordinal: rows sharing (definition, ord) are one member''s geometries (e.g. a solid + its display meshes) and join to DEFINES_MEMBER on the same key.'),
+  (5,  'HAS_MATERIAL',     'geometry',        'node',     'live',     'rvextract,nwextract,dwgextract,dgnextract,skpextract,teklaextract,managed', NULL, 'Geometry → MATERIAL node.',                       'Base render appearance (full PBR). src is geometry ONLY (union removed post-v5): placement paint lives on OBJECT_HAS_MATERIAL (26). Pre-split bundles may still carry INSTANCE srcs tagged ord=1 (ENG-8849 era) — consumers keep the geometry-first fallback.'),
+  (6,  'HAS_COLOR',        'geometry',        'node',     'live',     'dwgextract,dgnextract,skpextract,managed', NULL, 'Geometry → COLOR node.',                          'Display colour — kept distinct from HAS_MATERIAL because it drives a different viewer render mode. src is geometry ONLY (union removed post-v5): object-plane colour lives on OBJECT_HAS_COLOR (27). Pre-split bundles may still carry object srcs.'),
+  (7,  'ON_LEVEL',         'object',          'node',     'live',     'rvextract,nwextract,managed', NULL, 'Object → LEVEL node.',                            'Storey membership; also the default scene-view tier.'),
+  (8,  'DISPLAY_INSTANCE', 'object',          'node',     'live',     'rvextract,nwextract,dwgextract,dgnextract,skpextract,teklaextract,managed', 'ordinal', 'Object → INSTANCE node (top level).',             'Place a definition here with a transform. STRICTLY a render contract — every edge is a world-space render root. For the object↔placement association WITHOUT rendering (definition members) use PLACES (24); overloading this rel would draw members untransformed at the origin on deployed consumers [ENG-8782].'),
+  (9,  'DEFINES_INSTANCE', 'node',            'node',     'live',     'rvextract,dwgextract,skpextract,managed', 'ordinal', 'DEFINITION → nested INSTANCE node.',              'Nested instancing — a definition that itself contains placed instances. ord shares the definition''s SINGLE member-ordinal space with DEFINES (4) and DEFINES_MEMBER (25) — one authored sequence numbers all members, geometry and nested-instance alike, so interleaved member order round-trips.'),
+  (10, 'IN_COLLECTION',    'object',          'node',     'live',     'nwextract,dwgextract,dgnextract,skpextract,managed', NULL, 'Object → CONTAINER(Collection).',                 'Authored layer/collection-tree membership.'),
+  (11, 'IN_MODEL',         'object',          'node',     'live',     'rvextract,nwextract,dgnextract,managed', NULL, 'Object → CONTAINER(Model).',                      'Federation tier (source-file grouping); outermost scene-view tier when >1 model.'),
+  (12, 'IN_ROOM',          'object',          'object',   'live',     'rvextract,managed',   NULL,      'Object → containing room object.',                'Spatial occupancy (furniture/door/window → room). Rooms are objects, not nodes.'),
   (13, 'IN_SPACE',         NULL,              NULL,       'retired',  NULL,                  NULL,      'Object → containing MEP space.',                  'Retired in v5: ODA exposes no element→space membership (getRoomId only). Spaces ship as objects with eav.'),
-  (14, 'IN_SYSTEM',        'object',          'node',     'live',     'rvextract,nwextract', NULL,      'Object → CONTAINER(MEP System | Network).',       'MEP grouping membership. Carries BOTH authored Revit systems and derived Navis networks — the container subtype distinguishes them (the IN_NETWORK collapse).'),
+  (14, 'IN_SYSTEM',        'object',          'node',     'live',     'rvextract,nwextract,dwgextract,managed', NULL, 'Object → CONTAINER(MEP System | Network).',       'MEP grouping membership. Carries BOTH authored Revit systems and derived Navis networks — the container subtype distinguishes them (the IN_NETWORK collapse).'),
   (15, 'IN_NETWORK',       NULL,              NULL,       'retired',  NULL,                  NULL,      'Object → derived MEP network.',                   'Retired in v5: collapsed into IN_SYSTEM (subtype=Network).'),
   (16, 'IN_LINE',          NULL,              NULL,       'retired',  NULL,                  NULL,      'Object → civil alignment/line.',                  'Retired in v5: never emitted; reintroduce if/when a producer needs it.'),
-  (17, 'IN_GROUP',         'object',          'node',     'live',     'managed',             NULL,      'Object → CONTAINER(Group).',                      'Authored scene-group membership (Rhino/AutoCAD groups). A separate axis from IN_COLLECTION: an object keeps its layer AND its group(s); groups may nest (CONTAINER def_ref) and overlap. Un-retired post-v5.'),
+  (17, 'IN_GROUP',         'object',          'node',     'live',     'rvextract,dwgextract,managed', NULL, 'Object → CONTAINER(Group).',                      'Authored scene-group membership (Rhino/AutoCAD groups). A separate axis from IN_COLLECTION: an object keeps its layer AND its group(s); groups may nest (CONTAINER def_ref) and overlap. Un-retired post-v5.'),
   (18, 'IN_ASSEMBLY',      'object',          'object',   'live',     'teklaextract',        'ordinal', 'Member object → containing assembly object.',    'Authored fabrication membership, separate from SUBELEMENT ownership. ord=0 is the main member; ord>=1 orders secondary or nested-assembly members.'),
   (19, 'IN_SUBASSEMBLY',   NULL,              NULL,       'retired',  NULL,                  NULL,      'Object → subassembly.',                           'Retired in v5: never emitted.'),
   (20, 'XREF',             NULL,              NULL,       'retired',  NULL,                  NULL,      'External reference link.',                        'Retired in v5: never emitted.'),
-  (21, 'CONNECTS_TO',      'object',          'object',   'live',     'rvextract,nwextract', 'scope',   'Object → object connectivity (directed).',        'The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped).'),
-  (22, 'HOSTED_ON',        'object',          'object',   'live',     'rvextract',           NULL,      'Hosted element → host.',                          'Revit hosting (door/window → wall, fixture → ceiling/floor/face) from ODA getHostId. A DIFFERENT semantic from SUBELEMENT ownership (owningElemId): a door is placed on a wall, not a component of it. Emitted only when the element has no owner (legacy precedence) and both endpoints are converted. Un-retired post-v5.'),
-  (23, 'BOUNDS',           'object',          'object',   'live',     'rvextract',           NULL,      'Bounding wall → room object.',                    'Room footprint (which walls bound a room) for downstream egress / plan analysis.');
+  (21, 'CONNECTS_TO',      'object',          'object',   'live',     'rvextract,nwextract,dwgextract,teklaextract,managed', 'scope', 'Object → object connectivity (directed).',        'The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped).'),
+  (22, 'HOSTED_ON',        'object',          'object',   'live',     'rvextract,teklaextract,managed', NULL, 'Hosted element → host.',                          'Revit hosting (door/window → wall, fixture → ceiling/floor/face) from ODA getHostId. A DIFFERENT semantic from SUBELEMENT ownership (owningElemId): a door is placed on a wall, not a component of it. Emitted only when the element has no owner (legacy precedence) and both endpoints are converted. Un-retired post-v5.'),
+  (23, 'BOUNDS',           'object',          'object',   'live',     'rvextract',           NULL,      'Bounding wall → room object.',                    'Room footprint (which walls bound a room) for downstream egress / plan analysis.'),
+  (24, 'PLACES',           'object',          'node',     'live',     'managed',             NULL,      'Member object → its INSTANCE node (association only).', 'The object↔node map for one source thing split across both planes. Ties a render-edge-less definition-member object to its nested placement so its properties and IN_COLLECTION stay reachable; replaces the @speckle.instance_k eav stamp [ENG-9110]. NEVER a render root — that is DISPLAY_INSTANCE.'),
+  (25, 'DEFINES_MEMBER',   'node',            'object',   'live',     'managed',             'ordinal', 'DEFINITION → member object.',                     'Definition membership on the OBJECT plane, where nothing is deduped — emitted for EVERY member, geometry and nested-instance alike. ord is THE member ordinal: one authored sequence per definition, shared with DEFINES (4) and DEFINES_INSTANCE (9), so interleaved member order round-trips. A geometry member''s content is its DEFINES rows joined on (definition, ord) — dedup-safe even when content-hashing collapses identical meshes across definitions; an instance member''s placement is its PLACES edge. Replaces the @speckle.geometry_k eav stamp.'),
+  (26, 'OBJECT_HAS_MATERIAL','object',        'node',     'live',     'managed',             NULL,      'Object → MATERIAL node (placement paint).',       'Placement painting on the object plane (SketchUp instance painting, ENG-8849 — formerly HAS_MATERIAL''s INSTANCE src / the ord=1 stamp). FILL semantics: geometry-level HAS_MATERIAL always wins; the object''s material fills definition geometry with no material of its own, resolved down the placement chain (a nested member object reaches its placement via PLACES). NOTE: OBJECT_HAS_COLOR (27) deliberately INVERTS this precedence — material is intrinsic, colour is presentational.'),
+  (27, 'OBJECT_HAS_COLOR', 'object',          'node',     'live',     'managed',             NULL,      'Object → COLOR node (object-plane colour).',      'Object-plane colour (formerly HAS_COLOR''s object src). OVERRIDE semantics — deliberately the INVERSE of OBJECT_HAS_MATERIAL: material is intrinsic (geometry owns, object fills), colour is presentational (object overrides, geometry is the default). Deployed receives already resolve object colour last-write-wins over geometry colour, and this rel''s own use cases — per-object colour on deduped twin meshes, clash/status highlighting, CAD ByBlock-style inheritance — only work when the object wins. Resolution: object > geometry > NODE_HAS_COLOR (container default) > none.'),
+  (28, 'NODE_HAS_MATERIAL','node',            'node',     'live',     'managed',             NULL,      'Node → MATERIAL node (container appearance).',    'The authored layer/tag render material (Rhino layer material, AutoCAD/Civil3D layer material, SketchUp tag material) — the assignment receivers restore on the rebuilt container, which the member-geometry flatten [ENG-9108] erased before this rel existed. Weakest tier of the material ladder (FILL semantics, rel 26): geometry HAS_MATERIAL wins, then OBJECT_HAS_MATERIAL, then the container''s NODE_HAS_MATERIAL reached via the object''s membership edge (IN_COLLECTION). Producers keep flattening the inherited material onto member geometry so render-only consumers never need the ladder walk; this edge carries the authored source of that flatten.'),
+  (29, 'NODE_HAS_COLOR',   'node',            'node',     'live',     'managed',             NULL,      'Node → COLOR node (container display colour).',   'Layer/tag display colour as a first-class edge, the colour twin of NODE_HAS_MATERIAL and — like it — the weakest tier: colour resolves object > geometry > container (the container edge is the ByLayer default that applies when nothing more specific does, so OBJECT_HAS_COLOR''s override precedence, rel 27, is untouched). Supersedes the argb managed producers stamped directly on CONTAINER rows — an undocumented carrier; consumers prefer this edge and keep reading CONTAINER argb as the fallback for older bundles.');
 
 -- ── node_kinds ───────────────────────────────────────────────────────────────
 CREATE TABLE node_kinds (
@@ -286,7 +346,7 @@ INSERT INTO node_kinds
   (4, 'COLOR',       'live',    'argb,opacity',                           NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).'),
   (5, 'LEVEL',       'live',    'name,elevation',                         NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
   (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),
-  (7, 'CONTAINER',   'live',    'name,def_ref,subtype',                   'Collection,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP.');
+  (7, 'CONTAINER',   'live',    'name,def_ref,subtype,gh_topology',      'Collection,Layer,Folder,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
 
 -- ── bundle_files (the manifest) ──────────────────────────────────────────────
 --   sharded   : true ⇒ the table rolls across multiple parquet files; read via read_glob.
@@ -320,4 +380,6 @@ INSERT INTO bundle_files VALUES
   (12, 'scene_views', '{base}.envelope.scene_views.parquet','{base}.envelope.scene_views.parquet',false, false, true,  'Producer-authored default projection.'),
   (13, 'geometries',  '{base}.geometries.parquet',          '{base}.geometries*.parquet',         true,  true,  false, 'SGEO mesh blobs (content-hash deduped). SHARDED: shard 0 = {base}.geometries.parquet, overflow = {base}.geometries.{N}.parquet; read the glob.'),
   (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).'),
-  (15, 'structural_results', '{base}.eav.structural_results.parquet', '{base}.eav.structural_results.parquet', false, false, false, 'OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model.');
+  (15, 'structural_results', '{base}.eav.structural_results.parquet', '{base}.eav.structural_results.parquet', false, false, false, 'OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model.'),
+  (16, 'property_set_definitions', '{base}.eav.property_set_definitions.parquet', '{base}.eav.property_set_definitions.parquet', false, false, false, 'OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths).'),
+  (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment).');

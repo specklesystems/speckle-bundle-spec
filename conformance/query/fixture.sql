@@ -18,7 +18,7 @@
 --   relations    ON_LEVEL 200, DISPLAY 200, IN_MODEL 200, HAS_MATERIAL 5,
 --                DISPLAY_INSTANCE 4, DEFINES_INSTANCE 4, HAS_COLOR 1 = 614 rows
 --   geometries   10 rows (geometryIndex 0..9), written as 2 shards (0..5 | 6..9)
---   scene_views 2, camera_views 1, structural_results 3
+--   scene_views 2, camera_views 1, structural_results 3, property_set_definitions 2, model 3
 
 UPDATE meta SET produced_by = 'speckle-bundle-spec/query-conformance',
                 producer_version = '1', sdk_name = 'query-conformance-fixture';
@@ -59,21 +59,21 @@ SELECT t, 7, NULL, (t + 1) * 100, NULL, 'mm', NULL FROM range(5) r(t);
 INSERT INTO object_type SELECT i, i % 4 FROM range(199) t(i);
 
 -- nodes(id, kind, name, def_ref, transform, units, subtype, argb, opacity, metalness,
---       roughness, emissive, ior, elevation)
+--       roughness, emissive, ior, elevation, gh_topology)
 INSERT INTO nodes
-SELECT i, 5, 'Level ' || i::VARCHAR, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, i * 3.5
+SELECT i, 5, 'Level ' || i::VARCHAR, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, i * 3.5, NULL
 FROM range(3) t(i);
 INSERT INTO nodes VALUES
-  (3, 7, 'Model', NULL, NULL, NULL, 'Model', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (4, 1, 'Def A', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (5, 1, 'Def B', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+  (3, 7, 'Model', NULL, NULL, NULL, 'Model', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (4, 1, 'Def A', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (5, 1, 'Def B', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO nodes
 SELECT 6 + i, 2, NULL, 4 + (i % 2), '1,0,0,0,0,1,0,0,0,0,1,0,' || (i * 10)::VARCHAR || ',0,0,1', 'm',
-       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 FROM range(4) t(i);
 INSERT INTO nodes VALUES
-  (10, 3, 'Concrete', NULL, NULL, NULL, NULL, -8355712, 1.0, 0.0, 0.8, NULL, NULL, NULL),
-  (11, 4, NULL, NULL, NULL, NULL, NULL, -65536, 1.0, NULL, NULL, NULL, NULL, NULL);
+  (10, 3, 'Concrete', NULL, NULL, NULL, NULL, -8355712, 1.0, 0.0, 0.8, NULL, NULL, NULL, NULL),
+  (11, 4, NULL, NULL, NULL, NULL, NULL, -65536, 1.0, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- relations(rel, src, dst, ord)
 INSERT INTO relations SELECT 7, i, i % 3, NULL FROM range(200) t(i);          -- ON_LEVEL object→LEVEL
@@ -100,3 +100,12 @@ INSERT INTO structural_results VALUES
   (0, NULL, NULL, 'frameForce', 'Dead', 'P', NULL, 0.0, 1, -12.5, NULL),
   (0, NULL, NULL, 'frameForce', 'Dead', 'M3', NULL, 0.0, 1, 4.25, NULL),
   (NULL, 'P1', NULL, 'pierForce', 'EQx', 'V2', 'Top', NULL, 1, 8.0, NULL);
+
+INSERT INTO property_set_definitions VALUES
+  ('Dimensions', 'dimensions', 'Geometric quantities', 'Area', NULL, 'double', NULL, NULL, NULL, 'm2', 'Gross area', 'Walls,Floors'),
+  ('Dimensions', 'dimensions', 'Geometric quantities', 'Length', NULL, 'double', NULL, NULL, NULL, 'm', 'Nominal length', 'Walls');
+
+INSERT INTO model VALUES
+  ('referencePoint.kind', 'internalOrigin', NULL, NULL, NULL),
+  ('referencePoint.units', 'm', NULL, NULL, NULL),
+  ('model.storeys', NULL, 3, NULL, NULL);

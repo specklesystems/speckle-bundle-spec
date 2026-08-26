@@ -16,7 +16,77 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
   `npm run build:query-fixture` regenerates the bundle from `fixture.sql`.
 - Distribution: `publish:artifacts` pins every suite file under the lock's
   `queryConformance` target; `verify-pin -- --query-conformance <dir>` checks a
-  vendored copy. No `schema_version` bump: nothing in the format changed.
+  vendored copy. No format change.
+
+**Reference point moves to eav.model; meta.reference_point_* removed**
+- The reference-point record now lives ONLY as model-scoped eav rows in the
+  `model` file: `referencePoint.kind` / `.transform` (full 16-double rigid
+  transform, InstanceProxy layout) / `.units`. The former meta columns
+  `reference_point_kind` / `reference_point_offset` are removed — the xyz-only
+  offset for point kinds lost rotation, and meta is the wrong home for model
+  data. Consumers tolerate the columns as extras on old bundles (the validator
+  only requires spec columns) but must not read them.
+
+**Container appearance: NODE_HAS_MATERIAL (28) / NODE_HAS_COLOR (29)**
+- Two node→node rels carrying the authored layer/tag appearance (Rhino layer
+  material, AutoCAD/Civil3D layer material, SketchUp tag material/colour) —
+  previously inexpressible: producers flatten layer-inherited materials onto
+  member geometry [ENG-9108], which preserves the render but erases the layer
+  assignment on receive.
+- Both sit at the WEAKEST tier of their ladders, so existing precedence is
+  untouched: material resolves geometry > object > container (fill, rel 26);
+  colour resolves object > geometry > container (override, rel 27). Producers
+  keep flattening — render-only consumers never need the ladder walk.
+- `NODE_HAS_COLOR` supersedes the undocumented `argb` stamped directly on
+  CONTAINER rows; consumers prefer the edge and keep the argb read fallback
+  for older bundles.
+- Validator: dst-kind invariants (28 → MATERIAL, 29 → COLOR), vacuous when
+  unemitted, fixture-tested.
+
+**Vocabulary follow-ups: OBJECT_HAS_COLOR precedence, member ordinal contract, emitted_by refresh, member invariants** (amends #15)
+- `OBJECT_HAS_COLOR` (27) precedence corrected to OVERRIDE (object > geometry >
+  none) — the deliberate INVERSE of `OBJECT_HAS_MATERIAL`'s fill semantics.
+  Material is intrinsic (geometry owns, object fills); colour is presentational
+  (object overrides). Deployed receives already resolve object colour
+  last-write-wins, and the rel's own use cases (per-object colour on deduped twin
+  meshes, clash/status highlights, ByBlock-style inheritance) only work when the
+  object wins. The fill wording shipped in #15 was never implemented by any
+  consumer, so this is a catalog-text correction, not a behaviour change.
+- Member ordinal contract made explicit: one authored member sequence per
+  definition, shared by `DEFINES` (4), `DEFINES_INSTANCE` (9) and
+  `DEFINES_MEMBER` (25) — matching the shipped managed emitter — so interleaved
+  geometry/instance member order round-trips. `DEFINES_MEMBER` documented as
+  emitted for EVERY member (instance members carry it alongside `PLACES`).
+- `emitted_by` refreshed from producer source (grep of every `Rel::` emission +
+  the managed pipeline call sites): rows 1–22 now name all actual emitters;
+  producer vocabulary extended with `dgnextract` (and `dwgextract`/`skpextract`,
+  documented in #15's column comment but used by no row until now).
+- Validator: three member/association invariants, vacuous on bundles that don't
+  emit the new rels — `PLACES`.dst is an INSTANCE node; `DEFINES_MEMBER` members
+  carry no top-level render edge (`DISPLAY`/`SOLID`/`DISPLAY_INSTANCE` — the
+  ENG-8782 double-bake shape); every `DEFINES_MEMBER` row resolves via `DEFINES`
+  on (definition, ord) or a `PLACES` placement. Fixture-tested in
+  `tests/validator/run.mjs`.
+- Catalog text + validator + tests only ⇒ **no `schema_version` bump**: no table
+  shape changed, no ids minted or retired.
+
+**Member/appearance vocabulary: rels 24–27, unions removed; property-set/model files; `nodes.gh_topology`** (#15)
+- `PLACES` (24, `object → node`): association-only tie from a render-edge-less
+  definition-member object to its INSTANCE node — replaces the
+  `@speckle.instance_k` eav stamp [ENG-9110]. Never a render root (that is
+  `DISPLAY_INSTANCE`, now pinned as strictly a top-level render contract).
+- `DEFINES_MEMBER` (25, `node → object`): definition membership on the object
+  plane, where nothing is deduped; ord joins the member's `DEFINES` rows —
+  replaces the `@speckle.geometry_k` eav stamp. `DEFINES` ord declared the
+  member ordinal; `SOLID` (2) live.
+- `OBJECT_HAS_MATERIAL` (26) / `OBJECT_HAS_COLOR` (27): object-plane appearance;
+  `HAS_MATERIAL`/`HAS_COLOR` src narrowed to `geometry` only (union namespaces
+  removed; pre-split bundles keep the ord=1 fallback).
+- New optional files: `eav.property_set_definitions` (AEC property-set schemas —
+  values stay in eav) and `eav.model` (object-less document-scoped eav rows);
+  new `nodes.gh_topology` column (Grasshopper collection topology).
+- Additive ⇒ no `schema_version` bump: ids minted above the retired range, old
+  bundles ship their own catalogs, consumers feature-detect by rel presence.
 
 **`IN_ASSEMBLY` (18) un-retired** (`object → object`, emitted by teklaextract)
 - A source member points to its containing source assembly object. Assemblies

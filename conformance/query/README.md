@@ -9,7 +9,7 @@ plus the contract doc in the server Query Engine module
 speckle-server-internal); the engines conform, they do not legislate.
 
 ```
-bundle/          the synthetic bundle (16 parquet files, ~54 KB) — every bundle_files
+bundle/          the synthetic bundle (18 parquet files, ~59 KB) — every bundle_files
                  view incl. the type tables and catalogs; eav spans 3 row groups;
                  geometries is written as 2 shards
 fixture.sql      the deterministic recipe the bundle is built from (run after the spec DDL)

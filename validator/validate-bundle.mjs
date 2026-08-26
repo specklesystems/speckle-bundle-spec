@@ -69,7 +69,7 @@ for (const c of tableColumns()) (byTable[c.table_name] ??= []).push(c.column_nam
 for (const [table, specCols] of Object.entries(byTable)) {
   if (!present(table)) continue
   const cols = new Set(
-    query(`DESCRIBE SELECT * FROM ${pq(table)}`, { withSpec: false }).map((d) => d.column_name)
+    query(`SELECT column_name FROM (DESCRIBE SELECT * FROM ${pq(table)})`, { withSpec: false }).map((d) => d.column_name)
   )
   const missing = specCols.filter((c) => !cols.has(c))
   check(missing.length === 0, `${table}: all spec columns present${missing.length ? ` (missing: ${missing.join(', ')})` : ''}`)
@@ -138,6 +138,87 @@ if (present('relations') && present('nodes')) {
       Number(r.dangling) === 0,
       `${name}(${id}).${col} → node endpoints resolve to nodes.id` +
         (Number(r.dangling) ? ` — ${r.dangling}/${r.total} dangling (nodes rows=${nodeCount})` : '')
+    )
+  }
+}
+
+// 7. member/association invariants (PLACES 24 / DEFINES_MEMBER 25). These rels are
+// additive — every check below is vacuous on a bundle that doesn't emit them — but
+// where they appear their contracts are load-bearing and fail silently downstream:
+// a member object that also carries a top-level render edge bakes TWICE (once
+// untransformed at the origin — the ENG-8782 shape the vocabulary exists to
+// prevent), and a DEFINES_MEMBER row with neither DEFINES rows on (definition, ord)
+// nor a PLACES placement is a member no consumer can reach (its layer and
+// properties silently vanish from rebuilt definitions).
+if (present('relations')) {
+  const relByName = new Map(relTypes().map((r) => [r.name, r.id]))
+  const PLACES = relByName.get('PLACES')
+  const DEFINES_MEMBER = relByName.get('DEFINES_MEMBER')
+  const DEFINES = relByName.get('DEFINES')
+  const renderRoots = ['DISPLAY', 'SOLID', 'DISPLAY_INSTANCE'].map((n) => relByName.get(n))
+  const R = pq('relations')
+
+  if (usedRels.includes(PLACES) && present('nodes')) {
+    const [r] = query(
+      `SELECT count(*) AS total, count(*) FILTER (WHERE n.kind IS DISTINCT FROM 2) AS bad
+       FROM ${R} r LEFT JOIN ${pq('nodes')} n ON r.dst = n.id WHERE r.rel = ${PLACES}`,
+      { withSpec: false }
+    )
+    check(
+      Number(r.bad) === 0,
+      `PLACES(${PLACES}).dst → every target is an INSTANCE node` +
+        (Number(r.bad) ? ` — ${r.bad}/${r.total} target a non-INSTANCE kind` : '')
+    )
+  }
+
+  if (usedRels.includes(DEFINES_MEMBER)) {
+    const [b] = query(
+      `SELECT count(DISTINCT m.dst) AS bad FROM ${R} m
+       JOIN ${R} r ON r.src = m.dst AND r.rel IN (${renderRoots.join(', ')})
+       WHERE m.rel = ${DEFINES_MEMBER}`,
+      { withSpec: false }
+    )
+    check(
+      Number(b.bad) === 0,
+      `DEFINES_MEMBER(${DEFINES_MEMBER}) members carry no top-level render edge (DISPLAY/SOLID/DISPLAY_INSTANCE)` +
+        (Number(b.bad) ? ` — ${b.bad} member object(s) would bake twice` : '')
+    )
+    const [u] = query(
+      `SELECT count(*) AS bad FROM ${R} m WHERE m.rel = ${DEFINES_MEMBER}
+       AND NOT EXISTS (SELECT 1 FROM ${R} g WHERE g.rel = ${DEFINES} AND g.src = m.src AND g.ord = m.ord)
+       AND NOT EXISTS (SELECT 1 FROM ${R} p WHERE p.rel = ${PLACES} AND p.src = m.dst)`,
+      { withSpec: false }
+    )
+    check(
+      Number(u.bad) === 0,
+      `DEFINES_MEMBER(${DEFINES_MEMBER}) members resolve — DEFINES on (definition, ord) or a PLACES placement` +
+        (Number(u.bad) ? ` — ${u.bad} unreachable member(s)` : '')
+    )
+  }
+}
+
+// 8. container appearance invariants (NODE_HAS_MATERIAL 28 / NODE_HAS_COLOR 29).
+// Additive like section 7 — vacuous when unemitted. Both are node→node, so the
+// generic endpoint checks can't type them: a NODE_HAS_MATERIAL pointing at a COLOR
+// node (or vice versa) resolves silently to a null appearance on every consumer.
+if (present('relations') && present('nodes')) {
+  const relByName = new Map(relTypes().map((r) => [r.name, r.id]))
+  const R = pq('relations')
+  for (const [name, kind, kindName] of [
+    ['NODE_HAS_MATERIAL', 3, 'MATERIAL'],
+    ['NODE_HAS_COLOR', 4, 'COLOR'],
+  ]) {
+    const rel = relByName.get(name)
+    if (!usedRels.includes(rel)) continue
+    const [r] = query(
+      `SELECT count(*) AS total, count(*) FILTER (WHERE n.kind IS DISTINCT FROM ${kind}) AS bad
+       FROM ${R} r LEFT JOIN ${pq('nodes')} n ON r.dst = n.id WHERE r.rel = ${rel}`,
+      { withSpec: false }
+    )
+    check(
+      Number(r.bad) === 0,
+      `${name}(${rel}).dst → every target is a ${kindName} node` +
+        (Number(r.bad) ? ` — ${r.bad}/${r.total} target a non-${kindName} kind` : '')
     )
   }
 }

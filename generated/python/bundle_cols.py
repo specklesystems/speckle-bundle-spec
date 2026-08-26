@@ -59,6 +59,17 @@ class GEOMETRIES:
     COLUMN_COUNT = 4
 
 
+class MODEL:
+    """Column indices of the model table (spec order)."""
+
+    PATH = 0
+    VALUE_STRING = 1
+    VALUE_DOUBLE = 2
+    VALUE_BOOLEAN = 3
+    UNIT = 4
+    COLUMN_COUNT = 5
+
+
 class NODES:
     """Column indices of the nodes table (spec order)."""
 
@@ -76,7 +87,8 @@ class NODES:
     EMISSIVE = 11
     IOR = 12
     ELEVATION = 13
-    COLUMN_COUNT = 14
+    GH_TOPOLOGY = 14
+    COLUMN_COUNT = 15
 
 
 class OBJECT_TYPE:
@@ -101,6 +113,24 @@ class PATHS:
     PATH_INDEX = 0
     PATH = 1
     COLUMN_COUNT = 2
+
+
+class PROPERTY_SET_DEFINITIONS:
+    """Column indices of the property_set_definitions table (spec order)."""
+
+    SET_NAME = 0
+    SET_KEY = 1
+    SET_DESCRIPTION = 2
+    FIELD_NAME = 3
+    FIELD_BUCKET_ID = 4
+    DATA_TYPE = 5
+    DEFAULT_STRING = 6
+    DEFAULT_DOUBLE = 7
+    DEFAULT_BOOLEAN = 8
+    UNIT = 9
+    DESCRIPTION = 10
+    APPLIES_TO = 11
+    COLUMN_COUNT = 12
 
 
 class RELATIONS:

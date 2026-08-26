@@ -146,7 +146,7 @@
       "sql": "SELECT schema_version, produced_by, sdk_name FROM gold.meta",
       "expected": {
         "columns": ["schema_version", "produced_by", "sdk_name"],
-        "rows": [[5, "speckle-bundle-spec/query-conformance", "query-conformance-fixture"]]
+        "rows": [[1, "speckle-bundle-spec/query-conformance", "query-conformance-fixture"]]
       }
     },
     {
@@ -180,6 +180,22 @@
           [0, null, "frameForce", "Dead", "P", null, -12.5],
           [null, "P1", "pierForce", "EQx", "V2", "Top", 8]
         ]
+      }
+    },
+    {
+      "name": "property_set_definitions",
+      "sql": "SELECT set_key, field_name, data_type, unit, applies_to FROM gold.property_set_definitions ORDER BY field_name",
+      "expected": {
+        "columns": ["set_key", "field_name", "data_type", "unit", "applies_to"],
+        "rows": [["dimensions", "Area", "double", "m2", "Walls,Floors"], ["dimensions", "Length", "double", "m", "Walls"]]
+      }
+    },
+    {
+      "name": "model_scoped_eav",
+      "sql": "SELECT path, value_string, value_double FROM gold.model ORDER BY path",
+      "expected": {
+        "columns": ["path", "value_string", "value_double"],
+        "rows": [["model.storeys", null, 3], ["referencePoint.kind", "internalOrigin", null], ["referencePoint.units", "m", null]]
       }
     },
     {
