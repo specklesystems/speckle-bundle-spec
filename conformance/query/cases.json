@@ -146,7 +146,7 @@
       "sql": "SELECT schema_version, produced_by, sdk_name FROM gold.meta",
       "expected": {
         "columns": ["schema_version", "produced_by", "sdk_name"],
-        "rows": [[1, "speckle-bundle-spec/query-conformance", "query-conformance-fixture"]]
+        "rows": [["1.0.0", "speckle-bundle-spec/query-conformance", "query-conformance-fixture"]]
       }
     },
     {
