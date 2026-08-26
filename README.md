@@ -82,3 +82,5 @@ npm run verify-pin -- --python <dir>   # <dir> holds the vendored *.py    (speck
 
 See `docs/reference.md` for the current vocabulary (schema_version 1.0.0), and
 `VERSIONING.md` for how to bump `schema_version` and what to re-vendor downstream.
+The Python target is also pip-installable from a checkout (`pip install <this dir>` /
+a uv path source → `import speckle_bundle_spec`), so submodule consumers need no vendored copy.

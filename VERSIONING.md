@@ -66,6 +66,7 @@ Every consumer gets the value one of three ways. Check all of them after a bump.
 | Repo | Wiring |
 |---|---|
 | `speckle-sharp-sdk` | `src/Speckle.Sdk.Parquet/Speckle.Sdk.Parquet.csproj` `<Compile Include="../../../speckle-bundle-spec/generated/csharp/BundleSpec.cs">` — `EnvelopeWriter.cs` stamps `SpecBundle.SchemaVersion` |
+| `speckle-converters` dispatch (Python) | `dispatch/pyproject.toml` depends on `speckle-bundle-spec` via `[tool.uv.sources] path = "../vendor/speckle-bundle-spec"` (the root `pyproject.toml` here makes `generated/python` installable as `speckle_bundle_spec`); `ledger.py` imports `SCHEMA_VERSION` — the submodule SHA is the pin |
 | `speckle-converters` native (`rvextract`, `nwextract`) | CMake `BUNDLE_SPEC` defaults to `../../../speckle-bundle-spec`; container builds point it at the extracted published artifact and set `-DBUNDLE_SPEC_EXPECT_VERSION=<x.y.z>` (build fails on mismatch) |
 
 Action: pull the sibling checkout; for the unified image, update the default in
@@ -78,7 +79,7 @@ artifact it fetches. `BUNDLE_SPEC_EXPECT_VERSION` compares the package version s
 | Repo | Vendored files | Pin |
 |---|---|---|
 | `specklepy` | `src/specklepy/bundle/spec/bundle_spec.py`, `bundle_schemas.py`, `bundle_cols.py` ← `generated/python/` | `src/specklepy/bundle/spec/BUNDLE_SPEC_PIN.json` (`version`, `schemaVersion`, `specHash`) |
-| `speckle-converters` | `vendor/speckle-bundle-spec` and `vendor/specklepy` are git submodules — bump the submodule SHAs | CI job `bundle-spec-pin` runs `verify-pin.mjs --cpp dist/cpp`; `dispatch/src/dispatch/ledger.py` has a `schema_version: str = "<x.y.z>"` default that must be updated by hand (was `int` before schema_version became a string) |
+| `speckle-converters` | `vendor/speckle-bundle-spec` and `vendor/specklepy` are git submodules — bump the submodule SHAs | CI job `bundle-spec-pin` runs `verify-pin.mjs --cpp dist/cpp`|
 
 Re-vendor recipe (specklepy):
 ```bash
@@ -92,11 +93,10 @@ cd speckle-bundle-spec && npm run verify-pin -- --python ../specklepy/src/speckl
 | Repo | Location |
 |---|---|
 | `speckle-sketchup` | `speckle_connector_3/src/artifacts/envelope_writer.rb` `SCHEMA_VERSION = '<x.y.z>'` + comment in `artifacts/vocab.rb` |
-| `speckle-converters` | `dispatch/src/dispatch/ledger.py` default arg (see above) |
 
 These have no drift guard. Find them across the working set with:
 ```bash
-grep -rn -E "SCHEMA_VERSION\s*=\s*['\"][0-9.]+|SchemaVersion\s*=\s*\"[0-9.]+|kSchemaVersion\s*=\s*\"[0-9.]+|schema_version: str = \"[0-9.]+" \
+grep -rn -E "SCHEMA_VERSION\s*=\s*['\"][0-9.]+|SchemaVersion\s*=\s*\"[0-9.]+|kSchemaVersion\s*=\s*\"[0-9.]+" \
   --include='*.rb' --include='*.py' --include='*.cs' --include='*.h' --include='*.ts' . \
   | grep -vE "node_modules|/bin/|/obj/|/dist/"
 ```
