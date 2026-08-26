@@ -1,8 +1,23 @@
 # Changelog
 
-Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
+Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
+string of this package (see `VERSIONING.md`).
 
-## unreleased (schema_version 5, additive)
+## unreleased (schema_version 1.0.0, additive)
+
+**`meta.schema_version` is a semver string**
+- `meta.schema_version` changes type `INTEGER` → `VARCHAR` and now carries the spec's
+  package semver (`'1.0.0'`) instead of a bare integer. One value names the vocabulary a
+  bundle was written against; minor/patch (additive) releases become visible in
+  provenance instead of only the major. Generated constants follow (`SchemaVersion`,
+  `kSchemaVersion`, `SCHEMA_VERSION` are strings); `publish.mjs` and a conformance
+  check enforce `meta.schema_version == package.json version`.
+- Not bumped: v1 was pinned but unreleased, so it is re-stamped as `1.0.0`. Readers
+  must treat the column as text (old bundles carry the integer `5`/`1`).
+- `migrated_from_schema_version` stays `INTEGER` — it records the legacy object-model
+  vintage (2/3), a different number.
+
+**Pinned to schema_version 1 (#22)** — the standalone spec restarts its version line at 1.
 
 **Reference point moves to eav.model; meta.reference_point_* removed**
 - The reference-point record now lives ONLY as model-scoped eav rows in the
@@ -171,7 +186,7 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
   `bundle_files`). Design, the 8 ETABS/TSD type mappings, locked decisions and caveats
   live in `docs/rationale/structural-results.md`.
 
-## schema_version 5 — vocabulary harmonization
+## schema_version 5 (pre-pin) — vocabulary harmonization
 
 First version published as a standalone spec (extracted from the producers'
 `envelope_catalog.h` / managed `EnvelopeWriter`).

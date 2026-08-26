@@ -45,7 +45,7 @@ export function emitTs() {
 
   const out =
     GENERATED_HEADER('ts') +
-    `\nexport const SCHEMA_VERSION = ${schemaVersion()} as const\n\n` +
+    `\nexport const SCHEMA_VERSION = '${schemaVersion()}' as const\n\n` +
     `/** Live relation ids. */\nexport const Rel = {\n${relEnum}\n} as const\n` +
     `export type RelName = keyof typeof Rel\n\n` +
     `/** Live node-kind ids. */\nexport const NodeKind = {\n${kindEnum}\n} as const\n` +
