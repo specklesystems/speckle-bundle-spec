@@ -8,3 +8,7 @@ dist/
 # Python
 __pycache__/
 *.pyc
+
+# python packaging (root pyproject.toml builds generated/python into a wheel)
+build/
+*.egg-info/

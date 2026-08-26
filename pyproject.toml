@@ -1,0 +1,29 @@
+# Makes the generated Python target pip-installable STRAIGHT FROM A CHECKOUT (git submodule
+# or sibling clone) as `speckle_bundle_spec`, so a consumer's dependency pin is the commit
+# SHA it vendors — no hand-copied literal (VERSIONING.md §A). `npm run publish:artifacts`
+# still produces the standalone dist/python package for consumers that fetch artifacts.
+# Version is read from the generated module, never typed here: one source, spec/bundle-spec.sql.
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "speckle-bundle-spec"
+description = "Generated Python target of the Speckle bundle format spec (installable from a checkout)."
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+dynamic = ["version"]
+
+[tool.hatch.version]
+path = "generated/python/bundle_spec.py"
+pattern = '^SCHEMA_VERSION = "(?P<version>[^"]+)"'
+
+[tool.hatch.build.targets.wheel]
+# The generated modules are flat files; the wheel assembles them into one package.
+only-include = []
+[tool.hatch.build.targets.wheel.force-include]
+"generated/python" = "speckle_bundle_spec"
+"packaging/python/__init__.py" = "speckle_bundle_spec/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["generated/python", "packaging/python", "pyproject.toml", "README.md"]
