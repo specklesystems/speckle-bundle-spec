@@ -5,6 +5,16 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.0.0, additive)
 
+**`emitted_by` names `archicad`** (the Archicad connector)
+- The Archicad connector writes bundles natively (C++/minipq, `produced_by = 'archicad'`)
+  and emits 12 live relations, but `emitted_by` — refreshed in #16 from a grep of every
+  producer — listed none of them. The catalog under-reported who ships each edge.
+- Added to the producer vocabulary and to rels 1 `DISPLAY`, 3 `SUBELEMENT`, 4 `DEFINES`,
+  5 `HAS_MATERIAL`, 7 `ON_LEVEL`, 8 `DISPLAY_INSTANCE`, 10 `IN_COLLECTION`, 12 `IN_ROOM`,
+  17 `IN_GROUP`, 21 `CONNECTS_TO`, 22 `HOSTED_ON`, 23 `BOUNDS`.
+- Catalog text only ⇒ **no `schema_version` bump**: no table shape changed, no id minted
+  or retired, and `emitted_by` is documentation of provenance — no consumer gates on it.
+
 **`meta.schema_version` is a semver string**
 - `meta.schema_version` changes type `INTEGER` → `VARCHAR` and now carries the spec's
   package semver (`'1.0.0'`) instead of a bare integer. One value names the vocabulary a

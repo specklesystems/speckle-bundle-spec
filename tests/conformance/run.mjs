@@ -60,7 +60,8 @@ const PRODUCERS = new Set([
   'dgnextract',
   'skpextract',
   'teklaextract',
-  'managed'
+  'managed',
+  'archicad'
 ])
 check(
   rels
