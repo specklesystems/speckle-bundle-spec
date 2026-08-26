@@ -65,8 +65,15 @@ export const tableColumns = () =>
      ORDER BY table_name, column_index`
   )
 
-export const schemaVersion = () =>
-  query(`SELECT schema_version AS v FROM meta`)[0].v
+// schema_version is a semver STRING (== package.json version). Guard the shape here so a
+// stray integer in the spec row can never regenerate silently into every target.
+export const SEMVER_RE = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/
+export const schemaVersion = () => {
+  const v = query(`SELECT schema_version AS v FROM meta`)[0].v
+  if (typeof v !== 'string' || !SEMVER_RE.test(v))
+    throw new Error(`meta.schema_version must be a semver string, got ${JSON.stringify(v)}`)
+  return v
+}
 
 export const GENERATED_HEADER = (lang) => {
   // Per-language line-comment prefix: SQL `--`, Python `#`, everything else `//`.

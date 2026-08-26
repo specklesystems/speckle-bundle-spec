@@ -3,16 +3,18 @@
 How `schema_version` is bumped, where the number lives, and what has to be
 re-vendored so every producer stamps the same value.
 
-## The two numbers
+## One number, written twice
 
-| Number | Lives in | Read by |
+`schema_version` **is** the package semver (`1.0.0`), stored as a string.
+
+| Copy | Lives in | Read by |
 |---|---|---|
-| **`schema_version`** (integer) | `spec/bundle-spec.sql` — the `INSERT INTO meta VALUES (<n>, …)` row | codegen → every generated target; producers stamp it into `{base}.envelope.meta.parquet` |
-| **package version** (semver) | `package.json` + `package-lock.json` | `publish.mjs` → `dist/bundle-spec.lock.json`, artifact filenames (`bundle-spec-cpp-<version>.tar.gz`) |
+| **`schema_version`** (semver string) | `spec/bundle-spec.sql` — the `INSERT INTO meta VALUES ('<x.y.z>', …)` row | codegen → every generated target (`SchemaVersion` / `kSchemaVersion` / `SCHEMA_VERSION`, all strings); producers stamp it into `{base}.envelope.meta.parquet` |
+| **package version** | `package.json` + `package-lock.json` | `publish.mjs` → `dist/bundle-spec.lock.json`, artifact filenames (`bundle-spec-cpp-<version>.tar.gz`) |
 
-Rule: **package major = `schema_version`** (`schema_version 1` ⇒ `1.x.y`). Minor/patch are
-free for additive or doc-only changes that don't bump the schema. npm rejects a bare `"1"`, so
-`1.0.0` is the shortest valid form.
+Rule: the two copies are **equal** — `npm test` (conformance) and `npm run publish:artifacts`
+fail on mismatch. Major = breaking meaning change (below); minor/patch are free for additive
+or doc-only changes and *do* get stamped into bundles, so a reader can tell `1.1.0` from `1.0.0`.
 
 Consumers never gate on the value (the validator only checks columns are present); the
 number is provenance. That still matters: it's the only thing that tells a reader which
@@ -28,27 +30,29 @@ bundle with the new vocabulary would be wrong:
 - a file in `bundle_files` is renamed, or its optional/required status flips
 - precedence rules change (e.g. material/colour ladders)
 
-Do **not** bump for purely additive changes — new rel/kind ids, new optional columns, new
-optional files, comment/rationale edits. Log them under `## unreleased (schema_version <n>,
-additive)` in `CHANGELOG.md` instead. Retire ids in place (`status='retired'`), never reuse.
+Do **not** bump the **major** for purely additive changes — new rel/kind ids, new optional
+columns, new optional files, comment/rationale edits. Log them under `## unreleased
+(schema_version <x.y.z>, additive)` in `CHANGELOG.md`; they ship as a minor/patch release. Retire ids in place (`status='retired'`), never reuse.
 
 ## Bump checklist — this repo
 
 1. `spec/bundle-spec.sql`
-   - `INSERT INTO meta VALUES (<n>, …)` (line ~37) — the actual source
-   - header comment `(schema_version <n>)` (line 2)
-2. `package.json` `"version"` → `<n>.0.0`, then `npm install --package-lock-only` so
-   `package-lock.json` follows (it is tracked, CI `npm ci` fails on mismatch).
+   - `INSERT INTO meta VALUES ('<x.y.z>', …)` (line ~38) — the actual source
+   - header comment `(schema_version <x.y.z>)` (line 2)
+2. `package.json` `"version"` → the same `<x.y.z>`, then `npm install --package-lock-only` so
+   `package-lock.json` follows (it is tracked, CI `npm ci` fails on mismatch). Conformance
+   fails if the two strings differ.
 3. `npm run generate` — regenerates `generated/{ts,cpp,csharp,python}` and
    `docs/reference.md`. Confirm the stamp landed:
    ```bash
-   grep -rn -E "SCHEMA_VERSION = |SchemaVersion = |kSchemaVersion = " generated
+   grep -rn -E "SCHEMA_VERSION = |SchemaVersion = |kSchemaVersion = " generated   # all quoted "<x.y.z>"
    ```
-4. `CHANGELOG.md` — close the `## unreleased` block into `## schema_version <n> — <title>`
-   and open a fresh `## unreleased (schema_version <n>, additive)`.
-5. `README.md` — the "current vocabulary (schema_version <n>)" line at the bottom.
+4. `CHANGELOG.md` — close the `## unreleased` block into `## schema_version <x.y.z> — <title>`
+   and open a fresh `## unreleased (schema_version <x.y.z>, additive)`.
+5. `README.md` — the "current vocabulary (schema_version <x.y.z>)" line at the bottom, and
+   the `CONTEXT.md` glossary entry.
 6. `npm test && npm run check` — conformance + no drift in `generated/`.
-7. Commit spec + generated + docs together (one commit, e.g. `chore: pin schema version to <n>`).
+7. Commit spec + generated + docs together (one commit, e.g. `chore: pin schema version to <x.y.z>`).
 8. `npm run publish:artifacts` → `dist/bundle-spec.lock.json` + cpp tarball + python
    package. The lockfile is deterministic (same spec ⇒ byte-identical), so this can be
    re-run by anyone from the commit.
@@ -62,19 +66,19 @@ Every consumer gets the value one of three ways. Check all of them after a bump.
 | Repo | Wiring |
 |---|---|
 | `speckle-sharp-sdk` | `src/Speckle.Sdk.Parquet/Speckle.Sdk.Parquet.csproj` `<Compile Include="../../../speckle-bundle-spec/generated/csharp/BundleSpec.cs">` — `EnvelopeWriter.cs` stamps `SpecBundle.SchemaVersion` |
-| `speckle-converters` native (`rvextract`, `nwextract`) | CMake `BUNDLE_SPEC` defaults to `../../../speckle-bundle-spec`; container builds point it at the extracted published artifact and set `-DBUNDLE_SPEC_EXPECT_VERSION=<n>` (build fails on mismatch) |
+| `speckle-converters` native (`rvextract`, `nwextract`) | CMake `BUNDLE_SPEC` defaults to `../../../speckle-bundle-spec`; container builds point it at the extracted published artifact and set `-DBUNDLE_SPEC_EXPECT_VERSION=<x.y.z>` (build fails on mismatch) |
 
 Action: pull the sibling checkout; for the unified image, update the default in
-`speckle-converters/mise.toml` (`build` task: `BUNDLE_SPEC_VERSION:-<n>.0.0`) and the
-artifact it fetches. `BUNDLE_SPEC_EXPECT_VERSION` compares the **package** version string
-(`"1.0.0"`), not the integer `schema_version`.
+`speckle-converters/mise.toml` (`build` task: `BUNDLE_SPEC_VERSION:-<x.y.z>`) and the
+artifact it fetches. `BUNDLE_SPEC_EXPECT_VERSION` compares the package version string
+(`"1.0.0"`) — now the same value as `kSchemaVersion`.
 
 ### B. Vendored copy + pin file (re-vendor + verify)
 
 | Repo | Vendored files | Pin |
 |---|---|---|
 | `specklepy` | `src/specklepy/bundle/spec/bundle_spec.py`, `bundle_schemas.py`, `bundle_cols.py` ← `generated/python/` | `src/specklepy/bundle/spec/BUNDLE_SPEC_PIN.json` (`version`, `schemaVersion`, `specHash`) |
-| `speckle-converters` | `vendor/speckle-bundle-spec` and `vendor/specklepy` are git submodules — bump the submodule SHAs | CI job `bundle-spec-pin` runs `verify-pin.mjs --cpp dist/cpp`; `dispatch/src/dispatch/ledger.py` has a `schema_version: int = <n>` default that must be updated by hand |
+| `speckle-converters` | `vendor/speckle-bundle-spec` and `vendor/specklepy` are git submodules — bump the submodule SHAs | CI job `bundle-spec-pin` runs `verify-pin.mjs --cpp dist/cpp`; `dispatch/src/dispatch/ledger.py` has a `schema_version: str = "<x.y.z>"` default that must be updated by hand (was `int` before schema_version became a string) |
 
 Re-vendor recipe (specklepy):
 ```bash
@@ -87,16 +91,17 @@ cd speckle-bundle-spec && npm run verify-pin -- --python ../specklepy/src/speckl
 
 | Repo | Location |
 |---|---|
-| `speckle-sketchup` | `speckle_connector_3/src/artifacts/envelope_writer.rb` `SCHEMA_VERSION = <n>` + comment in `artifacts/vocab.rb` |
+| `speckle-sketchup` | `speckle_connector_3/src/artifacts/envelope_writer.rb` `SCHEMA_VERSION = '<x.y.z>'` + comment in `artifacts/vocab.rb` |
 | `speckle-converters` | `dispatch/src/dispatch/ledger.py` default arg (see above) |
 
 These have no drift guard. Find them across the working set with:
 ```bash
-grep -rn -E "SCHEMA_VERSION\s*=\s*[0-9]+|SchemaVersion\s*=\s*[0-9]+|kSchemaVersion\s*=\s*[0-9]+|schema_version: int = [0-9]+" \
+grep -rn -E "SCHEMA_VERSION\s*=\s*['\"][0-9.]+|SchemaVersion\s*=\s*\"[0-9.]+|kSchemaVersion\s*=\s*\"[0-9.]+|schema_version: str = \"[0-9.]+" \
   --include='*.rb' --include='*.py' --include='*.cs' --include='*.h' --include='*.ts' . \
   | grep -vE "node_modules|/bin/|/obj/|/dist/"
 ```
-Every hit must show the new number.
+Every hit must show the new string — and every producer must write `schema_version` as a
+string column (VARCHAR / UTF8), not int32.
 
 ## Not this number
 

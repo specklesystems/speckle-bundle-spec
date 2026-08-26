@@ -91,5 +91,5 @@ A table rolled across multiple files (only `geometries`): shard 0 is the canonic
 the glob `{base}.geometries*.parquet`.
 
 **schema_version**:
-The integer in `meta` stamping which spec version a bundle was built against
-(currently 5).
+The semver string in `meta` stamping which spec release a bundle was built
+against — equal to this package's version (currently `1.0.0`).

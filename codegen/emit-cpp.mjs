@@ -44,7 +44,7 @@ export function emitCpp() {
 
 namespace bundlespec {
 
-constexpr int kSchemaVersion = ${schemaVersion()};
+constexpr const char* kSchemaVersion = "${schemaVersion()}";
 
 enum class Rel : int {
 ${relEnum}

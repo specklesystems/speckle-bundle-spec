@@ -41,7 +41,7 @@ export function emitCsharp() {
 
 public static class BundleSpec
 {
-    public const int SchemaVersion = ${schemaVersion()};
+    public const string SchemaVersion = "${schemaVersion()}";
 }
 
 public enum Rel
