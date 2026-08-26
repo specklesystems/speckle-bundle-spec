@@ -4,6 +4,20 @@ Schema versions track `meta.schema_version` in `spec/bundle-spec.sql`.
 
 ## unreleased (schema_version 5, additive)
 
+**Query conformance suite** (`conformance/query/`, ENG-9305)
+- The portable suite every bundle query engine runs: one committed KB-scale synthetic
+  bundle (every `bundle_files` view incl. the type tables and catalogs, `eav` across 3
+  parquet row groups, geometries as 2 shards), golden `(sql, expected)` pairs, a
+  `read_csv()` local-data-join case, and `schema.json` pinning the mounted-schema
+  invariant (filename → view, schema-per-alias, the `object_properties` union view,
+  geometry shards never mounted). `harness.mjs` carries the loader, mount plan and
+  result comparison for the JS engines; `README.md` is the engine-facing contract.
+- Reference runner `tests/query-conformance/run.mjs` joins `npm test`;
+  `npm run build:query-fixture` regenerates the bundle from `fixture.sql`.
+- Distribution: `publish:artifacts` pins every suite file under the lock's
+  `queryConformance` target; `verify-pin -- --query-conformance <dir>` checks a
+  vendored copy. No `schema_version` bump: nothing in the format changed.
+
 **`IN_ASSEMBLY` (18) un-retired** (`object → object`, emitted by teklaextract)
 - A source member points to its containing source assembly object. Assemblies
   remain objects because they carry stable source identity and arbitrary EAV

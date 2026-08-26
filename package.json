@@ -6,14 +6,16 @@
   "main": "generated/ts/bundleSpec.ts",
   "files": [
     "spec/",
-    "generated/ts/"
+    "generated/ts/",
+    "conformance/"
   ],
   "scripts": {
     "generate": "node codegen/generate-all.mjs",
     "publish:artifacts": "node codegen/publish.mjs",
     "verify-pin": "node codegen/verify-pin.mjs",
     "validate": "node validator/validate-bundle.mjs",
-    "test": "node tests/conformance/run.mjs && node tests/validator/run.mjs",
+    "build:query-fixture": "node codegen/build-query-fixture.mjs",
+    "test": "node tests/conformance/run.mjs && node tests/validator/run.mjs && node tests/query-conformance/run.mjs",
     "check": "node codegen/generate-all.mjs && git diff --exit-code generated docs/reference.md"
   },
   "engines": {

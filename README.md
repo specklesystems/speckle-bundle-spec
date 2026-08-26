@@ -17,6 +17,7 @@ docs/adr/                 architecture decision records (why the format is shape
 docs/rationale/           long-form "why" essays (hand-written; link to the reference)
 validator/                checks a real bundle against the spec
 tests/conformance/        guards the spec's own invariants
+conformance/query/        the query conformance suite every bundle query engine runs (see its README)
 ```
 
 ## How it stays in sync
@@ -38,6 +39,7 @@ npm run generate    # refresh generated/ + docs/reference.md from the spec
 npm test            # conformance: spec invariants (ids unique, namespaces, …)
 npm run validate -- <bundle-dir>   # check a real bundle against the spec
 npm run check       # CI: fail if generated/ is stale vs the spec
+npm run build:query-fixture   # rebuild conformance/query/bundle from fixture.sql
 ```
 
 Requires the `duckdb` CLI on `PATH` (or set `DUCKDB_BIN`).
@@ -66,6 +68,7 @@ Consumers **pin** against `dist/bundle-spec.lock.json`, and CI enforces no drift
 ```bash
 npm run verify-pin -- --cpp    <dir>   # <dir> exposes generated/cpp/*.h  (extracted artifact or a checkout)
 npm run verify-pin -- --python <dir>   # <dir> holds the vendored *.py    (specklepy's bundle/spec)
+npm run verify-pin -- --query-conformance <dir>   # <dir> is a vendored copy of conformance/query/
 ```
 
 - **C++**: the extractor build sets `-DBUNDLE_SPEC=<extracted artifact>` and, to enforce the
