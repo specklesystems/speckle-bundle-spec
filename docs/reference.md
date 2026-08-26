@@ -1,5 +1,5 @@
 <!-- GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT. Run npm run generate. -->
-# Speckle bundle format — reference (schema_version 1)
+# Speckle bundle format — reference (schema_version 1.0.0)
 
 Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/rationale/`.
 

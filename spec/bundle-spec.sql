@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 5)
+--  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.0.0)
 -- ════════════════════════════════════════════════════════════════════════════
 --  This file IS the spec. It is executable DuckDB SQL:
 --    • CREATE TABLE …            → the shape of every parquet in the bundle
@@ -32,9 +32,11 @@
 -- produced_by/producer_version: the slug and version of the producer of this model version
 -- sdk_name/sdk_version: name and version of the SDK used to author this version
 -- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
-CREATE TABLE meta (schema_version INTEGER, produced_by VARCHAR,
+-- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
+CREATE TABLE meta (schema_version VARCHAR, produced_by VARCHAR,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES (1, 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES ('1.0.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 1 — table shapes (DDL). Logical names match the views a consumer sees

@@ -1,6 +1,8 @@
 // Spec invariants — run in CI on every spec edit. No bundle needed; these guard
 // the spec itself (the rules a human might break while editing bundle-spec.sql).
-import { relTypes, nodeKinds } from '../../codegen/lib/duck.mjs'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { REPO, relTypes, nodeKinds, schemaVersion, SEMVER_RE } from '../../codegen/lib/duck.mjs'
 
 let fails = 0
 const check = (cond, msg) => {
@@ -83,6 +85,13 @@ check(
   rels.find((r) => r.id === 19)?.status === 'retired',
   'IN_SUBASSEMBLY remains retired'
 )
+
+// 8. meta.schema_version is the spec's semver string and names the package release:
+// one value, not two numbers kept in step by hand (VERSIONING.md).
+const sv = schemaVersion()
+check(typeof sv === 'string' && SEMVER_RE.test(sv), `meta.schema_version is a semver string (${sv})`)
+const pkgVersion = JSON.parse(readFileSync(join(REPO, 'package.json'), 'utf8')).version
+check(sv === pkgVersion, `meta.schema_version equals package.json version (${pkgVersion})`)
 
 console.log(fails === 0 ? '\nconformance: PASS' : `\nconformance: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

@@ -49,7 +49,7 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate wit
 from enum import IntEnum
 from typing import NamedTuple, Optional
 
-SCHEMA_VERSION = ${schemaVersion()}
+SCHEMA_VERSION = "${schemaVersion()}"
 
 
 class Rel(IntEnum):
