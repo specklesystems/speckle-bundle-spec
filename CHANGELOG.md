@@ -5,6 +5,17 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.0.0, additive)
 
+**Catalog primary keys aligned with the deployed bundle contract**
+- `rel_types.id` is corrected to `rel_types.rel`, and `node_kinds.id` to
+  `node_kinds.kind`. Existing producers, SDKs, frontend queries, and bundle files
+  already use `rel` / `kind`; only the standalone executable spec used generic
+  `id` names.
+- Generated language APIs continue exposing catalog entries through `id`, so this
+  correction does not rename generated constants or record fields. Conformance now
+  guards the physical parquet column names explicitly.
+- No schema bump: this restores the already-deployed wire contract before the
+  standalone `id` spelling was adopted by production producers or consumers.
+
 **BOUNDS (rel 23) — description corrected to the whole room envelope**
 - Text only; no id, namespace, status or column change, so no bump (`VERSIONING.md`:
   comment/rationale edits are additive). `generated/` is untouched by this edit — the
