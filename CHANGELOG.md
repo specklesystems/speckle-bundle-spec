@@ -5,6 +5,17 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.0.0, additive)
 
+**BOUNDS (rel 23) — description corrected to the whole room envelope**
+- Text only; no id, namespace, status or column change, so no bump (`VERSIONING.md`:
+  comment/rationale edits are additive). `generated/` is untouched by this edit — the
+  descriptions live in `spec/bundle-spec.sql` and `docs/reference.md` only. `specHash`
+  does change, by design.
+- rel 23 was described as "Bounding wall → room object", which understated it. rvextract
+  now emits BOTH halves of the envelope, undifferentiated: the plan perimeter (walls,
+  columns, room separation lines) and the horizontal caps (floors, ceilings, roofs).
+  Consumers wanting the plan-only footprint filter the src object by category.
+  Producer side: specklesystems/speckle-converters#116.
+
 **`meta.schema_version` is a semver string**
 - `meta.schema_version` changes type `INTEGER` → `VARCHAR` and now carries the spec's
   package semver (`'1.0.0'`) instead of a bare integer. One value names the vocabulary a
