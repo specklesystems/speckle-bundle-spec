@@ -8,11 +8,28 @@
     },
     {
       "name": "paths_dictionary",
-      "sql": "SELECT path_index, path FROM gold.paths WHERE path_index < 3 ORDER BY path_index",
+      "$comment": "`path_index >= 0` is the idiom that excludes the synthesized virtual path — the real dictionary is the non-negative half.",
+      "sql": "SELECT path_index, path FROM gold.paths WHERE path_index >= 0 AND path_index < 3 ORDER BY path_index",
       "expected": {
         "columns": ["path_index", "path"],
         "rows": [[0, "category"], [1, "name"], [2, "Dimensions.Area"]]
       }
+    },
+    {
+      "name": "paths_raw_is_the_unsynthesized_dictionary",
+      "sql": "SELECT count(*) AS n FROM gold.paths_raw",
+      "expected": { "columns": ["n"], "rows": [[33]] }
+    },
+    {
+      "name": "virtual_application_id_path",
+      "$comment": "The mount synthesizes the applicationId path (this producer does not emit it): exactly one row, at the negative sentinel ordinal.",
+      "sql": "SELECT path_index, path FROM gold.paths WHERE path = 'applicationId' ORDER BY path_index",
+      "expected": { "columns": ["path_index", "path"], "rows": [[-1, "applicationId"]] }
+    },
+    {
+      "name": "paths_is_dictionary_plus_virtual",
+      "sql": "SELECT count(*) FILTER (WHERE path_index >= 0) AS dictionary, count(*) FILTER (WHERE path_index < 0) AS virtual FROM gold.paths",
+      "expected": { "columns": ["dictionary", "virtual"], "rows": [[33, 1]] }
     },
     {
       "name": "eav_row_count_spans_row_groups",
@@ -52,8 +69,23 @@
     },
     {
       "name": "object_properties_is_instance_union_type",
+      "$comment": "6000 instance rows + 597 type-resolved rows + 200 virtual applicationId rows (one per object).",
       "sql": "SELECT count(*) AS n FROM gold.object_properties",
-      "expected": { "columns": ["n"], "rows": [[6597]] }
+      "expected": { "columns": ["n"], "rows": [[6797]] }
+    },
+    {
+      "name": "application_id_reachable_as_a_property",
+      "sql": "SELECT p.object_index, p.value_string FROM gold.object_properties p JOIN gold.paths d ON d.path_index = p.path_index WHERE d.path = 'applicationId' AND p.object_index < 3 ORDER BY p.object_index",
+      "expected": {
+        "columns": ["object_index", "value_string"],
+        "rows": [[0, "obj-0000"], [1, "obj-0001"], [2, "obj-0002"]]
+      }
+    },
+    {
+      "name": "application_id_arm_matches_the_objects_table",
+      "$comment": "The virtual arm is `objects` read through the property view: one row per object, value_string = application_id, no other column set.",
+      "sql": "SELECT count(*) AS n FROM gold.object_properties p JOIN gold.objects o ON o.object_index = p.object_index AND o.application_id = p.value_string WHERE p.path_index = -1 AND p.value_double IS NULL AND p.value_boolean IS NULL AND p.unit IS NULL AND p.internal_definition_name IS NULL",
+      "expected": { "columns": ["n"], "rows": [[200]] }
     },
     {
       "name": "type_params_resolve_through_object_type",
@@ -69,8 +101,9 @@
     },
     {
       "name": "untyped_object_has_instance_rows_only",
-      "sql": "SELECT count(*) AS n FROM gold.object_properties WHERE object_index = 199",
-      "expected": { "columns": ["n"], "rows": [[30]] }
+      "$comment": "Object 199 has no object_type row, so it contributes its 30 instance rows plus the virtual applicationId row — and nothing from type_eav.",
+      "sql": "SELECT count(*) FILTER (WHERE path_index >= 0) AS instance_rows, count(*) FILTER (WHERE path_index < 0) AS virtual_rows FROM gold.object_properties WHERE object_index = 199",
+      "expected": { "columns": ["instance_rows", "virtual_rows"], "rows": [[30, 1]] }
     },
     {
       "name": "orphan_type_contributes_nothing",

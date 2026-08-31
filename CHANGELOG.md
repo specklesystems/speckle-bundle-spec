@@ -5,6 +5,26 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.0.0, additive)
 
+**Mount contract: `paths_raw` + the virtual `applicationId` path** (query conformance)
+- Ratifies the mounted-schema change the three JS mount replicas shipped in
+  specklesystems/speckle-server-internal#2649. No bundle-file change: the spec DDL,
+  `generated/` and the golden parquet bytes are untouched — this is the *mount* contract,
+  the shape an engine must expose over an unchanged bundle.
+- The paths parquet now mounts as **`paths_raw`**; the public `paths` view is the raw
+  dictionary `UNION ALL` a `(-1, 'applicationId')` sentinel, and `object_properties` grows
+  a third arm read from `objects` (`path_index` `-1`, `value_string` = `application_id`).
+  Producers carry applicationId only in `objects`, so without this the path-keyed lanes
+  (filter criteria, catalogs, value lists) could not reach it. Normative for every engine,
+  not a capability — the whole point is cross-engine filter parity.
+- Both halves are guarded on the producer not already emitting a real `applicationId` path
+  (teklaextract, specklepy), so no bundle sees duplicate rows. The golden bundle does not
+  emit it, so the goldens pin the synthesized branch; `tests/query-conformance/run.mjs`
+  replays the mount over a `paths_raw` that carries the path to pin the guarded branch.
+- `harness.mjs` gains `pathsViewSql` / `bundleMountExtraSql` and the renaming `mountPlan`
+  (SQL byte-identical to the ts-sdk original, as the replica invariant requires);
+  `schema.json` lists `paths_raw` + `paths` and `objectPropertiesRowCount` 6597 → 6797
+  (one virtual row per object, 200 objects); four goldens added, three updated.
+
 **BOUNDS (rel 23) — description corrected to the whole room envelope**
 - Text only; no id, namespace, status or column change, so no bump (`VERSIONING.md`:
   comment/rationale edits are additive). `generated/` is untouched by this edit — the
