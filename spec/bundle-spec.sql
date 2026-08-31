@@ -287,8 +287,9 @@ COMMENT ON TABLE model IS 'Optional model/document-scoped attributes (object-les
 --   status        : live | reserved | retired
 --   src_ns/dst_ns : object | node | geometry | 'geometry|object' (null when retired)
 --   ord_semantics : ordinal | scope | (null)
+--   rel           : deployed parquet key; code generators alias it to id internally
 CREATE TABLE rel_types (
-  id            INTEGER PRIMARY KEY,
+  rel           INTEGER PRIMARY KEY,
   name          VARCHAR NOT NULL,
   src_ns        VARCHAR,
   dst_ns        VARCHAR,
@@ -299,7 +300,7 @@ CREATE TABLE rel_types (
   why           VARCHAR
 );
 INSERT INTO rel_types
-  (id, name,               src_ns,            dst_ns,     status,     emitted_by,            ord_semantics, description, why) VALUES
+  (rel, name,              src_ns,            dst_ns,     status,     emitted_by,            ord_semantics, description, why) VALUES
   (1,  'DISPLAY',          'object',          'geometry', 'live',     'rvextract,dwgextract,dgnextract,skpextract,teklaextract,managed', 'ordinal', 'Object → its own mesh.',                          'Top-level direct meshes (walls, in-place). Navis never uses it — everything there is an instance.'),
   (2,  'SOLID',            'object',          'geometry', 'live',     'dwgextract,managed',  'ordinal', 'Solid body, distinct from a display mesh.',       'Rhino/Civil3D ship true solids beside tessellated display meshes; within a definition member, receive prefers the solid over its meshes.'),
   (3,  'SUBELEMENT',       'object',          'object',   'live',     'rvextract,dwgextract,teklaextract,managed', 'ordinal', 'Parent → child containment.',                     'Railings, mullions, curtain panels — a hierarchy the flat eav cannot encode.'),
@@ -331,8 +332,9 @@ INSERT INTO rel_types
   (29, 'NODE_HAS_COLOR',   'node',            'node',     'live',     'managed',             NULL,      'Node → COLOR node (container display colour).',   'Layer/tag display colour as a first-class edge, the colour twin of NODE_HAS_MATERIAL and — like it — the weakest tier: colour resolves object > geometry > container (the container edge is the ByLayer default that applies when nothing more specific does, so OBJECT_HAS_COLOR''s override precedence, rel 27, is untouched). Supersedes the argb managed producers stamped directly on CONTAINER rows — an undocumented carrier; consumers prefer this edge and keep reading CONTAINER argb as the fallback for older bundles.');
 
 -- ── node_kinds ───────────────────────────────────────────────────────────────
+-- Physical key name matches nodes.kind and the deployed parquet catalog.
 CREATE TABLE node_kinds (
-  id             INTEGER PRIMARY KEY,
+  kind           INTEGER PRIMARY KEY,
   name           VARCHAR NOT NULL,
   status         VARCHAR NOT NULL,
   columns        VARCHAR,      -- csv of nodes.* columns this kind populates
@@ -341,7 +343,7 @@ CREATE TABLE node_kinds (
   why            VARCHAR
 );
 INSERT INTO node_kinds
-  (id, name,         status,    columns,                                  subtype_values,                       description, why) VALUES
+  (kind, name,       status,    columns,                                  subtype_values,                       description, why) VALUES
   (1, 'DEFINITION',  'live',    'name,def_ref',                           NULL,                                 'Shared geometry template.',          'Target of DEFINES; reused by many placements.'),
   (2, 'INSTANCE',    'live',    'transform,units,def_ref',                NULL,                                 'A placement / occurrence.',          'Carries the composed transform; bulk-scanned on load.'),
   (3, 'MATERIAL',    'live',    'name,argb,opacity,metalness,roughness,emissive,ior', NULL,                     'Full-PBR render asset.',             'Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].'),

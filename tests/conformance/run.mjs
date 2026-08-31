@@ -2,7 +2,14 @@
 // the spec itself (the rules a human might break while editing bundle-spec.sql).
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, relTypes, nodeKinds, schemaVersion, SEMVER_RE } from '../../codegen/lib/duck.mjs'
+import {
+  REPO,
+  relTypes,
+  nodeKinds,
+  query,
+  schemaVersion,
+  SEMVER_RE
+} from '../../codegen/lib/duck.mjs'
 
 let fails = 0
 const check = (cond, msg) => {
@@ -14,6 +21,17 @@ const check = (cond, msg) => {
 
 const rels = relTypes()
 const kinds = nodeKinds()
+
+// These names are the physical parquet contract used by deployed producers and
+// consumers. Code generation aliases them to the generic `id` API below.
+const catalogColumns = (table) =>
+  query(
+    `SELECT column_name FROM duckdb_columns()
+     WHERE schema_name = 'main' AND table_name = '${table}'
+     ORDER BY column_index`
+  ).map((r) => r.column_name)
+check(catalogColumns('rel_types')[0] === 'rel', 'rel_types primary key is the deployed rel column')
+check(catalogColumns('node_kinds')[0] === 'kind', 'node_kinds primary key is the deployed kind column')
 
 // 'geometry|instance' entered the vocabulary with the HAS_MATERIAL src broadening
 // (ENG-8849): placement-painted materials make the src a geometry K or an INSTANCE node K.

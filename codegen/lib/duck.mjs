@@ -39,14 +39,14 @@ export function query(sql, { withSpec = true } = {}) {
 
 export const relTypes = () =>
   query(
-    `SELECT id, name, src_ns, dst_ns, status, emitted_by, ord_semantics, description, why
-     FROM rel_types ORDER BY id`
+    `SELECT rel AS id, name, src_ns, dst_ns, status, emitted_by, ord_semantics, description, why
+     FROM rel_types ORDER BY rel`
   )
 
 export const nodeKinds = () =>
   query(
-    `SELECT id, name, status, columns, subtype_values, description, why
-     FROM node_kinds ORDER BY id`
+    `SELECT kind AS id, name, status, columns, subtype_values, description, why
+     FROM node_kinds ORDER BY kind`
   )
 
 export const bundleFiles = () =>

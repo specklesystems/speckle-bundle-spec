@@ -5,6 +5,17 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.0.0, additive)
 
+**Catalog primary keys aligned with the deployed bundle contract**
+- `rel_types.id` is corrected to `rel_types.rel`, and `node_kinds.id` to
+  `node_kinds.kind`. Existing producers, SDKs, frontend queries, and bundle files
+  already use `rel` / `kind`; only the standalone executable spec used generic
+  `id` names.
+- Generated language APIs continue exposing catalog entries through `id`, so this
+  correction does not rename generated constants or record fields. Conformance now
+  guards the physical parquet column names explicitly.
+- No schema bump: this restores the already-deployed wire contract before the
+  standalone `id` spelling was adopted by production producers or consumers.
+
 **Mount contract: `paths_raw` + the virtual `applicationId` path** (query conformance)
 - Ratifies the mounted-schema change the three JS mount replicas shipped in
   specklesystems/speckle-server-internal#2649. No bundle-file change: the spec DDL,
