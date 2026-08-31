@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { REPO, SPEC, bundleFiles, tableColumns } from './lib/duck.mjs'
+import { PATHS_RAW_VIEW } from '../conformance/query/harness.mjs'
 
 const DUCKDB = process.env.DUCKDB_BIN || 'duckdb'
 const SUITE = join(REPO, 'conformance', 'query')
@@ -72,8 +73,11 @@ function execCols(sql) {
 const views = {}
 for (const f of files) {
   if (f.sharded) continue
-  views[f.name] = byTable[f.name] ?? catalogCols(f.name)
+  // The paths parquet mounts under `paths_raw`; the public `paths` name is the
+  // synthesized view (raw dictionary ∪ the virtual applicationId row), same columns.
+  views[f.name === 'paths' ? PATHS_RAW_VIEW : f.name] = byTable[f.name] ?? catalogCols(f.name)
 }
+views.paths = byTable.paths
 views.object_properties = [
   'object_index',
   'path_index',
@@ -86,12 +90,15 @@ views.object_properties = [
 const notMounted = written.filter((n) => /\.geometries(?:\.\d+)?\.parquet$/.test(n))
 const eavRows = 6000
 const typedRows = 199 * 3
+// The virtual applicationId arm: one row per object, since the fixture's path dictionary
+// does not carry `applicationId` itself (so the mount's guard leaves the arm live).
+const objectRows = 200
 const schema = {
   alias: ALIAS,
   files: written,
   views,
   notMounted,
-  objectPropertiesRowCount: eavRows + typedRows,
+  objectPropertiesRowCount: eavRows + typedRows + objectRows,
   eavRowGroups: 3
 }
 writeFileSync(join(SUITE, 'schema.json'), JSON.stringify(schema, null, 2) + '\n')

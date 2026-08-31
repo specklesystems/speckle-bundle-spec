@@ -6,11 +6,13 @@ import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import { REPO } from '../../codegen/lib/duck.mjs'
 import {
+  APPLICATION_ID_PATH,
+  PATHS_RAW_VIEW,
+  bundleMountExtraSql,
   compareResult,
   expandSql,
   loadSuite,
   mountPlan,
-  objectPropertiesViewSql,
   rowsFromObjects
 } from '../../conformance/query/harness.mjs'
 
@@ -27,7 +29,8 @@ const check = (cond, msg) => {
   } else console.log(`  ✓ ${msg}`)
 }
 
-// The mount: one schema per alias, one view per mountable file, then object_properties.
+// The mount: one schema per alias, one view per mountable file (the paths parquet under
+// `paths_raw`), then the synthesized `paths` + `object_properties` views.
 const plan = mountPlan(suite.files.map((f) => f.name))
 const pathOf = Object.fromEntries(suite.files.map((f) => [f.name, f.path]))
 const mountSql = [
@@ -35,7 +38,7 @@ const mountSql = [
   ...plan.views.map(
     (v) => `CREATE VIEW "${alias}"."${v.view}" AS SELECT * FROM read_parquet('${q(pathOf[v.name])}');`
   ),
-  objectPropertiesViewSql(alias) + ';'
+  ...bundleMountExtraSql(alias).map((sql) => sql + ';')
 ].join('\n')
 
 // Every statement runs in a fresh CLI process with the mount replayed; the suite is small
@@ -86,6 +89,51 @@ try {
   geometryReachable = false
 }
 check(!geometryReachable, `"${alias}"."geometries" does not exist (shards are never mounted)`)
+
+// The virtual applicationId path is guarded on the producer not already emitting it —
+// a branch the golden bundle (which has no such path) cannot exercise. Replay the mount
+// over a `paths_raw` that DOES carry the path and assert both halves stay silent.
+console.log('virtual path guard')
+{
+  const guarded = 'guarded'
+  const rawWithPath =
+    `CREATE SCHEMA "${guarded}";\n` +
+    plan.views
+      .filter((v) => v.view !== PATHS_RAW_VIEW)
+      .map(
+        (v) =>
+          `CREATE VIEW "${guarded}"."${v.view}" AS SELECT * FROM read_parquet('${q(pathOf[v.name])}');`
+      )
+      .join('\n') +
+    `\nCREATE VIEW "${guarded}"."${PATHS_RAW_VIEW}" AS ` +
+    `SELECT * FROM read_parquet('${q(pathOf[`${alias}.eav.paths.parquet`])}') ` +
+    `UNION ALL SELECT 33, '${APPLICATION_ID_PATH}';\n` +
+    bundleMountExtraSql(guarded)
+      .map((sql) => sql + ';')
+      .join('\n')
+  const runGuarded = (sql) => {
+    const out = execFileSync(DUCKDB, ['-json'], {
+      input: `${rawWithPath}\n${sql};\n`,
+      encoding: 'utf8',
+      maxBuffer: 1 << 26,
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim()
+    return out ? JSON.parse(out) : []
+  }
+  const rows = runGuarded(
+    `SELECT path_index FROM "${guarded}"."paths" WHERE path = '${APPLICATION_ID_PATH}' ORDER BY path_index`
+  ).map((r) => Number(r.path_index))
+  check(
+    JSON.stringify(rows) === JSON.stringify([33]),
+    `a producer-emitted applicationId path is not doubled (got ${JSON.stringify(rows)})`
+  )
+  const [{ n: objectRows }] = run(`SELECT count(*) AS n FROM "${alias}"."objects"`)
+  const [{ n }] = runGuarded(`SELECT count(*) AS n FROM "${guarded}"."object_properties"`)
+  check(
+    Number(n) === suite.schema.objectPropertiesRowCount - Number(objectRows),
+    `object_properties drops the virtual arm when the path is real (${Number(n)})`
+  )
+}
 
 console.log('golden cases')
 for (const c of suite.cases) {

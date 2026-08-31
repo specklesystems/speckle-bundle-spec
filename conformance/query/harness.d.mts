@@ -3,6 +3,9 @@ export const VIEW_NAME_RE: RegExp
 export const VALID_VIEW_NAME_RE: RegExp
 export const ALIAS_RE: RegExp
 export const LOCAL_DIR_TOKEN: string
+export const PATHS_RAW_VIEW: string
+export const APPLICATION_ID_PATH: string
+export const APPLICATION_ID_PATH_INDEX: number
 
 export type GoldenResult = { columns: string[]; rows: unknown[][] }
 export type ConformanceCase = {
@@ -34,7 +37,9 @@ export function mountPlan(fileNames: string[]): {
   views: Array<{ view: string; name: string }>
   skipped: string[]
 }
+export function pathsViewSql(alias: string): string
 export function objectPropertiesViewSql(alias: string): string
+export function bundleMountExtraSql(alias: string): string[]
 export function loadSuite(dir: string): LoadedSuite
 export function expandSql(sql: string, ctx: { localDir: string }): string
 export function normalizeCell(actual: unknown, expected: unknown): unknown
