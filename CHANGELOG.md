@@ -13,6 +13,12 @@ string of this package (see `VERSIONING.md`).
   length take-off, clash lines, single-line drawings — needs the curve rather than the
   tessellated tube that `DISPLAY` carries. Producers already compute the curve to place the
   element; before this rel there was nowhere in a bundle to put it.
+- Two shapes under one rel, because a consumer asking "where is the axis" does not care which:
+  (a) the element's own authored location curve; (b) for a point-placed MEP fitting (elbow, tee,
+  cross, transition), which has no location curve at all, one segment per connector from the
+  connector to the fitting's node. (b) is what closes the gap a run otherwise has at every
+  fitting, is what a single-line drawing draws, and is the only shape that survives a branch —
+  no single curve can express a tee. `ord` is the branch index, so (b) is multi-valued.
 - Emitted for every element whose location is a curve, not only MEP: framing and wall axes are
   the same datum and the same ask. For some families the authored curve is not literally the
   centre (a Revit wall's location line follows its Location Line type parameter), so the rel
