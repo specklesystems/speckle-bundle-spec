@@ -1,6 +1,6 @@
 # GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.
 # Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
-"""Speckle bundle vocabulary (schema_version 1.0.0).
+"""Speckle bundle vocabulary (schema_version 1.1.0).
 
 Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate with
 `node codegen/generate-all.mjs` in that repo, then re-vendor into specklepy.
@@ -9,7 +9,7 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate wit
 from enum import IntEnum
 from typing import NamedTuple, Optional
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 
 
 class Rel(IntEnum):
@@ -39,6 +39,7 @@ class Rel(IntEnum):
     OBJECT_HAS_COLOR = 27
     NODE_HAS_MATERIAL = 28
     NODE_HAS_COLOR = 29
+    CENTERLINE = 30
 
 
 class NodeKind(IntEnum):
@@ -100,6 +101,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(27, "OBJECT_HAS_COLOR", "object", "node", "live", None),
     RelTypeRow(28, "NODE_HAS_MATERIAL", "node", "node", "live", None),
     RelTypeRow(29, "NODE_HAS_COLOR", "node", "node", "live", None),
+    RelTypeRow(30, "CENTERLINE", "object", "geometry", "live", "ordinal"),
 ]
 
 NODE_KINDS: list[NodeKindRow] = [

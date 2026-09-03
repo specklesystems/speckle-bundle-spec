@@ -1,7 +1,7 @@
 // GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.
 // Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
 
-export const SCHEMA_VERSION = '1.0.0' as const
+export const SCHEMA_VERSION = '1.1.0' as const
 
 /** Live relation ids. */
 export const Rel = {
@@ -29,6 +29,7 @@ export const Rel = {
   OBJECT_HAS_COLOR: 27,
   NODE_HAS_MATERIAL: 28,
   NODE_HAS_COLOR: 29,
+  CENTERLINE: 30,
 } as const
 export type RelName = keyof typeof Rel
 
@@ -82,6 +83,7 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 27, name: 'OBJECT_HAS_COLOR', srcNs: 'object', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 28, name: 'NODE_HAS_MATERIAL', srcNs: 'node', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 29, name: 'NODE_HAS_COLOR', srcNs: 'node', dstNs: 'node', status: 'live', ordSemantics: null },
+  { id: 30, name: 'CENTERLINE', srcNs: 'object', dstNs: 'geometry', status: 'live', ordSemantics: 'ordinal' },
 ]
 
 /** Logical table → column names, generated from the DDL. */

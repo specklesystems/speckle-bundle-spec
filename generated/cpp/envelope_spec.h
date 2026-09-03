@@ -5,7 +5,7 @@
 
 namespace bundlespec {
 
-constexpr const char* kSchemaVersion = "1.0.0";
+constexpr const char* kSchemaVersion = "1.1.0";
 
 enum class Rel : int {
   DISPLAY = 1,
@@ -32,6 +32,7 @@ enum class Rel : int {
   OBJECT_HAS_COLOR = 27,
   NODE_HAS_MATERIAL = 28,
   NODE_HAS_COLOR = 29,
+  CENTERLINE = 30,
 };
 
 enum class NodeKind : int {
@@ -73,6 +74,7 @@ static const RelTypeRow kRelTypes[] = {
   {27, "OBJECT_HAS_COLOR", "object", "node", "live"},
   {28, "NODE_HAS_MATERIAL", "node", "node", "live"},
   {29, "NODE_HAS_COLOR", "node", "node", "live"},
+  {30, "CENTERLINE", "object", "geometry", "live"},
 };
 static const NodeKindRow kNodeKinds[] = {
   {1, "DEFINITION", nullptr},
