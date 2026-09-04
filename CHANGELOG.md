@@ -3,7 +3,36 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 string of this package (see `VERSIONING.md`).
 
-## unreleased (schema_version 1.0.0, additive)
+## unreleased (schema_version 1.1.0, additive)
+
+## schema_version 1.1.0 — CENTERLINE
+
+**CENTERLINE (rel 30, new) — object → geometry**
+- The authored location curve of an element, as a first-class edge. A duct, pipe, conduit or
+  tray IS its centerline in the authoring tool, and every downstream use of one — routing,
+  length take-off, clash lines, single-line drawings — needs the curve rather than the
+  tessellated tube that `DISPLAY` carries. Producers already compute the curve to place the
+  element; before this rel there was nowhere in a bundle to put it.
+- Two shapes under one rel, because a consumer asking "where is the axis" does not care which:
+  (a) the element's own authored location curve; (b) for a point-placed MEP fitting (elbow, tee,
+  cross, transition), which has no location curve at all, one segment per connector from the
+  connector to the fitting's node. (b) is what closes the gap a run otherwise has at every
+  fitting, is what a single-line drawing draws, and is the only shape that survives a branch —
+  no single curve can express a tee. `ord` is the branch index, so (b) is multi-valued.
+- Emitted for every element whose location is a curve, not only MEP: framing and wall axes are
+  the same datum and the same ask. For some families the authored curve is not literally the
+  centre (a Revit wall's location line follows its Location Line type parameter), so the rel
+  carries the element's own location curve faithfully and a consumer needing the true centre
+  offsets it.
+- Its own rel rather than a role on `DISPLAY` (1) because it is **not** a render edge: a
+  consumer drawing every geometry-target rel would draw the axis through the middle of the
+  duct. Receivers resolve `DISPLAY`/`SOLID` exactly as before and reach `CENTERLINE` only when
+  asked, so no deployed consumer changes behaviour.
+- Minor bump, not major: purely additive id, no existing meaning changed. Readers built
+  against 1.0.0 report it as an unknown rel and drop the edges.
+
+The entries below shipped under `schema_version` 1.0.0 and are closed into this release; none
+of them changed the vocabulary.
 
 **Catalog primary keys aligned with the deployed bundle contract**
 - `rel_types.id` is corrected to `rel_types.rel`, and `node_kinds.id` to

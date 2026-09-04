@@ -6,7 +6,7 @@ namespace Speckle.Bundle.Spec;
 
 public static class BundleSpec
 {
-    public const string SchemaVersion = "1.0.0";
+    public const string SchemaVersion = "1.1.0";
 }
 
 public enum Rel
@@ -35,6 +35,7 @@ public enum Rel
     OBJECT_HAS_COLOR = 27,
     NODE_HAS_MATERIAL = 28,
     NODE_HAS_COLOR = 29,
+    CENTERLINE = 30,
 }
 
 public enum NodeKind
@@ -78,6 +79,7 @@ public static class Catalog
         new(27, "OBJECT_HAS_COLOR", "object", "node", "live"),
         new(28, "NODE_HAS_MATERIAL", "node", "node", "live"),
         new(29, "NODE_HAS_COLOR", "node", "node", "live"),
+        new(30, "CENTERLINE", "object", "geometry", "live"),
     };
 
     public static readonly NodeKindRow[] NodeKinds =
