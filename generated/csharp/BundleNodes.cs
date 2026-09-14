@@ -19,5 +19,5 @@ public sealed record Color(int Argb);
 /// <summary>A storey. Columns: <c>name?</c>, <c>elevation</c>.</summary>
 public sealed record Level(string? Name, double Elevation);
 
-/// <summary>Polymorphic grouping tree. Columns: <c>name?</c>, <c>def_ref?</c>, <c>subtype?</c>, <c>gh_topology?</c>.</summary>
-public sealed record Container(string? Name, int? DefRef, string? Subtype, string? GhTopology);
+/// <summary>Polymorphic grouping tree. Columns: <c>name?</c>, <c>def_ref?</c>, <c>subtype</c>, <c>gh_topology?</c>.</summary>
+public sealed record Container(string? Name, int? DefRef, string Subtype, string? GhTopology);

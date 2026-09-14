@@ -23,6 +23,23 @@ string of this package (see `VERSIONING.md`).
   `target_x/y/z` and `units`, so those four can no longer carry defaults in
   languages that allow them only on trailing parameters.
 
+**More columns declared NOT NULL, on the same evidence**
+- `geometries.content` / `id` / `type`, `scene_views.name` / `ord` / `source` /
+  `ref`, and `meta.schema_version` / `produced_by`. An audit of every producer —
+  the .NET SDK and connectors, the six native extractors, and specklepy — found no
+  path in any language that can write a null into them: the writer parameters are
+  non-nullable types, or the value is a generated constant, a loop counter, a
+  SHA256, or a total ternary with a fallback.
+- `scene_views.ord` is the one that was actively wrong: the .NET writer already
+  emits it as a required field, so the spec was describing something nobody wrote.
+- `CONTAINER` no longer marks `subtype` optional. Every producer passes a literal
+  (`Layer`, `Group`, `Model`, `MEP System`, …) and the .NET builder's parameter is
+  already non-nullable. **Consumers should know this changes a read:** `subtype`
+  replaced the former units overload, so a bundle written before that column
+  existed carries a null there, and a strict reader will now reject it rather than
+  surfacing a null subtype.
+- No version bump beyond the 1.2.0 above, and no existing bundle changes meaning.
+
 **Row records for the table-shaped writers**
 - New emitters (`emit-{csharp,ts,python,cpp}-tables.mjs` + `lib/tables.mjs`) turn
   `structural_results`, `property_set_definitions` and `camera_views` into one

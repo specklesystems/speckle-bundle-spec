@@ -33,7 +33,7 @@
 -- sdk_name/sdk_version: name and version of the SDK used to author this version
 -- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 -- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
-CREATE TABLE meta (schema_version VARCHAR, produced_by VARCHAR,
+CREATE TABLE meta (schema_version VARCHAR NOT NULL, produced_by VARCHAR NOT NULL,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
 INSERT INTO meta VALUES ('1.2.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
@@ -138,20 +138,20 @@ COMMENT ON COLUMN relations.ord IS 'Dual-use: ORDINAL for ordered rels (DISPLAY,
 -- ── geometry ─────────────────────────────────────────────────────────────────
 CREATE TABLE geometries (
   geometryIndex INTEGER NOT NULL,
-  content       BLOB,
-  id            VARCHAR,
-  type          VARCHAR
+  content       BLOB    NOT NULL,
+  id            VARCHAR NOT NULL,
+  type          VARCHAR NOT NULL
 );
 COMMENT ON TABLE geometries IS 'SGEO mesh blobs, content-hash deduped. Geometry K-space; referenced by rels whose ns=geometry.';
 
 -- ── scene_views (optional, producer-authored default projection) ─────────────
 CREATE TABLE scene_views (
   view       INTEGER NOT NULL,
-  name       VARCHAR,
+  name       VARCHAR NOT NULL,
   is_default BOOLEAN NOT NULL,
-  ord        INTEGER,
-  source     VARCHAR,   -- 'rel' | 'eav'
-  ref        VARCHAR    -- a rel id (as text) or an eav path
+  ord        INTEGER NOT NULL,
+  source     VARCHAR NOT NULL,   -- 'rel' | 'eav'
+  ref        VARCHAR NOT NULL    -- a rel id (as text) or an eav path
 );
 COMMENT ON TABLE scene_views IS 'Ordered tiers (outermost-first) of the producer-authored default scene-explorer grouping. Absent ⇒ consumer falls back to a heuristic.';
 
@@ -352,7 +352,7 @@ INSERT INTO node_kinds
   (4, 'COLOR',       'live',    'argb',                                   NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both). Colour only — alpha rides the argb byte, so opacity stays MATERIAL-only.'),
   (5, 'LEVEL',       'live',    'name?,elevation',                        NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
   (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),
-  (7, 'CONTAINER',   'live',    'name?,def_ref?,subtype?,gh_topology?',  'Collection,Layer,Folder,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
+  (7, 'CONTAINER',   'live',    'name?,def_ref?,subtype,gh_topology?',  'Collection,Layer,Folder,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
 
 -- ── bundle_files (the manifest) ──────────────────────────────────────────────
 --   sharded   : true ⇒ the table rolls across multiple parquet files; read via read_glob.

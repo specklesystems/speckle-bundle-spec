@@ -48,7 +48,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | 4 | **COLOR** | 🟢 live | argb | · | Raw colour override. — *Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both). Colour only — alpha rides the argb byte, so opacity stays MATERIAL-only.* |
 | 5 | **LEVEL** | 🟢 live | name?,elevation | · | A storey. — *Target of ON_LEVEL; elevation drives architectural ordering.* |
 | 6 | **COLLECTION** | ⚪ retired | · | · | Authored layer/collection node. — *Retired in v5: folded into CONTAINER (subtype=Collection).* |
-| 7 | **CONTAINER** | 🟢 live | name?,def_ref?,subtype?,gh_topology? | Collection,Layer,Folder,Model,MEP System,Network,Group | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).* |
+| 7 | **CONTAINER** | 🟢 live | name?,def_ref?,subtype,gh_topology? | Collection,Layer,Folder,Model,MEP System,Network,Group | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).* |
 
 ## Bundle manifest (`bundle_files`)
 

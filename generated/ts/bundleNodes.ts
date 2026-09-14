@@ -40,6 +40,6 @@ export interface Level {
 export interface Container {
   name: string | null
   defRef: number | null
-  subtype: string | null
+  subtype: string
   ghTopology: string | null
 }

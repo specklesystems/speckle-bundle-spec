@@ -47,7 +47,7 @@ struct Level {
 struct Container {
   std::optional<std::string> name;
   std::optional<int32_t> def_ref;
-  std::optional<std::string> subtype;
+  std::string subtype;
   std::optional<std::string> gh_topology;
 };
 

@@ -58,7 +58,7 @@ class Level:
 class Container:
     """Polymorphic grouping tree."""
 
+    subtype: str
     name: Optional[str] = None
     def_ref: Optional[int] = None
-    subtype: Optional[str] = None
     gh_topology: Optional[str] = None
