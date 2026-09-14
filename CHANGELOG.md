@@ -5,6 +5,28 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.1.0, additive)
 
+**Per-kind node records generated from `node_kinds.columns`**
+- `node_kinds.columns` now marks a field optional with a `?` suffix
+  (`name?,argb,opacity,metalness,roughness,emissive?,ior?` for MATERIAL). The CSV
+  already said which of the wide `nodes` row a kind populates; it could not say
+  which of those may be NULL, so every SDK restated that per language.
+- New emitters (`emit-{csharp,ts,python,cpp}-kinds.mjs`) turn each live kind into
+  one record: `generated/csharp/BundleNodes.cs`, `generated/ts/bundleNodes.ts`,
+  `generated/python/bundle_nodes.py`, `generated/cpp/bundle_nodes.h`. Writers
+  construct one instead of passing loose scalars; readers project a `nodes` row
+  into one and reject a NULL in a mandatory slot.
+- **COLOR no longer declares `opacity`.** It was scaffold copy-symmetry with
+  MATERIAL from the initial spec commit — no producer in any language has ever
+  written it (the C++ writer nulls it explicitly), and its only readers feed a
+  `.dat` channel nothing consumes. A COLOR node's alpha is its argb alpha byte.
+  `nodes.opacity` now carries a COMMENT scoping it to MATERIAL.
+- Conformance now asserts every live kind declares at least one column and names
+  only real `nodes` columns — codegen depends on the CSV, so a typo must break the
+  build rather than emit a wrong field.
+- No schema bump: the physical `nodes` DDL is untouched, MATERIAL still uses
+  `opacity`, and the pre-existing `generated/` outputs are byte-identical, so the
+  C++ and Python pins stay valid.
+
 ## schema_version 1.1.0 — CENTERLINE
 
 **CENTERLINE (rel 30, new) — object → geometry**

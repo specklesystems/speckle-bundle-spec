@@ -42,13 +42,13 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 
 | id | name | status | columns | subtypes | description / why |
 |---|---|---|---|---|---|
-| 1 | **DEFINITION** | 🟢 live | name,def_ref | · | Shared geometry template. — *Target of DEFINES; reused by many placements.* |
-| 2 | **INSTANCE** | 🟢 live | transform,units,def_ref | · | A placement / occurrence. — *Carries the composed transform; bulk-scanned on load.* |
-| 3 | **MATERIAL** | 🟢 live | name,argb,opacity,metalness,roughness,emissive,ior | · | Full-PBR render asset. — *Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].* |
-| 4 | **COLOR** | 🟢 live | argb,opacity | · | Raw colour override. — *Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).* |
-| 5 | **LEVEL** | 🟢 live | name,elevation | · | A storey. — *Target of ON_LEVEL; elevation drives architectural ordering.* |
+| 1 | **DEFINITION** | 🟢 live | name?,def_ref? | · | Shared geometry template. — *Target of DEFINES; reused by many placements.* |
+| 2 | **INSTANCE** | 🟢 live | transform,units?,def_ref | · | A placement / occurrence. — *Carries the composed transform; bulk-scanned on load.* |
+| 3 | **MATERIAL** | 🟢 live | name?,argb,opacity,metalness,roughness,emissive?,ior? | · | Full-PBR render asset. — *Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].* |
+| 4 | **COLOR** | 🟢 live | argb | · | Raw colour override. — *Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both). Colour only — alpha rides the argb byte, so opacity stays MATERIAL-only.* |
+| 5 | **LEVEL** | 🟢 live | name?,elevation | · | A storey. — *Target of ON_LEVEL; elevation drives architectural ordering.* |
 | 6 | **COLLECTION** | ⚪ retired | · | · | Authored layer/collection node. — *Retired in v5: folded into CONTAINER (subtype=Collection).* |
-| 7 | **CONTAINER** | 🟢 live | name,def_ref,subtype,gh_topology | Collection,Layer,Folder,Model,MEP System,Network,Group | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).* |
+| 7 | **CONTAINER** | 🟢 live | name?,def_ref?,subtype?,gh_topology? | Collection,Layer,Folder,Model,MEP System,Network,Group | Polymorphic grouping tree. — *The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).* |
 
 ## Bundle manifest (`bundle_files`)
 
@@ -146,7 +146,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | units | VARCHAR | INSTANCE placement units; read in the same hot scan as transform. |
 | subtype | VARCHAR | CONTAINER polymorphism: Collection \| Model \| MEP System \| Network. The single grouping discriminator (replaced the former units-overload). |
 | argb | INTEGER | MATERIAL/COLOR packed colour. |
-| opacity | DOUBLE | · |
+| opacity | DOUBLE | MATERIAL alpha (0-1). MATERIAL-only — a COLOR node carries alpha in its argb alpha byte. |
 | metalness | DOUBLE | · |
 | roughness | DOUBLE | · |
 | emissive | INTEGER | MATERIAL packed emissive colour (ARGB). NULL = no emission (producers normalize black RGB to NULL); consumers default NULL to black [ENG-8791]. |
