@@ -3,7 +3,46 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 string of this package (see `VERSIONING.md`).
 
-## unreleased (schema_version 1.1.0, additive)
+## unreleased (schema_version 1.2.0)
+
+**camera/scene view booleans are now NOT NULL**
+- `camera_views.is_default`, `camera_views.is_ortho` and `scene_views.is_default`
+  were declared nullable, but no producer in any language has ever been able to
+  write a null into them: the .NET record has typed them non-nullable since the
+  single commit that created the table, specklepy types them non-optional, and the
+  native producers write no camera views at all (and a literal `true` for
+  `scene_views.is_default`).
+- The declaration now matches what every producer already guarantees, which lets
+  the generated records carry a plain `bool` instead of `bool?` and restores
+  compile-time non-nullability at the call site.
+- No existing bundle changes meaning, so this is not a breaking read: nothing
+  rewrites existing files, none of them can hold a null in these columns, and the
+  readers coalesce anyway. Minor bump because the column semantics are tighter
+  than they were, not because old data is at risk.
+- Note for consumers regenerating against this: `is_ortho` sits after
+  `target_x/y/z` and `units`, so those four can no longer carry defaults in
+  languages that allow them only on trailing parameters.
+
+**Row records for the table-shaped writers**
+- New emitters (`emit-{csharp,ts,python,cpp}-tables.mjs` + `lib/tables.mjs`) turn
+  `structural_results`, `property_set_definitions` and `camera_views` into one
+  record each: `generated/csharp/BundleRows.cs` and its ts/python/cpp siblings.
+  Those three tables were being restated by hand in the .NET SDK as 11- and
+  12-parameter method signatures and as a 24-member `CameraView` record — twice
+  over for camera views and property sets, since the read side had its own mirror.
+- Declaration order is the DDL column order, unconditionally. That 1:1
+  correspondence is the point: the SDK's pipeline was silently reordering its own
+  parameters into the writer's order for two of these tables.
+- Defaults are emitted only on the maximal trailing run of nullable columns, the
+  most any target language allows. Optionality comes from the DDL's `NOT NULL`;
+  unlike `node_kinds.columns` there is no per-kind subset to mark, so richer
+  per-row rules (structural results' three identity shapes, its exactly-one-of
+  `value`/`value_text`) stay prose.
+- `scene_views` is deliberately excluded: its SDK type aggregates many rows behind
+  a key list, so it is not a row mirror.
+- Conformance asserts every table the emitter names exists in the DDL.
+- No schema bump and no change to any pre-existing generated output — nothing
+  about the format changes, only what is generated from it.
 
 **Per-kind node records generated from `node_kinds.columns`**
 - `node_kinds.columns` now marks a field optional with a `?` suffix

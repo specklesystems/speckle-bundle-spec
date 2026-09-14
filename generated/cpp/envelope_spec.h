@@ -5,7 +5,7 @@
 
 namespace bundlespec {
 
-constexpr const char* kSchemaVersion = "1.1.0";
+constexpr const char* kSchemaVersion = "1.2.0";
 
 enum class Rel : int {
   DISPLAY = 1,

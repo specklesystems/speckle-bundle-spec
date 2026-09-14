@@ -21,7 +21,7 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
     "camera_views": [
         ColumnSpec("view", "int32", False),
         ColumnSpec("name", "string", True),
-        ColumnSpec("is_default", "bool", True),
+        ColumnSpec("is_default", "bool", False),
         ColumnSpec("ord", "int32", True),
         ColumnSpec("pos_x", "float64", False),
         ColumnSpec("pos_y", "float64", False),
@@ -36,7 +36,7 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("target_y", "float64", True),
         ColumnSpec("target_z", "float64", True),
         ColumnSpec("units", "string", True),
-        ColumnSpec("is_ortho", "bool", True),
+        ColumnSpec("is_ortho", "bool", False),
         ColumnSpec("fov", "float64", True),
         ColumnSpec("lens_mm", "float64", True),
         ColumnSpec("ortho_height", "float64", True),
@@ -118,7 +118,7 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
     "scene_views": [
         ColumnSpec("view", "int32", False),
         ColumnSpec("name", "string", True),
-        ColumnSpec("is_default", "bool", True),
+        ColumnSpec("is_default", "bool", False),
         ColumnSpec("ord", "int32", True),
         ColumnSpec("source", "string", True),
         ColumnSpec("ref", "string", True),

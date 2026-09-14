@@ -93,7 +93,16 @@ const unknown = declared.flatMap((k) =>
 )
 check(unknown.length === 0, `node_kinds.columns names only real nodes columns${unknown.length ? ` (${unknown.join(', ')})` : ''}`)
 
-// 7. emitted_by only references known producers.
+// 7. Every table the row-record emitter names is real: codegen builds a caller-facing
+// record from its columns, so a renamed or dropped table must break the build.
+const rowTables = ['structural_results', 'property_set_definitions', 'camera_views'];
+const missingTables = rowTables.filter((t) => catalogColumns(t).length === 0);
+check(
+  missingTables.length === 0,
+  `row-record tables all exist in the DDL${missingTables.length ? ` (missing: ${missingTables.join(', ')})` : ''}`
+);
+
+// 8. emitted_by only references known producers.
 const PRODUCERS = new Set([
   'rvextract',
   'nwextract',
@@ -110,7 +119,7 @@ check(
   'emitted_by references only known producers'
 )
 
-// 8. Assembly membership remains one output-neutral object axis. The main
+// 9. Assembly membership remains one output-neutral object axis. The main
 // member is ordinal zero; nested assemblies use the same relation rather than
 // reviving the redundant IN_SUBASSEMBLY vocabulary.
 const inAssembly = rels.find((r) => r.id === 18)
@@ -127,7 +136,7 @@ check(
   'IN_SUBASSEMBLY remains retired'
 )
 
-// 9. meta.schema_version is the spec's semver string and names the package release:
+// 10. meta.schema_version is the spec's semver string and names the package release:
 // one value, not two numbers kept in step by hand (VERSIONING.md).
 const sv = schemaVersion()
 check(typeof sv === 'string' && SEMVER_RE.test(sv), `meta.schema_version is a semver string (${sv})`)

@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.1.0)
+--  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.2.0)
 -- ════════════════════════════════════════════════════════════════════════════
 --  This file IS the spec. It is executable DuckDB SQL:
 --    • CREATE TABLE …            → the shape of every parquet in the bundle
@@ -35,7 +35,7 @@
 -- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
 CREATE TABLE meta (schema_version VARCHAR, produced_by VARCHAR,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES ('1.1.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES ('1.2.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -148,7 +148,7 @@ COMMENT ON TABLE geometries IS 'SGEO mesh blobs, content-hash deduped. Geometry 
 CREATE TABLE scene_views (
   view       INTEGER NOT NULL,
   name       VARCHAR,
-  is_default BOOLEAN,
+  is_default BOOLEAN NOT NULL,
   ord        INTEGER,
   source     VARCHAR,   -- 'rel' | 'eav'
   ref        VARCHAR    -- a rel id (as text) or an eav path
@@ -159,7 +159,7 @@ COMMENT ON TABLE scene_views IS 'Ordered tiers (outermost-first) of the producer
 CREATE TABLE camera_views (
   view         INTEGER NOT NULL,
   name         VARCHAR,
-  is_default   BOOLEAN,
+  is_default   BOOLEAN NOT NULL,
   ord          INTEGER,
   pos_x        DOUBLE NOT NULL,
   pos_y        DOUBLE NOT NULL,
@@ -174,7 +174,7 @@ CREATE TABLE camera_views (
   target_y     DOUBLE,
   target_z     DOUBLE,
   units        VARCHAR,
-  is_ortho     BOOLEAN,
+  is_ortho     BOOLEAN NOT NULL,
   fov          DOUBLE,
   lens_mm      DOUBLE,
   ortho_height DOUBLE,
