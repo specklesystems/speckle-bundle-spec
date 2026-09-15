@@ -118,7 +118,7 @@ build-backend = "setuptools.build_meta"
 name = "speckle-bundle-spec"
 version = "${VERSION}"
 description = "Generated Python target of the Speckle bundle format spec (pinned)."
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 
 [tool.setuptools]

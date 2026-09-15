@@ -6,15 +6,14 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql (node_kinds.col
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
 class Definition:
     """Shared geometry template."""
 
-    name: Optional[str] = None
-    def_ref: Optional[int] = None
+    name: str | None = None
+    def_ref: int | None = None
 
 
 @dataclass(frozen=True)
@@ -23,7 +22,7 @@ class Instance:
 
     transform: str
     def_ref: int
-    units: Optional[str] = None
+    units: str | None = None
 
 
 @dataclass(frozen=True)
@@ -34,9 +33,9 @@ class Material:
     opacity: float
     metalness: float
     roughness: float
-    name: Optional[str] = None
-    emissive: Optional[int] = None
-    ior: Optional[float] = None
+    name: str | None = None
+    emissive: int | None = None
+    ior: float | None = None
 
 
 @dataclass(frozen=True)
@@ -51,7 +50,7 @@ class Level:
     """A storey."""
 
     elevation: float
-    name: Optional[str] = None
+    name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -59,6 +58,6 @@ class Container:
     """Polymorphic grouping tree."""
 
     subtype: str
-    name: Optional[str] = None
-    def_ref: Optional[int] = None
-    gh_topology: Optional[str] = None
+    name: str | None = None
+    def_ref: int | None = None
+    gh_topology: str | None = None

@@ -12,7 +12,7 @@ export function emitPythonTables() {
       const fields = t.fields
         .map((f) => {
           const ty = mapType(f.duckType).pyType
-          const hint = f.optional ? `Optional[${ty}]` : ty
+          const hint = f.optional ? `${ty} | None` : ty
           return `    ${f.column}: ${hint}${f.defaulted ? ' = None' : ''}`
         })
         .join('\n')
@@ -31,7 +31,6 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 ${classes}

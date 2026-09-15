@@ -83,6 +83,15 @@ string of this package (see `VERSIONING.md`).
   `opacity`, and the pre-existing `generated/` outputs are byte-identical, so the
   C++ and Python pins stay valid.
 
+**Generated Python uses PEP 604 unions**
+- `Optional[X]` becomes `X | None` across `bundle_nodes.py`, `bundle_rows.py` and
+  `bundle_spec.py`, dropping the `typing.Optional` import. This aligns the vendored
+  output with specklepy's ruff rules, which select `UP` and do not ignore `UP045` —
+  43 violations before, none after.
+- The published package's `requires-python` moves from `>=3.9` to `>=3.11`, since
+  `X | None` is only evaluable at runtime from 3.10. Nothing else about the generated
+  API changes.
+
 ## schema_version 1.1.0 — CENTERLINE
 
 **CENTERLINE (rel 30, new) — object → geometry**

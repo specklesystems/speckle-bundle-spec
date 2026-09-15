@@ -6,24 +6,23 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
 class StructuralResult:
     """One structural_results row, in column order."""
 
-    object_index: Optional[int]
-    element_name: Optional[str]
-    location: Optional[str]
+    object_index: int | None
+    element_name: str | None
+    location: str | None
     result_type: str
     load_case: str
     component: str
-    position_label: Optional[str] = None
-    station: Optional[float] = None
-    step: Optional[int] = None
-    value: Optional[float] = None
-    value_text: Optional[str] = None
+    position_label: str | None = None
+    station: float | None = None
+    step: int | None = None
+    value: float | None = None
+    value_text: str | None = None
 
 
 @dataclass(frozen=True)
@@ -32,16 +31,16 @@ class PropertySetField:
 
     set_name: str
     set_key: str
-    set_description: Optional[str]
+    set_description: str | None
     field_name: str
-    field_bucket_id: Optional[str] = None
-    data_type: Optional[str] = None
-    default_string: Optional[str] = None
-    default_double: Optional[float] = None
-    default_boolean: Optional[bool] = None
-    unit: Optional[str] = None
-    description: Optional[str] = None
-    applies_to: Optional[str] = None
+    field_bucket_id: str | None = None
+    data_type: str | None = None
+    default_string: str | None = None
+    default_double: float | None = None
+    default_boolean: bool | None = None
+    unit: str | None = None
+    description: str | None = None
+    applies_to: str | None = None
 
 
 @dataclass(frozen=True)
@@ -49,9 +48,9 @@ class CameraView:
     """One camera_views row, in column order."""
 
     view: int
-    name: Optional[str]
+    name: str | None
     is_default: bool
-    ord: Optional[int]
+    ord: int | None
     pos_x: float
     pos_y: float
     pos_z: float
@@ -61,14 +60,14 @@ class CameraView:
     up_x: float
     up_y: float
     up_z: float
-    target_x: Optional[float]
-    target_y: Optional[float]
-    target_z: Optional[float]
-    units: Optional[str]
+    target_x: float | None
+    target_y: float | None
+    target_z: float | None
+    units: str | None
     is_ortho: bool
-    fov: Optional[float] = None
-    lens_mm: Optional[float] = None
-    ortho_height: Optional[float] = None
-    aspect: Optional[float] = None
-    near: Optional[float] = None
-    far: Optional[float] = None
+    fov: float | None = None
+    lens_mm: float | None = None
+    ortho_height: float | None = None
+    aspect: float | None = None
+    near: float | None = None
+    far: float | None = None

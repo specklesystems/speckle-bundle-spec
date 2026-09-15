@@ -14,7 +14,7 @@ export function emitPythonKinds() {
       const fields = ordered
         .map((f) => {
           const t = mapType(f.duckType).pyType
-          return f.optional ? `    ${f.column}: Optional[${t}] = None` : `    ${f.column}: ${t}`
+          return f.optional ? `    ${f.column}: ${t} | None = None` : `    ${f.column}: ${t}`
         })
         .join('\n')
       return (
@@ -32,7 +32,6 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql (node_kinds.col
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 ${classes}
