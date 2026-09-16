@@ -2,7 +2,7 @@
 // Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
 
 /** One `structural_results` row, in column order. */
-export interface StructuralResult {
+export type StructuralResult = {
   objectIndex: number | null
   elementName: string | null
   location: string | null
@@ -17,7 +17,7 @@ export interface StructuralResult {
 }
 
 /** One `property_set_definitions` row, in column order. */
-export interface PropertySetField {
+export type PropertySetField = {
   setName: string
   setKey: string
   setDescription: string | null
@@ -33,7 +33,7 @@ export interface PropertySetField {
 }
 
 /** One `camera_views` row, in column order. */
-export interface CameraView {
+export type CameraView = {
   view: number
   name: string | null
   isDefault: boolean

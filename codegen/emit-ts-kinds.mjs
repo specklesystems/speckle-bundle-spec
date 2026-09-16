@@ -1,4 +1,4 @@
-// Emit generated/ts/bundleNodes.ts — one interface per live node kind, so the
+// Emit generated/ts/bundleNodes.ts — one type alias per live node kind, so the
 // viewer/server type a projected nodes row instead of reading loose columns.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -7,7 +7,7 @@ import { mapType, camel, kindTypeName } from './lib/types.mjs'
 import { nodeKindFields } from './lib/kinds.mjs'
 
 export function emitTsKinds() {
-  const interfaces = nodeKindFields()
+  const types = nodeKindFields()
     .map((k) => {
       const fields = k.fields
         .map((f) => {
@@ -15,11 +15,11 @@ export function emitTsKinds() {
           return `  ${camel(f.column)}: ${f.optional ? `${t} | null` : t}`
         })
         .join('\n')
-      return `/** ${k.description} */\nexport interface ${kindTypeName(k.name)} {\n${fields}\n}`
+      return `/** ${k.description} */\nexport type ${kindTypeName(k.name)} = {\n${fields}\n}`
     })
     .join('\n\n')
 
-  const out = GENERATED_HEADER('ts') + `\n${interfaces}\n`
+  const out = GENERATED_HEADER('ts') + `\n${types}\n`
 
   const dir = join(REPO, 'generated', 'ts')
   mkdirSync(dir, { recursive: true })

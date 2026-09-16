@@ -92,6 +92,16 @@ string of this package (see `VERSIONING.md`).
   `X | None` is only evaluable at runtime from 3.10. Nothing else about the generated
   API changes.
 
+**Generated TypeScript emits type aliases, not interfaces**
+- The per-kind and per-row shapes in `bundleNodes.ts`, `bundleRows.ts` and
+  `RelTypeMeta` become `export type X = { … }`. Structurally identical, so no
+  consumer's assignability changes.
+- The reason is declaration merging: two interfaces of the same name in one scope
+  merge silently, and these names — `Material`, `Color`, `Level`, `Container`,
+  `Definition`, `Instance` — are exactly the ones a host or viewer package is likely
+  to also declare. A type alias collides loudly instead. `RelName` and `NodeKindName`
+  were already aliases; an interface cannot express a string-literal union.
+
 ## schema_version 1.1.0 — CENTERLINE
 
 **CENTERLINE (rel 30, new) — object → geometry**

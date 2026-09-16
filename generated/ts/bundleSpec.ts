@@ -44,7 +44,7 @@ export const NodeKind = {
 } as const
 export type NodeKindName = keyof typeof NodeKind
 
-export interface RelTypeMeta {
+export type RelTypeMeta = {
   id: number
   name: string
   srcNs: string | null

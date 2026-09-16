@@ -2,20 +2,20 @@
 // Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
 
 /** Shared geometry template. */
-export interface Definition {
+export type Definition = {
   name: string | null
   defRef: number | null
 }
 
 /** A placement / occurrence. */
-export interface Instance {
+export type Instance = {
   transform: string
   units: string | null
   defRef: number
 }
 
 /** Full-PBR render asset. */
-export interface Material {
+export type Material = {
   name: string | null
   argb: number
   opacity: number
@@ -26,18 +26,18 @@ export interface Material {
 }
 
 /** Raw colour override. */
-export interface Color {
+export type Color = {
   argb: number
 }
 
 /** A storey. */
-export interface Level {
+export type Level = {
   name: string | null
   elevation: number
 }
 
 /** Polymorphic grouping tree. */
-export interface Container {
+export type Container = {
   name: string | null
   defRef: number | null
   subtype: string

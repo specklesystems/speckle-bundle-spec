@@ -50,7 +50,7 @@ export function emitTs() {
     `export type RelName = keyof typeof Rel\n\n` +
     `/** Live node-kind ids. */\nexport const NodeKind = {\n${kindEnum}\n} as const\n` +
     `export type NodeKindName = keyof typeof NodeKind\n\n` +
-    `export interface RelTypeMeta {\n  id: number\n  name: string\n  srcNs: string | null\n  dstNs: string | null\n  status: 'live' | 'reserved' | 'retired'\n  ordSemantics: string | null\n}\n` +
+    `export type RelTypeMeta = {\n  id: number\n  name: string\n  srcNs: string | null\n  dstNs: string | null\n  status: 'live' | 'reserved' | 'retired'\n  ordSemantics: string | null\n}\n` +
     `/** Full catalog incl. reserved/retired (retired kept so ids are never reused). */\n` +
     `export const REL_TYPES: readonly RelTypeMeta[] = [\n${relMeta}\n]\n\n` +
     `/** Logical table → column names, generated from the DDL. */\n` +
