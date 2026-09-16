@@ -70,7 +70,39 @@ check(
 const container = kinds.find((k) => k.name === 'CONTAINER')
 check(container?.subtype_values?.split(',').length >= 2, 'CONTAINER declares ≥2 subtype values')
 
-// 6. emitted_by only references known producers.
+// 6. Every live kind's declared column set is real: codegen builds the per-kind
+// node records from it, so a typo must break the build, not emit a wrong field.
+const nodeColumns = new Set(
+  query(
+    `SELECT column_name FROM duckdb_columns()
+     WHERE schema_name = 'main' AND table_name = 'nodes'`
+  ).map((r) => r.column_name)
+)
+const declared = kinds
+  .filter((k) => k.status === 'live')
+  .map((k) => ({
+    name: k.name,
+    cols: (k.columns ?? '')
+      .split(',')
+      .map((s) => s.trim().replace(/\?$/, ''))
+      .filter(Boolean)
+  }))
+check(declared.every((k) => k.cols.length > 0), 'every live node kind declares >=1 column')
+const unknown = declared.flatMap((k) =>
+  k.cols.filter((c) => !nodeColumns.has(c)).map((c) => `${k.name}.${c}`)
+)
+check(unknown.length === 0, `node_kinds.columns names only real nodes columns${unknown.length ? ` (${unknown.join(', ')})` : ''}`)
+
+// 7. Every table the row-record emitter names is real: codegen builds a caller-facing
+// record from its columns, so a renamed or dropped table must break the build.
+const rowTables = ['structural_results', 'property_set_definitions', 'camera_views'];
+const missingTables = rowTables.filter((t) => catalogColumns(t).length === 0);
+check(
+  missingTables.length === 0,
+  `row-record tables all exist in the DDL${missingTables.length ? ` (missing: ${missingTables.join(', ')})` : ''}`
+);
+
+// 8. emitted_by only references known producers.
 const PRODUCERS = new Set([
   'rvextract',
   'nwextract',
@@ -87,7 +119,7 @@ check(
   'emitted_by references only known producers'
 )
 
-// 7. Assembly membership remains one output-neutral object axis. The main
+// 9. Assembly membership remains one output-neutral object axis. The main
 // member is ordinal zero; nested assemblies use the same relation rather than
 // reviving the redundant IN_SUBASSEMBLY vocabulary.
 const inAssembly = rels.find((r) => r.id === 18)
@@ -104,7 +136,7 @@ check(
   'IN_SUBASSEMBLY remains retired'
 )
 
-// 8. meta.schema_version is the spec's semver string and names the package release:
+// 10. meta.schema_version is the spec's semver string and names the package release:
 // one value, not two numbers kept in step by hand (VERSIONING.md).
 const sv = schemaVersion()
 check(typeof sv === 'string' && SEMVER_RE.test(sv), `meta.schema_version is a semver string (${sv})`)

@@ -1,0 +1,10 @@
+# codegen/verify-pin.mjs hashes the generated targets byte-for-byte, so a Windows
+# checkout must produce the same bytes as CI does on Linux — LF, whatever core.autocrlf
+# is set to. Without this a re-vendor computes CRLF hashes and the pin silently mismatches.
+* text=auto eol=lf
+
+# Conformance gold fixtures: never line-ending convert.
+*.parquet binary
+
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf

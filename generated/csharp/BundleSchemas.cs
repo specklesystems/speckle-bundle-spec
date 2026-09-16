@@ -24,7 +24,7 @@ public static class BundleSchemas
     {
         new("view", ArrowType.Int32, false),
         new("name", ArrowType.Utf8, true),
-        new("is_default", ArrowType.Boolean, true),
+        new("is_default", ArrowType.Boolean, false),
         new("ord", ArrowType.Int32, true),
         new("pos_x", ArrowType.Float64, false),
         new("pos_y", ArrowType.Float64, false),
@@ -39,7 +39,7 @@ public static class BundleSchemas
         new("target_y", ArrowType.Float64, true),
         new("target_z", ArrowType.Float64, true),
         new("units", ArrowType.Utf8, true),
-        new("is_ortho", ArrowType.Boolean, true),
+        new("is_ortho", ArrowType.Boolean, false),
         new("fov", ArrowType.Float64, true),
         new("lens_mm", ArrowType.Float64, true),
         new("ortho_height", ArrowType.Float64, true),
@@ -62,9 +62,9 @@ public static class BundleSchemas
     public static readonly ColumnSpec[] Geometries =
     {
         new("geometryIndex", ArrowType.Int32, false),
-        new("content", ArrowType.Binary, true),
-        new("id", ArrowType.Utf8, true),
-        new("type", ArrowType.Utf8, true),
+        new("content", ArrowType.Binary, false),
+        new("id", ArrowType.Utf8, false),
+        new("type", ArrowType.Utf8, false),
     };
 
     public static readonly ColumnSpec[] Model =
@@ -140,11 +140,11 @@ public static class BundleSchemas
     public static readonly ColumnSpec[] SceneViews =
     {
         new("view", ArrowType.Int32, false),
-        new("name", ArrowType.Utf8, true),
-        new("is_default", ArrowType.Boolean, true),
-        new("ord", ArrowType.Int32, true),
-        new("source", ArrowType.Utf8, true),
-        new("ref", ArrowType.Utf8, true),
+        new("name", ArrowType.Utf8, false),
+        new("is_default", ArrowType.Boolean, false),
+        new("ord", ArrowType.Int32, false),
+        new("source", ArrowType.Utf8, false),
+        new("ref", ArrowType.Utf8, false),
     };
 
     public static readonly ColumnSpec[] StructuralResults =

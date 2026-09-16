@@ -1,15 +1,15 @@
 # GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.
 # Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
-"""Speckle bundle vocabulary (schema_version 1.1.0).
+"""Speckle bundle vocabulary (schema_version 1.2.0).
 
 Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate with
 `node codegen/generate-all.mjs` in that repo, then re-vendor into specklepy.
 """
 
 from enum import IntEnum
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 
 
 class Rel(IntEnum):
@@ -56,17 +56,17 @@ class NodeKind(IntEnum):
 class RelTypeRow(NamedTuple):
     id: int
     name: str
-    src_ns: Optional[str]
-    dst_ns: Optional[str]
+    src_ns: str | None
+    dst_ns: str | None
     status: str
-    ord_semantics: Optional[str]
+    ord_semantics: str | None
 
 
 class NodeKindRow(NamedTuple):
     id: int
     name: str
     status: str
-    subtype_values: Optional[str]
+    subtype_values: str | None
 
 
 # Full catalogs incl. reserved/retired rows (ids are retired in place, never reused),

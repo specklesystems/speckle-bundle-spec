@@ -47,7 +47,7 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate wit
 """
 
 from enum import IntEnum
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 SCHEMA_VERSION = "${schemaVersion()}"
 
@@ -67,17 +67,17 @@ ${kindEnum}
 class RelTypeRow(NamedTuple):
     id: int
     name: str
-    src_ns: Optional[str]
-    dst_ns: Optional[str]
+    src_ns: str | None
+    dst_ns: str | None
     status: str
-    ord_semantics: Optional[str]
+    ord_semantics: str | None
 
 
 class NodeKindRow(NamedTuple):
     id: int
     name: str
     status: str
-    subtype_values: Optional[str]
+    subtype_values: str | None
 
 
 # Full catalogs incl. reserved/retired rows (ids are retired in place, never reused),

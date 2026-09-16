@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.1.0)
+--  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.2.0)
 -- ════════════════════════════════════════════════════════════════════════════
 --  This file IS the spec. It is executable DuckDB SQL:
 --    • CREATE TABLE …            → the shape of every parquet in the bundle
@@ -33,9 +33,9 @@
 -- sdk_name/sdk_version: name and version of the SDK used to author this version
 -- migrated_from_schema_version: for older migrated models, the original schema version, null for non-migrated models.
 -- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
-CREATE TABLE meta (schema_version VARCHAR, produced_by VARCHAR,
+CREATE TABLE meta (schema_version VARCHAR NOT NULL, produced_by VARCHAR NOT NULL,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES ('1.1.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES ('1.2.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -120,6 +120,7 @@ COMMENT ON COLUMN nodes.transform IS 'INSTANCE only. Row-major 4x4 as CSV. HOT: 
 COMMENT ON COLUMN nodes.units IS 'INSTANCE placement units; read in the same hot scan as transform.';
 COMMENT ON COLUMN nodes.subtype IS 'CONTAINER polymorphism: Collection | Model | MEP System | Network. The single grouping discriminator (replaced the former units-overload).';
 COMMENT ON COLUMN nodes.argb IS 'MATERIAL/COLOR packed colour.';
+COMMENT ON COLUMN nodes.opacity IS 'MATERIAL alpha (0-1). MATERIAL-only — a COLOR node carries alpha in its argb alpha byte.';
 COMMENT ON COLUMN nodes.emissive IS 'MATERIAL packed emissive colour (ARGB). NULL = no emission (producers normalize black RGB to NULL); consumers default NULL to black [ENG-8791].';
 COMMENT ON COLUMN nodes.ior IS 'MATERIAL index of refraction (PBR scalar, typically 1.0–2.5); NULL = unset [ENG-8791].';
 COMMENT ON COLUMN nodes.elevation IS 'LEVEL height — lets the scene tree order storeys architecturally.';
@@ -137,20 +138,20 @@ COMMENT ON COLUMN relations.ord IS 'Dual-use: ORDINAL for ordered rels (DISPLAY,
 -- ── geometry ─────────────────────────────────────────────────────────────────
 CREATE TABLE geometries (
   geometryIndex INTEGER NOT NULL,
-  content       BLOB,
-  id            VARCHAR,
-  type          VARCHAR
+  content       BLOB    NOT NULL,
+  id            VARCHAR NOT NULL,
+  type          VARCHAR NOT NULL
 );
 COMMENT ON TABLE geometries IS 'SGEO mesh blobs, content-hash deduped. Geometry K-space; referenced by rels whose ns=geometry.';
 
 -- ── scene_views (optional, producer-authored default projection) ─────────────
 CREATE TABLE scene_views (
   view       INTEGER NOT NULL,
-  name       VARCHAR,
-  is_default BOOLEAN,
-  ord        INTEGER,
-  source     VARCHAR,   -- 'rel' | 'eav'
-  ref        VARCHAR    -- a rel id (as text) or an eav path
+  name       VARCHAR NOT NULL,
+  is_default BOOLEAN NOT NULL,
+  ord        INTEGER NOT NULL,
+  source     VARCHAR NOT NULL,   -- 'rel' | 'eav'
+  ref        VARCHAR NOT NULL    -- a rel id (as text) or an eav path
 );
 COMMENT ON TABLE scene_views IS 'Ordered tiers (outermost-first) of the producer-authored default scene-explorer grouping. Absent ⇒ consumer falls back to a heuristic.';
 
@@ -158,7 +159,7 @@ COMMENT ON TABLE scene_views IS 'Ordered tiers (outermost-first) of the producer
 CREATE TABLE camera_views (
   view         INTEGER NOT NULL,
   name         VARCHAR,
-  is_default   BOOLEAN,
+  is_default   BOOLEAN NOT NULL,
   ord          INTEGER,
   pos_x        DOUBLE NOT NULL,
   pos_y        DOUBLE NOT NULL,
@@ -173,7 +174,7 @@ CREATE TABLE camera_views (
   target_y     DOUBLE,
   target_z     DOUBLE,
   units        VARCHAR,
-  is_ortho     BOOLEAN,
+  is_ortho     BOOLEAN NOT NULL,
   fov          DOUBLE,
   lens_mm      DOUBLE,
   ortho_height DOUBLE,
@@ -338,20 +339,20 @@ CREATE TABLE node_kinds (
   kind           INTEGER PRIMARY KEY,
   name           VARCHAR NOT NULL,
   status         VARCHAR NOT NULL,
-  columns        VARCHAR,      -- csv of nodes.* columns this kind populates
+  columns        VARCHAR,      -- csv of nodes.* columns this kind populates; a `?` suffix marks it optional for this kind
   subtype_values VARCHAR,      -- csv (CONTAINER only)
   description    VARCHAR,
   why            VARCHAR
 );
 INSERT INTO node_kinds
   (kind, name,       status,    columns,                                  subtype_values,                       description, why) VALUES
-  (1, 'DEFINITION',  'live',    'name,def_ref',                           NULL,                                 'Shared geometry template.',          'Target of DEFINES; reused by many placements.'),
-  (2, 'INSTANCE',    'live',    'transform,units,def_ref',                NULL,                                 'A placement / occurrence.',          'Carries the composed transform; bulk-scanned on load.'),
-  (3, 'MATERIAL',    'live',    'name,argb,opacity,metalness,roughness,emissive,ior', NULL,                     'Full-PBR render asset.',             'Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].'),
-  (4, 'COLOR',       'live',    'argb,opacity',                           NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both).'),
-  (5, 'LEVEL',       'live',    'name,elevation',                         NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
+  (1, 'DEFINITION',  'live',    'name?,def_ref?',                         NULL,                                 'Shared geometry template.',          'Target of DEFINES; reused by many placements.'),
+  (2, 'INSTANCE',    'live',    'transform,units?,def_ref',               NULL,                                 'A placement / occurrence.',          'Carries the composed transform; bulk-scanned on load.'),
+  (3, 'MATERIAL',    'live',    'name?,argb,opacity,metalness,roughness,emissive?,ior?', NULL,                     'Full-PBR render asset.',             'Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].'),
+  (4, 'COLOR',       'live',    'argb',                                   NULL,                                 'Raw colour override.',               'Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both). Colour only — alpha rides the argb byte, so opacity stays MATERIAL-only.'),
+  (5, 'LEVEL',       'live',    'name?,elevation',                        NULL,                                 'A storey.',                          'Target of ON_LEVEL; elevation drives architectural ordering.'),
   (6, 'COLLECTION',  'retired', NULL,                                     NULL,                                 'Authored layer/collection node.',    'Retired in v5: folded into CONTAINER (subtype=Collection).'),
-  (7, 'CONTAINER',   'live',    'name,def_ref,subtype,gh_topology',      'Collection,Layer,Folder,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
+  (7, 'CONTAINER',   'live',    'name?,def_ref?,subtype,gh_topology?',  'Collection,Layer,Folder,Model,MEP System,Network,Group','Polymorphic grouping tree.',         'The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).');
 
 -- ── bundle_files (the manifest) ──────────────────────────────────────────────
 --   sharded   : true ⇒ the table rolls across multiple parquet files; read via read_glob.

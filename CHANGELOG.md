@@ -3,7 +3,104 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 string of this package (see `VERSIONING.md`).
 
-## unreleased (schema_version 1.1.0, additive)
+## unreleased (schema_version 1.2.0)
+
+**camera/scene view booleans are now NOT NULL**
+- `camera_views.is_default`, `camera_views.is_ortho` and `scene_views.is_default`
+  were declared nullable, but no producer in any language has ever been able to
+  write a null into them: the .NET record has typed them non-nullable since the
+  single commit that created the table, specklepy types them non-optional, and the
+  native producers write no camera views at all (and a literal `true` for
+  `scene_views.is_default`).
+- The declaration now matches what every producer already guarantees, which lets
+  the generated records carry a plain `bool` instead of `bool?` and restores
+  compile-time non-nullability at the call site.
+- No existing bundle changes meaning, so this is not a breaking read: nothing
+  rewrites existing files, none of them can hold a null in these columns, and the
+  readers coalesce anyway. Minor bump because the column semantics are tighter
+  than they were, not because old data is at risk.
+- Note for consumers regenerating against this: `is_ortho` sits after
+  `target_x/y/z` and `units`, so those four can no longer carry defaults in
+  languages that allow them only on trailing parameters.
+
+**More columns declared NOT NULL, on the same evidence**
+- `geometries.content` / `id` / `type`, `scene_views.name` / `ord` / `source` /
+  `ref`, and `meta.schema_version` / `produced_by`. An audit of every producer —
+  the .NET SDK and connectors, the six native extractors, and specklepy — found no
+  path in any language that can write a null into them: the writer parameters are
+  non-nullable types, or the value is a generated constant, a loop counter, a
+  SHA256, or a total ternary with a fallback.
+- `scene_views.ord` is the one that was actively wrong: the .NET writer already
+  emits it as a required field, so the spec was describing something nobody wrote.
+- `CONTAINER` no longer marks `subtype` optional. Every producer passes a literal
+  (`Layer`, `Group`, `Model`, `MEP System`, …) and the .NET builder's parameter is
+  already non-nullable. **Consumers should know this changes a read:** `subtype`
+  replaced the former units overload, so a bundle written before that column
+  existed carries a null there, and a strict reader will now reject it rather than
+  surfacing a null subtype.
+- No version bump beyond the 1.2.0 above, and no existing bundle changes meaning.
+
+**Row records for the table-shaped writers**
+- New emitters (`emit-{csharp,ts,python,cpp}-tables.mjs` + `lib/tables.mjs`) turn
+  `structural_results`, `property_set_definitions` and `camera_views` into one
+  record each: `generated/csharp/BundleRows.cs` and its ts/python/cpp siblings.
+  Those three tables were being restated by hand in the .NET SDK as 11- and
+  12-parameter method signatures and as a 24-member `CameraView` record — twice
+  over for camera views and property sets, since the read side had its own mirror.
+- Declaration order is the DDL column order, unconditionally. That 1:1
+  correspondence is the point: the SDK's pipeline was silently reordering its own
+  parameters into the writer's order for two of these tables.
+- Defaults are emitted only on the maximal trailing run of nullable columns, the
+  most any target language allows. Optionality comes from the DDL's `NOT NULL`;
+  unlike `node_kinds.columns` there is no per-kind subset to mark, so richer
+  per-row rules (structural results' three identity shapes, its exactly-one-of
+  `value`/`value_text`) stay prose.
+- `scene_views` is deliberately excluded: its SDK type aggregates many rows behind
+  a key list, so it is not a row mirror.
+- Conformance asserts every table the emitter names exists in the DDL.
+- No schema bump and no change to any pre-existing generated output — nothing
+  about the format changes, only what is generated from it.
+
+**Per-kind node records generated from `node_kinds.columns`**
+- `node_kinds.columns` now marks a field optional with a `?` suffix
+  (`name?,argb,opacity,metalness,roughness,emissive?,ior?` for MATERIAL). The CSV
+  already said which of the wide `nodes` row a kind populates; it could not say
+  which of those may be NULL, so every SDK restated that per language.
+- New emitters (`emit-{csharp,ts,python,cpp}-kinds.mjs`) turn each live kind into
+  one record: `generated/csharp/BundleNodes.cs`, `generated/ts/bundleNodes.ts`,
+  `generated/python/bundle_nodes.py`, `generated/cpp/bundle_nodes.h`. Writers
+  construct one instead of passing loose scalars; readers project a `nodes` row
+  into one and reject a NULL in a mandatory slot.
+- **COLOR no longer declares `opacity`.** It was scaffold copy-symmetry with
+  MATERIAL from the initial spec commit — no producer in any language has ever
+  written it (the C++ writer nulls it explicitly), and its only readers feed a
+  `.dat` channel nothing consumes. A COLOR node's alpha is its argb alpha byte.
+  `nodes.opacity` now carries a COMMENT scoping it to MATERIAL.
+- Conformance now asserts every live kind declares at least one column and names
+  only real `nodes` columns — codegen depends on the CSV, so a typo must break the
+  build rather than emit a wrong field.
+- No schema bump: the physical `nodes` DDL is untouched, MATERIAL still uses
+  `opacity`, and the pre-existing `generated/` outputs are byte-identical, so the
+  C++ and Python pins stay valid.
+
+**Generated Python uses PEP 604 unions**
+- `Optional[X]` becomes `X | None` across `bundle_nodes.py`, `bundle_rows.py` and
+  `bundle_spec.py`, dropping the `typing.Optional` import. This aligns the vendored
+  output with specklepy's ruff rules, which select `UP` and do not ignore `UP045` —
+  43 violations before, none after.
+- The published package's `requires-python` moves from `>=3.9` to `>=3.11`, since
+  `X | None` is only evaluable at runtime from 3.10. Nothing else about the generated
+  API changes.
+
+**Generated TypeScript emits type aliases, not interfaces**
+- The per-kind and per-row shapes in `bundleNodes.ts`, `bundleRows.ts` and
+  `RelTypeMeta` become `export type X = { … }`. Structurally identical, so no
+  consumer's assignability changes.
+- The reason is declaration merging: two interfaces of the same name in one scope
+  merge silently, and these names — `Material`, `Color`, `Level`, `Container`,
+  `Definition`, `Instance` — are exactly the ones a host or viewer package is likely
+  to also declare. A type alias collides loudly instead. `RelName` and `NodeKindName`
+  were already aliases; an interface cannot express a string-literal union.
 
 ## schema_version 1.1.0 — CENTERLINE
 
