@@ -12,3 +12,9 @@ public sealed record PropertySetField(string SetName, string SetKey, string? Set
 
 /// <summary>One <c>camera_views</c> row, in column order. Columns: <c>view</c>, <c>name</c>, <c>is_default</c>, <c>ord</c>, <c>pos_x</c>, <c>pos_y</c>, <c>pos_z</c>, <c>forward_x</c>, <c>forward_y</c>, <c>forward_z</c>, <c>up_x</c>, <c>up_y</c>, <c>up_z</c>, <c>target_x</c>, <c>target_y</c>, <c>target_z</c>, <c>units</c>, <c>is_ortho</c>, <c>fov</c>, <c>lens_mm</c>, <c>ortho_height</c>, <c>aspect</c>, <c>near</c>, <c>far</c>.</summary>
 public sealed record CameraView(int View, string? Name, bool IsDefault, int? Ord, double PosX, double PosY, double PosZ, double ForwardX, double ForwardY, double ForwardZ, double UpX, double UpY, double UpZ, double? TargetX, double? TargetY, double? TargetZ, string? Units, bool IsOrtho, double? Fov = null, double? LensMm = null, double? OrthoHeight = null, double? Aspect = null, double? Near = null, double? Far = null);
+
+/// <summary>One <c>warnings</c> row, in column order. Columns: <c>warning_index</c>, <c>warning_class</c>, <c>warning_type</c>, <c>failure_definition_id</c>, <c>description</c>, <c>element_id</c>, <c>element_application_id</c>, <c>element_category</c>.</summary>
+public sealed record ModelWarning(int WarningIndex, string WarningClass, int? WarningType, string? FailureDefinitionId, string Description, string? ElementId = null, string? ElementApplicationId = null, string? ElementCategory = null);
+
+/// <summary>One <c>external_links</c> row, in column order. Columns: <c>kind</c>, <c>element_id</c>, <c>name</c>, <c>view_specific</c>.</summary>
+public sealed record ExternalLink(string Kind, string ElementId, string? Name, bool ViewSpecific);

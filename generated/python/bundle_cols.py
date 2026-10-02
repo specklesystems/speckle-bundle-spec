@@ -49,6 +49,16 @@ class EAV:
     COLUMN_COUNT = 7
 
 
+class EXTERNAL_LINKS:
+    """Column indices of the external_links table (spec order)."""
+
+    KIND = 0
+    ELEMENT_ID = 1
+    NAME = 2
+    VIEW_SPECIFIC = 3
+    COLUMN_COUNT = 4
+
+
 class GEOMETRIES:
     """Column indices of the geometries table (spec order)."""
 
@@ -191,3 +201,17 @@ class TYPES:
     TYPE_INDEX = 0
     TYPE_KEY = 1
     COLUMN_COUNT = 2
+
+
+class WARNINGS:
+    """Column indices of the warnings table (spec order)."""
+
+    WARNING_INDEX = 0
+    WARNING_CLASS = 1
+    WARNING_TYPE = 2
+    FAILURE_DEFINITION_ID = 3
+    DESCRIPTION = 4
+    ELEMENT_ID = 5
+    ELEMENT_APPLICATION_ID = 6
+    ELEMENT_CATEGORY = 7
+    COLUMN_COUNT = 8

@@ -67,4 +67,24 @@ struct CameraView {
   std::optional<double> far;
 };
 
+// One warnings row, in column order.
+struct ModelWarning {
+  int32_t warning_index;
+  std::string warning_class;
+  std::optional<int32_t> warning_type;
+  std::optional<std::string> failure_definition_id;
+  std::string description;
+  std::optional<std::string> element_id;
+  std::optional<std::string> element_application_id;
+  std::optional<std::string> element_category;
+};
+
+// One external_links row, in column order.
+struct ExternalLink {
+  std::string kind;
+  std::string element_id;
+  std::optional<std::string> name;
+  bool view_specific;
+};
+
 }  // namespace bundlespec

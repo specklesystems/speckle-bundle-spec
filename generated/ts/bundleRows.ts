@@ -59,3 +59,23 @@ export type CameraView = {
   near: number | null
   far: number | null
 }
+
+/** One `warnings` row, in column order. */
+export type ModelWarning = {
+  warningIndex: number
+  warningClass: string
+  warningType: number | null
+  failureDefinitionId: string | null
+  description: string
+  elementId: string | null
+  elementApplicationId: string | null
+  elementCategory: string | null
+}
+
+/** One `external_links` row, in column order. */
+export type ExternalLink = {
+  kind: string
+  elementId: string
+  name: string | null
+  viewSpecific: boolean
+}

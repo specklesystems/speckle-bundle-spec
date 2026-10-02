@@ -71,3 +71,27 @@ class CameraView:
     aspect: float | None = None
     near: float | None = None
     far: float | None = None
+
+
+@dataclass(frozen=True)
+class ModelWarning:
+    """One warnings row, in column order."""
+
+    warning_index: int
+    warning_class: str
+    warning_type: int | None
+    failure_definition_id: str | None
+    description: str
+    element_id: str | None = None
+    element_application_id: str | None = None
+    element_category: str | None = None
+
+
+@dataclass(frozen=True)
+class ExternalLink:
+    """One external_links row, in column order."""
+
+    kind: str
+    element_id: str
+    name: str | None
+    view_specific: bool

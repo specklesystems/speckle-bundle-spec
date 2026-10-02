@@ -10,6 +10,8 @@ const ROW_TABLES = {
   structural_results: 'StructuralResult',
   property_set_definitions: 'PropertySetField',
   camera_views: 'CameraView',
+  warnings: 'ModelWarning',
+  external_links: 'ExternalLink',
 }
 
 /** Row tables as { table, typeName, fields: [{ column, duckType, optional, defaulted, comment }] }. */
