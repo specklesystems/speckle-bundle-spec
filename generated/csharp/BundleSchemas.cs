@@ -150,6 +150,7 @@ public static class BundleSchemas
         new("warning_index", ArrowType.Int32, false),
         new("warning_class", ArrowType.Utf8, false),
         new("warning_type", ArrowType.Int32, true),
+        new("warning_kind", ArrowType.Utf8, false),
         new("failure_definition_id", ArrowType.Utf8, true),
         new("description", ArrowType.Utf8, false),
         new("element_id", ArrowType.Utf8, true),

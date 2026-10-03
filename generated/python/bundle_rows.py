@@ -80,6 +80,7 @@ class RevitWarning:
     warning_index: int
     warning_class: str
     warning_type: int | None
+    warning_kind: str
     failure_definition_id: str | None
     description: str
     element_id: str | None = None

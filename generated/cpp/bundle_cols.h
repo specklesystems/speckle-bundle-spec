@@ -136,12 +136,13 @@ namespace bundlespec::col::revit_warnings {
 inline constexpr int warning_index = 0;
 inline constexpr int warning_class = 1;
 inline constexpr int warning_type = 2;
-inline constexpr int failure_definition_id = 3;
-inline constexpr int description = 4;
-inline constexpr int element_id = 5;
-inline constexpr int element_application_id = 6;
-inline constexpr int element_category = 7;
-inline constexpr int columnCount = 8;
+inline constexpr int warning_kind = 3;
+inline constexpr int failure_definition_id = 4;
+inline constexpr int description = 5;
+inline constexpr int element_id = 6;
+inline constexpr int element_application_id = 7;
+inline constexpr int element_category = 8;
+inline constexpr int columnCount = 9;
 }  // namespace bundlespec::col::revit_warnings
 
 namespace bundlespec::col::scene_views {

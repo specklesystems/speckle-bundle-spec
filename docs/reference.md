@@ -1,5 +1,5 @@
 <!-- GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT. Run npm run generate. -->
-# Speckle bundle format — reference (schema_version 1.3.0)
+# Speckle bundle format — reference (schema_version 1.4.0)
 
 Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/rationale/`.
 
@@ -219,6 +219,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | warning_index | INTEGER | Groups the rows of one warning; dense 0..n-1 within the bundle. |
 | warning_class | VARCHAR | The producer-native warning class (Revit via ODA: OdBm*Warning, e.g. OdBmElemsOverlapWarning). Stable machine key; not for display. |
 | warning_type | INTEGER | The class's native message selector (Revit: getType / getMsgType / getWarningType); NULL when the class has none. With warning_class and element_category it selects the displayed text. |
+| warning_kind | VARCHAR | Neutral taxonomy of the warning, from its class (and selector where one class covers unrelated warnings): overlap \| duplicate \| room_space \| stairs_railings \| insert_join \| mep_system \| off_axis \| geometry (generation / sweep / mass failures) \| other. Closed vocabulary; other = unmapped. Which kinds need attention is a consumer judgement, not encoded here. |
 | failure_definition_id | VARCHAR | The authoring tool's failure-definition identity when known (Revit FailureDefinitionId GUID, as returned by FailureMessage.GetFailureDefinitionId) — joins Revit API tooling; NULL when unmapped. |
 | description | VARCHAR | Display text as the authoring tool words it; for an unmapped (class, type) a humanized class name ('Elems overlap'). Same value on every row of a warning. |
 | element_id | VARCHAR | Producer-native element id of the offending element (Revit ElementId, as text); NULL for a warning without element refs. |

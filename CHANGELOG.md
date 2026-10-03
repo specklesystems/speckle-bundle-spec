@@ -3,7 +3,16 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 string of this package (see `VERSIONING.md`).
 
-## unreleased (schema_version 1.3.0, additive)
+## unreleased (schema_version 1.4.0, additive)
+
+## schema_version 1.4.0 — revit_warnings.warning_kind (additive)
+
+- `revit_warnings` gains `warning_kind` (NOT NULL): a closed, neutral taxonomy of each
+  warning — `overlap`, `duplicate`, `room_space`, `stairs_railings`, `insert_join`,
+  `mep_system`, `off_axis`, `geometry`, `other` — derived by the producer from the warning
+  class. Lets every consumer group warnings the same way without its own class map; which
+  kinds "need attention" stays a consumer judgement (FEA-576).
+- Additive: the file is optional and only rvextract writes it.
 
 ## schema_version 1.3.0 — model health files (additive)
 

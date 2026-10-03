@@ -161,6 +161,7 @@ inline std::shared_ptr<arrow::Schema> revitWarningsSchema() {
       arrow::field("warning_index", arrow::int32()),
       arrow::field("warning_class", arrow::utf8()),
       arrow::field("warning_type", arrow::int32()),
+      arrow::field("warning_kind", arrow::utf8()),
       arrow::field("failure_definition_id", arrow::utf8()),
       arrow::field("description", arrow::utf8()),
       arrow::field("element_id", arrow::utf8()),
