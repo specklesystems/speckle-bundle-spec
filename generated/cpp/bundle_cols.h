@@ -124,6 +124,26 @@ inline constexpr int ord = 3;
 inline constexpr int columnCount = 4;
 }  // namespace bundlespec::col::relations
 
+namespace bundlespec::col::revit_external_links {
+inline constexpr int kind = 0;
+inline constexpr int element_id = 1;
+inline constexpr int name = 2;
+inline constexpr int view_specific = 3;
+inline constexpr int columnCount = 4;
+}  // namespace bundlespec::col::revit_external_links
+
+namespace bundlespec::col::revit_warnings {
+inline constexpr int warning_index = 0;
+inline constexpr int warning_class = 1;
+inline constexpr int warning_type = 2;
+inline constexpr int failure_definition_id = 3;
+inline constexpr int description = 4;
+inline constexpr int element_id = 5;
+inline constexpr int element_application_id = 6;
+inline constexpr int element_category = 7;
+inline constexpr int columnCount = 8;
+}  // namespace bundlespec::col::revit_warnings
+
 namespace bundlespec::col::scene_views {
 inline constexpr int view = 0;
 inline constexpr int name = 1;

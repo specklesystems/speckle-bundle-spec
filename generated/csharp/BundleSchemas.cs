@@ -137,6 +137,26 @@ public static class BundleSchemas
         new("ord", ArrowType.Int32, true),
     };
 
+    public static readonly ColumnSpec[] RevitExternalLinks =
+    {
+        new("kind", ArrowType.Utf8, false),
+        new("element_id", ArrowType.Utf8, false),
+        new("name", ArrowType.Utf8, true),
+        new("view_specific", ArrowType.Boolean, false),
+    };
+
+    public static readonly ColumnSpec[] RevitWarnings =
+    {
+        new("warning_index", ArrowType.Int32, false),
+        new("warning_class", ArrowType.Utf8, false),
+        new("warning_type", ArrowType.Int32, true),
+        new("failure_definition_id", ArrowType.Utf8, true),
+        new("description", ArrowType.Utf8, false),
+        new("element_id", ArrowType.Utf8, true),
+        new("element_application_id", ArrowType.Utf8, true),
+        new("element_category", ArrowType.Utf8, true),
+    };
+
     public static readonly ColumnSpec[] SceneViews =
     {
         new("view", ArrowType.Int32, false),
@@ -192,6 +212,8 @@ public static class BundleSchemas
         ["paths"] = Paths,
         ["property_set_definitions"] = PropertySetDefinitions,
         ["relations"] = Relations,
+        ["revit_external_links"] = RevitExternalLinks,
+        ["revit_warnings"] = RevitWarnings,
         ["scene_views"] = SceneViews,
         ["structural_results"] = StructuralResults,
         ["type_eav"] = TypeEav,

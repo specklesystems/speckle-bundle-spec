@@ -95,7 +95,7 @@ check(unknown.length === 0, `node_kinds.columns names only real nodes columns${u
 
 // 7. Every table the row-record emitter names is real: codegen builds a caller-facing
 // record from its columns, so a renamed or dropped table must break the build.
-const rowTables = ['structural_results', 'property_set_definitions', 'camera_views'];
+const rowTables = ['structural_results', 'property_set_definitions', 'camera_views', 'revit_warnings', 'revit_external_links'];
 const missingTables = rowTables.filter((t) => catalogColumns(t).length === 0);
 check(
   missingTables.length === 0,

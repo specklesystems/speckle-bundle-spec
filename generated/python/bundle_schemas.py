@@ -115,6 +115,22 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("dst", "int32", False),
         ColumnSpec("ord", "int32", True),
     ],
+    "revit_external_links": [
+        ColumnSpec("kind", "string", False),
+        ColumnSpec("element_id", "string", False),
+        ColumnSpec("name", "string", True),
+        ColumnSpec("view_specific", "bool", False),
+    ],
+    "revit_warnings": [
+        ColumnSpec("warning_index", "int32", False),
+        ColumnSpec("warning_class", "string", False),
+        ColumnSpec("warning_type", "int32", True),
+        ColumnSpec("failure_definition_id", "string", True),
+        ColumnSpec("description", "string", False),
+        ColumnSpec("element_id", "string", True),
+        ColumnSpec("element_application_id", "string", True),
+        ColumnSpec("element_category", "string", True),
+    ],
     "scene_views": [
         ColumnSpec("view", "int32", False),
         ColumnSpec("name", "string", False),

@@ -1,5 +1,5 @@
 <!-- GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT. Run npm run generate. -->
-# Speckle bundle format — reference (schema_version 1.2.0)
+# Speckle bundle format — reference (schema_version 1.3.0)
 
 Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/rationale/`.
 
@@ -70,7 +70,9 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `camera_views` | `{base}.envelope.camera_views.parquet` | no | no | yes | Named camera viewpoints (eye/forward/up + projection). |
 | `structural_results` | `{base}.eav.structural_results.parquet` | no | no | no | OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model. |
 | `property_set_definitions` | `{base}.eav.property_set_definitions.parquet` | no | no | no | OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths). |
-| `model` | `{base}.eav.model.parquet` | no | no | no | OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment). |
+| `model` | `{base}.eav.model.parquet` | no | no | no | OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment). |
+| `revit_warnings` | `{base}.eav.revit_warnings.parquet` | no | no | no | OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool's display text (FEA-576). |
+| `revit_external_links` | `{base}.eav.revit_external_links.parquet` | no | no | no | OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576). |
 
 ## Table shapes
 
@@ -200,6 +202,28 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | src | INTEGER | · |
 | dst | INTEGER | · |
 | ord | INTEGER | Dual-use: ORDINAL for ordered rels (DISPLAY, SUBELEMENT, *_INSTANCE); SCOPE tag for graph edges (CONNECTS_TO ord=system-K/opening-K, 0=unscoped). See rel_types.ord_semantics. |
+
+### `revit_external_links`
+
+| column | type | note |
+|---|---|---|
+| kind | VARCHAR | rvt_link (linked Revit model) \| cad_link (linked CAD) \| cad_import (CAD imported into the document). CAD nested inside family definitions is not listed — the authoring tool does not count it either. |
+| element_id | VARCHAR | Producer-native id of the placed instance (Revit ElementId, as text). |
+| name | VARCHAR | File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it. |
+| view_specific | BOOLEAN | True when placed in a single view (Revit: "Current view only") rather than in the model. |
+
+### `revit_warnings`
+
+| column | type | note |
+|---|---|---|
+| warning_index | INTEGER | Groups the rows of one warning; dense 0..n-1 within the bundle. |
+| warning_class | VARCHAR | The producer-native warning class (Revit via ODA: OdBm*Warning, e.g. OdBmElemsOverlapWarning). Stable machine key; not for display. |
+| warning_type | INTEGER | The class's native message selector (Revit: getType / getMsgType / getWarningType); NULL when the class has none. With warning_class and element_category it selects the displayed text. |
+| failure_definition_id | VARCHAR | The authoring tool's failure-definition identity when known (Revit FailureDefinitionId GUID, as returned by FailureMessage.GetFailureDefinitionId) — joins Revit API tooling; NULL when unmapped. |
+| description | VARCHAR | Display text as the authoring tool words it; for an unmapped (class, type) a humanized class name ('Elems overlap'). Same value on every row of a warning. |
+| element_id | VARCHAR | Producer-native element id of the offending element (Revit ElementId, as text); NULL for a warning without element refs. |
+| element_application_id | VARCHAR | Weak reference → objects.application_id (Revit UniqueId). May match no object: the offending element need not be exported. |
+| element_category | VARCHAR | Built-in category of the offending element (Revit OST_* enum name); NULL for non-built-in categories. |
 
 ### `scene_views`
 

@@ -3,7 +3,26 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 string of this package (see `VERSIONING.md`).
 
-## unreleased (schema_version 1.2.0)
+## unreleased (schema_version 1.3.0, additive)
+
+## schema_version 1.3.0 — model health files (additive)
+
+**Two optional files and the `modelHealth.*` model rows (FEA-576)**
+- `revit_warnings` (`{base}.eav.revit_warnings.parquet`): warnings Revit persists in the
+  source document, one row per (warning, offending element), with the tool's display text.
+  The source file stores only the internal warning class, its message selector and the
+  offending elements, so `description` is the producer's reproduction of the tool's wording
+  (rvextract: verified against Revit 2026 on 14 files, exact on 2,192 of 2,196 warnings).
+  Offending elements are referenced by `element_application_id` (→ `objects.application_id`),
+  not `object_index`: they are often not exported objects (sketch lines, reference planes).
+- `revit_external_links` (`{base}.eav.revit_external_links.parquet`): linked models and linked/imported
+  CAD the document references, one row per placed instance.
+- `model` gains documented `modelHealth.*` rows (file size, warning / link / import counts,
+  in-place families, groups, worksets, views, sheets, …). No schema change to `model`.
+- Purely additive: new optional files, no existing meaning changes. Consumers that do not
+  know the files ignore them.
+
+## schema_version 1.2.0
 
 **camera/scene view booleans are now NOT NULL**
 - `camera_views.is_default`, `camera_views.is_ortho` and `scene_views.is_default`

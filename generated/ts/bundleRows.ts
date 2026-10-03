@@ -59,3 +59,23 @@ export type CameraView = {
   near: number | null
   far: number | null
 }
+
+/** One `revit_warnings` row, in column order. */
+export type RevitWarning = {
+  warningIndex: number
+  warningClass: string
+  warningType: number | null
+  failureDefinitionId: string | null
+  description: string
+  elementId: string | null
+  elementApplicationId: string | null
+  elementCategory: string | null
+}
+
+/** One `revit_external_links` row, in column order. */
+export type RevitExternalLink = {
+  kind: string
+  elementId: string
+  name: string | null
+  viewSpecific: boolean
+}
