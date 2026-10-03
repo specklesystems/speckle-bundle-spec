@@ -90,7 +90,6 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
 export const TABLES = {
   camera_views: ['view', 'name', 'is_default', 'ord', 'pos_x', 'pos_y', 'pos_z', 'forward_x', 'forward_y', 'forward_z', 'up_x', 'up_y', 'up_z', 'target_x', 'target_y', 'target_z', 'units', 'is_ortho', 'fov', 'lens_mm', 'ortho_height', 'aspect', 'near', 'far'],
   eav: ['object_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
-  external_links: ['kind', 'element_id', 'name', 'view_specific'],
   geometries: ['geometryIndex', 'content', 'id', 'type'],
   model: ['path', 'value_string', 'value_double', 'value_boolean', 'unit'],
   nodes: ['id', 'kind', 'name', 'def_ref', 'transform', 'units', 'subtype', 'argb', 'opacity', 'metalness', 'roughness', 'emissive', 'ior', 'elevation', 'gh_topology'],
@@ -99,9 +98,10 @@ export const TABLES = {
   paths: ['path_index', 'path'],
   property_set_definitions: ['set_name', 'set_key', 'set_description', 'field_name', 'field_bucket_id', 'data_type', 'default_string', 'default_double', 'default_boolean', 'unit', 'description', 'applies_to'],
   relations: ['rel', 'src', 'dst', 'ord'],
+  revit_external_links: ['kind', 'element_id', 'name', 'view_specific'],
+  revit_warnings: ['warning_index', 'warning_class', 'warning_type', 'failure_definition_id', 'description', 'element_id', 'element_application_id', 'element_category'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
   structural_results: ['object_index', 'element_name', 'location', 'result_type', 'load_case', 'component', 'position_label', 'station', 'step', 'value', 'value_text'],
   type_eav: ['type_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   types: ['type_index', 'type_key'],
-  warnings: ['warning_index', 'warning_class', 'warning_type', 'failure_definition_id', 'description', 'element_id', 'element_application_id', 'element_category'],
 } as const

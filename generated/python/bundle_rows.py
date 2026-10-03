@@ -74,8 +74,8 @@ class CameraView:
 
 
 @dataclass(frozen=True)
-class ModelWarning:
-    """One warnings row, in column order."""
+class RevitWarning:
+    """One revit_warnings row, in column order."""
 
     warning_index: int
     warning_class: str
@@ -88,8 +88,8 @@ class ModelWarning:
 
 
 @dataclass(frozen=True)
-class ExternalLink:
-    """One external_links row, in column order."""
+class RevitExternalLink:
+    """One revit_external_links row, in column order."""
 
     kind: str
     element_id: str

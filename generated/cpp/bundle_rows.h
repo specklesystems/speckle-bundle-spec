@@ -67,8 +67,8 @@ struct CameraView {
   std::optional<double> far;
 };
 
-// One warnings row, in column order.
-struct ModelWarning {
+// One revit_warnings row, in column order.
+struct RevitWarning {
   int32_t warning_index;
   std::string warning_class;
   std::optional<int32_t> warning_type;
@@ -79,8 +79,8 @@ struct ModelWarning {
   std::optional<std::string> element_category;
 };
 
-// One external_links row, in column order.
-struct ExternalLink {
+// One revit_external_links row, in column order.
+struct RevitExternalLink {
   std::string kind;
   std::string element_id;
   std::optional<std::string> name;

@@ -51,16 +51,6 @@ inline std::shared_ptr<arrow::Schema> eavSchema() {
   });
 }
 
-// external_links
-inline std::shared_ptr<arrow::Schema> externalLinksSchema() {
-  return arrow::schema({
-      arrow::field("kind", arrow::utf8()),
-      arrow::field("element_id", arrow::utf8()),
-      arrow::field("name", arrow::utf8()),
-      arrow::field("view_specific", arrow::boolean())
-  });
-}
-
 // geometries
 inline std::shared_ptr<arrow::Schema> geometriesSchema() {
   return arrow::schema({
@@ -155,6 +145,30 @@ inline std::shared_ptr<arrow::Schema> relationsSchema() {
   });
 }
 
+// revit_external_links
+inline std::shared_ptr<arrow::Schema> revitExternalLinksSchema() {
+  return arrow::schema({
+      arrow::field("kind", arrow::utf8()),
+      arrow::field("element_id", arrow::utf8()),
+      arrow::field("name", arrow::utf8()),
+      arrow::field("view_specific", arrow::boolean())
+  });
+}
+
+// revit_warnings
+inline std::shared_ptr<arrow::Schema> revitWarningsSchema() {
+  return arrow::schema({
+      arrow::field("warning_index", arrow::int32()),
+      arrow::field("warning_class", arrow::utf8()),
+      arrow::field("warning_type", arrow::int32()),
+      arrow::field("failure_definition_id", arrow::utf8()),
+      arrow::field("description", arrow::utf8()),
+      arrow::field("element_id", arrow::utf8()),
+      arrow::field("element_application_id", arrow::utf8()),
+      arrow::field("element_category", arrow::utf8())
+  });
+}
+
 // scene_views
 inline std::shared_ptr<arrow::Schema> sceneViewsSchema() {
   return arrow::schema({
@@ -202,20 +216,6 @@ inline std::shared_ptr<arrow::Schema> typesSchema() {
   return arrow::schema({
       arrow::field("type_index", arrow::int32()),
       arrow::field("type_key", arrow::utf8())
-  });
-}
-
-// warnings
-inline std::shared_ptr<arrow::Schema> warningsSchema() {
-  return arrow::schema({
-      arrow::field("warning_index", arrow::int32()),
-      arrow::field("warning_class", arrow::utf8()),
-      arrow::field("warning_type", arrow::int32()),
-      arrow::field("failure_definition_id", arrow::utf8()),
-      arrow::field("description", arrow::utf8()),
-      arrow::field("element_id", arrow::utf8()),
-      arrow::field("element_application_id", arrow::utf8()),
-      arrow::field("element_category", arrow::utf8())
   });
 }
 

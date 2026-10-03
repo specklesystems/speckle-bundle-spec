@@ -271,8 +271,8 @@ COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-typ
 --  interned via paths): the table is tiny and stays self-contained.
 --  Model health (FEA-576): `modelHealth.*` rows describe the authored FILE's hygiene,
 --  computed by the producer from the source document (rvextract today):
---    fileSizeBytes, warnings (count; the rows themselves are the `warnings` file),
---    cadImports, cadLinks, rvtLinkTypes, rvtLinkInstances (the items are `external_links`),
+--    fileSizeBytes, warnings (count; the rows themselves are the `revit_warnings` file),
+--    cadImports, cadLinks, rvtLinkTypes, rvtLinkInstances (the items are `revit_external_links`),
 --    inPlaceFamilies, loadableFamilies, genericModels, modelGroupTypes, modelGroups,
 --    detailGroups, worksets, views, schedules, viewTemplates, sheets  → value_double;
 --    isWorkshared → value_boolean. Counts follow the authoring tool's own definitions
@@ -287,8 +287,8 @@ CREATE TABLE model (
 );
 COMMENT ON TABLE model IS 'Optional model/document-scoped attributes (object-less eav): exactly one of value_string/value_double/value_boolean per row; consumer coalesces.';
 
--- ── warnings (optional, authoring-tool warnings persisted in the source file) ─
---  The warnings the authoring tool keeps in the document (Revit: Manage → Warnings),
+-- ── revit_warnings (optional, Revit warnings persisted in the source file) ───
+--  The warnings Revit keeps in the document (Manage → Warnings),
 --  one row per (warning, offending element). The source file stores only the tool's
 --  internal warning class, its message selector and the offending elements — the
 --  tool renders the text at display time — so `description` is the producer's best
@@ -296,7 +296,7 @@ COMMENT ON TABLE model IS 'Optional model/document-scoped attributes (object-les
 --  Elements are referenced by application_id, not object_index: offending elements are
 --  often not exported objects (sketch lines, reference planes), and producers compute
 --  this before objects are interned.
-CREATE TABLE warnings (
+CREATE TABLE revit_warnings (
   warning_index          INTEGER NOT NULL,
   warning_class          VARCHAR NOT NULL,
   warning_type           INTEGER,
@@ -306,30 +306,30 @@ CREATE TABLE warnings (
   element_application_id VARCHAR,
   element_category       VARCHAR
 );
-COMMENT ON TABLE warnings IS 'Optional: warnings persisted in the source document, one row per (warning, offending element). A warning with no element refs has one row with null element columns, so COUNT(DISTINCT warning_index) is the warning count (= model modelHealth.warnings).';
-COMMENT ON COLUMN warnings.warning_index IS 'Groups the rows of one warning; dense 0..n-1 within the bundle.';
-COMMENT ON COLUMN warnings.warning_class IS 'The producer-native warning class (Revit via ODA: OdBm*Warning, e.g. OdBmElemsOverlapWarning). Stable machine key; not for display.';
-COMMENT ON COLUMN warnings.warning_type IS 'The class''s native message selector (Revit: getType / getMsgType / getWarningType); NULL when the class has none. With warning_class and element_category it selects the displayed text.';
-COMMENT ON COLUMN warnings.failure_definition_id IS 'The authoring tool''s failure-definition identity when known (Revit FailureDefinitionId GUID, as returned by FailureMessage.GetFailureDefinitionId) — joins Revit API tooling; NULL when unmapped.';
-COMMENT ON COLUMN warnings.description IS 'Display text as the authoring tool words it; for an unmapped (class, type) a humanized class name (''Elems overlap''). Same value on every row of a warning.';
-COMMENT ON COLUMN warnings.element_id IS 'Producer-native element id of the offending element (Revit ElementId, as text); NULL for a warning without element refs.';
-COMMENT ON COLUMN warnings.element_application_id IS 'Weak reference → objects.application_id (Revit UniqueId). May match no object: the offending element need not be exported.';
-COMMENT ON COLUMN warnings.element_category IS 'Built-in category of the offending element (Revit OST_* enum name); NULL for non-built-in categories.';
+COMMENT ON TABLE revit_warnings IS 'Optional: warnings persisted in the source document, one row per (warning, offending element). A warning with no element refs has one row with null element columns, so COUNT(DISTINCT warning_index) is the warning count (= model modelHealth.warnings).';
+COMMENT ON COLUMN revit_warnings.warning_index IS 'Groups the rows of one warning; dense 0..n-1 within the bundle.';
+COMMENT ON COLUMN revit_warnings.warning_class IS 'The producer-native warning class (Revit via ODA: OdBm*Warning, e.g. OdBmElemsOverlapWarning). Stable machine key; not for display.';
+COMMENT ON COLUMN revit_warnings.warning_type IS 'The class''s native message selector (Revit: getType / getMsgType / getWarningType); NULL when the class has none. With warning_class and element_category it selects the displayed text.';
+COMMENT ON COLUMN revit_warnings.failure_definition_id IS 'The authoring tool''s failure-definition identity when known (Revit FailureDefinitionId GUID, as returned by FailureMessage.GetFailureDefinitionId) — joins Revit API tooling; NULL when unmapped.';
+COMMENT ON COLUMN revit_warnings.description IS 'Display text as the authoring tool words it; for an unmapped (class, type) a humanized class name (''Elems overlap''). Same value on every row of a warning.';
+COMMENT ON COLUMN revit_warnings.element_id IS 'Producer-native element id of the offending element (Revit ElementId, as text); NULL for a warning without element refs.';
+COMMENT ON COLUMN revit_warnings.element_application_id IS 'Weak reference → objects.application_id (Revit UniqueId). May match no object: the offending element need not be exported.';
+COMMENT ON COLUMN revit_warnings.element_category IS 'Built-in category of the offending element (Revit OST_* enum name); NULL for non-built-in categories.';
 
--- ── external_links (optional, linked / imported external files) ──────────────
+-- ── revit_external_links (optional, linked / imported external files) ───────
 --  Files the source document references: linked models and linked or imported CAD.
 --  Counts per kind are the model modelHealth.* rows; this lists the items by name.
-CREATE TABLE external_links (
+CREATE TABLE revit_external_links (
   kind          VARCHAR NOT NULL,
   element_id    VARCHAR NOT NULL,
   name          VARCHAR,
   view_specific BOOLEAN NOT NULL
 );
-COMMENT ON TABLE external_links IS 'Optional: external files referenced by the source document — one row per placed instance (a file placed twice is two rows).';
-COMMENT ON COLUMN external_links.kind IS 'rvt_link (linked Revit model) | cad_link (linked CAD) | cad_import (CAD imported into the document). CAD nested inside family definitions is not listed — the authoring tool does not count it either.';
-COMMENT ON COLUMN external_links.element_id IS 'Producer-native id of the placed instance (Revit ElementId, as text).';
-COMMENT ON COLUMN external_links.name IS 'File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it.';
-COMMENT ON COLUMN external_links.view_specific IS 'True when placed in a single view (Revit: "Current view only") rather than in the model.';
+COMMENT ON TABLE revit_external_links IS 'Optional: external files referenced by the source document — one row per placed instance (a file placed twice is two rows).';
+COMMENT ON COLUMN revit_external_links.kind IS 'rvt_link (linked Revit model) | cad_link (linked CAD) | cad_import (CAD imported into the document). CAD nested inside family definitions is not listed — the authoring tool does not count it either.';
+COMMENT ON COLUMN revit_external_links.element_id IS 'Producer-native id of the placed instance (Revit ElementId, as text).';
+COMMENT ON COLUMN revit_external_links.name IS 'File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it.';
+COMMENT ON COLUMN revit_external_links.view_specific IS 'True when placed in a single view (Revit: "Current view only") rather than in the model.';
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 2 — semantic catalogs (data). These tables carry the vocabulary AND its
@@ -442,5 +442,5 @@ INSERT INTO bundle_files VALUES
   (15, 'structural_results', '{base}.eav.structural_results.parquet', '{base}.eav.structural_results.parquet', false, false, false, 'OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model.'),
   (16, 'property_set_definitions', '{base}.eav.property_set_definitions.parquet', '{base}.eav.property_set_definitions.parquet', false, false, false, 'OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths).'),
   (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment).'),
-  (18, 'warnings', '{base}.eav.warnings.parquet', '{base}.eav.warnings.parquet', false, false, false, 'OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool''s display text (FEA-576).'),
-  (19, 'external_links', '{base}.eav.external_links.parquet', '{base}.eav.external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).');
+  (18, 'revit_warnings', '{base}.eav.revit_warnings.parquet', '{base}.eav.revit_warnings.parquet', false, false, false, 'OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool''s display text (FEA-576).'),
+  (19, 'revit_external_links', '{base}.eav.revit_external_links.parquet', '{base}.eav.revit_external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).');

@@ -10,8 +10,8 @@ const ROW_TABLES = {
   structural_results: 'StructuralResult',
   property_set_definitions: 'PropertySetField',
   camera_views: 'CameraView',
-  warnings: 'ModelWarning',
-  external_links: 'ExternalLink',
+  revit_warnings: 'RevitWarning',
+  revit_external_links: 'RevitExternalLink',
 }
 
 /** Row tables as { table, typeName, fields: [{ column, duckType, optional, defaulted, comment }] }. */

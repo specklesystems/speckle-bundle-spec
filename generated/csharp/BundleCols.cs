@@ -51,15 +51,6 @@ public static class BundleCols
         public const int ColumnCount = 7;
     }
 
-    public static class ExternalLinks
-    {
-        public const int Kind = 0;
-        public const int ElementId = 1;
-        public const int Name = 2;
-        public const int ViewSpecific = 3;
-        public const int ColumnCount = 4;
-    }
-
     public static class Geometries
     {
         public const int GeometryIndex = 0;
@@ -146,6 +137,28 @@ public static class BundleCols
         public const int ColumnCount = 4;
     }
 
+    public static class RevitExternalLinks
+    {
+        public const int Kind = 0;
+        public const int ElementId = 1;
+        public const int Name = 2;
+        public const int ViewSpecific = 3;
+        public const int ColumnCount = 4;
+    }
+
+    public static class RevitWarnings
+    {
+        public const int WarningIndex = 0;
+        public const int WarningClass = 1;
+        public const int WarningType = 2;
+        public const int FailureDefinitionId = 3;
+        public const int Description = 4;
+        public const int ElementId = 5;
+        public const int ElementApplicationId = 6;
+        public const int ElementCategory = 7;
+        public const int ColumnCount = 8;
+    }
+
     public static class SceneViews
     {
         public const int View = 0;
@@ -190,18 +203,5 @@ public static class BundleCols
         public const int TypeIndex = 0;
         public const int TypeKey = 1;
         public const int ColumnCount = 2;
-    }
-
-    public static class Warnings
-    {
-        public const int WarningIndex = 0;
-        public const int WarningClass = 1;
-        public const int WarningType = 2;
-        public const int FailureDefinitionId = 3;
-        public const int Description = 4;
-        public const int ElementId = 5;
-        public const int ElementApplicationId = 6;
-        public const int ElementCategory = 7;
-        public const int ColumnCount = 8;
     }
 }
