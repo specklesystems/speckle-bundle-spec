@@ -125,6 +125,7 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("warning_index", "int32", False),
         ColumnSpec("warning_class", "string", False),
         ColumnSpec("warning_type", "int32", True),
+        ColumnSpec("warning_kind", "string", False),
         ColumnSpec("failure_definition_id", "string", True),
         ColumnSpec("description", "string", False),
         ColumnSpec("element_id", "string", True),

@@ -151,12 +151,13 @@ public static class BundleCols
         public const int WarningIndex = 0;
         public const int WarningClass = 1;
         public const int WarningType = 2;
-        public const int FailureDefinitionId = 3;
-        public const int Description = 4;
-        public const int ElementId = 5;
-        public const int ElementApplicationId = 6;
-        public const int ElementCategory = 7;
-        public const int ColumnCount = 8;
+        public const int WarningKind = 3;
+        public const int FailureDefinitionId = 4;
+        public const int Description = 5;
+        public const int ElementId = 6;
+        public const int ElementApplicationId = 7;
+        public const int ElementCategory = 8;
+        public const int ColumnCount = 9;
     }
 
     public static class SceneViews

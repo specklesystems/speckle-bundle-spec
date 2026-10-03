@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.3.0)
+--  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.4.0)
 -- ════════════════════════════════════════════════════════════════════════════
 --  This file IS the spec. It is executable DuckDB SQL:
 --    • CREATE TABLE …            → the shape of every parquet in the bundle
@@ -35,7 +35,7 @@
 -- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
 CREATE TABLE meta (schema_version VARCHAR NOT NULL, produced_by VARCHAR NOT NULL,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES ('1.3.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES ('1.4.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -300,6 +300,7 @@ CREATE TABLE revit_warnings (
   warning_index          INTEGER NOT NULL,
   warning_class          VARCHAR NOT NULL,
   warning_type           INTEGER,
+  warning_kind           VARCHAR NOT NULL,
   failure_definition_id  VARCHAR,
   description            VARCHAR NOT NULL,
   element_id             VARCHAR,
@@ -310,6 +311,7 @@ COMMENT ON TABLE revit_warnings IS 'Optional: warnings persisted in the source d
 COMMENT ON COLUMN revit_warnings.warning_index IS 'Groups the rows of one warning; dense 0..n-1 within the bundle.';
 COMMENT ON COLUMN revit_warnings.warning_class IS 'The producer-native warning class (Revit via ODA: OdBm*Warning, e.g. OdBmElemsOverlapWarning). Stable machine key; not for display.';
 COMMENT ON COLUMN revit_warnings.warning_type IS 'The class''s native message selector (Revit: getType / getMsgType / getWarningType); NULL when the class has none. With warning_class and element_category it selects the displayed text.';
+COMMENT ON COLUMN revit_warnings.warning_kind IS 'Neutral taxonomy of the warning, from its class (and selector where one class covers unrelated warnings): overlap | duplicate | room_space | stairs_railings | insert_join | mep_system | off_axis | geometry (generation / sweep / mass failures) | other. Closed vocabulary; other = unmapped. Which kinds need attention is a consumer judgement, not encoded here.';
 COMMENT ON COLUMN revit_warnings.failure_definition_id IS 'The authoring tool''s failure-definition identity when known (Revit FailureDefinitionId GUID, as returned by FailureMessage.GetFailureDefinitionId) — joins Revit API tooling; NULL when unmapped.';
 COMMENT ON COLUMN revit_warnings.description IS 'Display text as the authoring tool words it; for an unmapped (class, type) a humanized class name (''Elems overlap''). Same value on every row of a warning.';
 COMMENT ON COLUMN revit_warnings.element_id IS 'Producer-native element id of the offending element (Revit ElementId, as text); NULL for a warning without element refs.';

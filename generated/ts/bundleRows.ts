@@ -65,6 +65,7 @@ export type RevitWarning = {
   warningIndex: number
   warningClass: string
   warningType: number | null
+  warningKind: string
   failureDefinitionId: string | null
   description: string
   elementId: string | null

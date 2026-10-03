@@ -72,6 +72,7 @@ struct RevitWarning {
   int32_t warning_index;
   std::string warning_class;
   std::optional<int32_t> warning_type;
+  std::string warning_kind;
   std::optional<std::string> failure_definition_id;
   std::string description;
   std::optional<std::string> element_id;
