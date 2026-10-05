@@ -2,7 +2,7 @@
 
 Single source of truth for the Speckle bundle format (eav + envelope + geometry): schema and semantics in one executable DuckDB SQL file; codegen and the validator derive from it.
 
-Repo vocabulary and architecture: `CONTEXT.md` — read it first.
+Repo vocabulary and architecture: `GLOSSARY.md` — read it first.
 
 ## Agent config (ADR-0008)
 
