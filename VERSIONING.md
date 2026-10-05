@@ -50,7 +50,7 @@ columns, new optional files, comment/rationale edits. Log them under `## unrelea
 4. `CHANGELOG.md` — close the `## unreleased` block into `## schema_version <x.y.z> — <title>`
    and open a fresh `## unreleased (schema_version <x.y.z>, additive)`.
 5. `README.md` — the "current vocabulary (schema_version <x.y.z>)" line at the bottom, and
-   the `CONTEXT.md` glossary entry.
+   the `GLOSSARY.md` glossary entry.
 6. `npm test && npm run check` — conformance + no drift in `generated/`.
 7. Commit spec + generated + docs together (one commit, e.g. `chore: pin schema version to <x.y.z>`).
 8. `npm run publish:artifacts` → `dist/bundle-spec.lock.json` + cpp tarball + python
