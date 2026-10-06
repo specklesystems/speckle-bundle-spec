@@ -1,13 +1,19 @@
 name: CI
 
-# Regenerate-and-diff, the test suite, and a dry build of all five artifacts exercised the
-# way a consumer would (scripts/smoke-artifacts.sh). The release workflow calls this same
-# job before publishing, so a packaging break is caught by the PR, never by the tag.
+# Regenerate-and-diff, the test suite, and a build of all five artifacts exercised the way
+# a consumer would (scripts/smoke-artifacts.sh). PRs build at 0.0.0; the release workflow
+# calls this same job with the tag, so a packaging break is caught by the PR, never by the
+# tag, and the published artifacts are the ones this job verified.
 on:
   pull_request:
   push:
     branches: [main]
   workflow_call:
+    inputs:
+      version:
+        description: the version to stamp into every artifact (the release tag)
+        type: string
+        required: true
 
 permissions: {}
 
@@ -48,10 +54,14 @@ jobs:
       - name: Generated code is in step with the spec
         run: npm run check
       - run: npm test
-      - name: Dry-build all five artifacts
-        run: scripts/build-artifacts.sh
+      - name: Build all five artifacts
+        env:
+          VERSION: ${{ inputs.version || '0.0.0' }}
+        run: scripts/build-artifacts.sh "$VERSION"
       - name: Exercise the artifacts as a consumer
-        run: scripts/smoke-artifacts.sh
+        env:
+          VERSION: ${{ inputs.version || '0.0.0' }}
+        run: scripts/smoke-artifacts.sh "$VERSION"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: artifacts

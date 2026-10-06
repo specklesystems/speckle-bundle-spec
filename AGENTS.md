@@ -8,13 +8,14 @@ Repo vocabulary and architecture: `GLOSSARY.md` — read it first.
 
 Codegen writes into `packages/{ts,conformance,python,csharp,cpp}/`; each is what
 ships (npm, PyPI, nuget.org, GitHub Release) at the one version that is
-`meta.schema_version`. Manifests there are hand-written and never generated;
-`VERSIONING.md` lists every file carrying the version and the bump order, and
-`tests/conformance` check #10 asserts they agree. `npm run check` is the
-generated-code drift gate. The tag is the release: `.github/workflows/release.yml`
-gates (`scripts/release-gate.mjs`) then publishes; a partial failure is re-run per
-job, never re-tagged. Consumers pin the exact version in their own dependency
-declaration — never copy generated code into a consumer.
+`meta.schema_version` — the git tag. Manifests there are hand-written, never
+generated, and carry no version: `scripts/build-artifacts.sh <version>` stamps the
+tag at build time (`0.0.0` on PR builds) and `scripts/release-gate.mjs` refuses a tag
+that is not the SQL `meta` row. `VERSIONING.md` has the bump order. `npm run check` is
+the generated-code drift gate. The tag is the release: `.github/workflows/release.yml`
+gates then publishes; a partial failure is re-run per job, never re-tagged. Consumers
+pin the exact version in their own dependency declaration — never copy generated code
+into a consumer.
 
 ## Agent config (ADR-0008)
 

@@ -24,7 +24,8 @@ tests/                    spec invariants, validator, query-conformance runner, 
 ```
 
 Generated code is **committed** inside each package; the manifests beside it are
-hand-written, ordinary files of their ecosystem. `npm run check` fails when the
+hand-written, ordinary files of their ecosystem that carry no version — the git tag is
+the version and the build stamps it (`VERSIONING.md`). `npm run check` fails when the
 generated code is stale against the spec.
 
 ## Install
@@ -60,11 +61,14 @@ Requires the `duckdb` CLI on `PATH` (or set `DUCKDB_BIN`); the dry build also ne
 `uv`, `dotnet` and `cmake` with a C++17 compiler.
 
 Releasing is tagging: `VERSIONING.md` has the bump checklist and what the release
-workflow does.
+workflow does. `scripts/build-artifacts.sh <version>` + `scripts/smoke-artifacts.sh
+<version>` is the dry build CI runs (`0.0.0` on PRs, the tag on a release).
 
 ## Building a consumer against an unreleased spec
 
-Native overrides, nothing bespoke — each points the consumer at your working copy:
+Native overrides, nothing bespoke — each points the consumer at your working copy. A
+checkout reports `0.0.0` (npm, .NET, CMake) or a hatch-vcs dev version (Python); exact pins
+in the consumer are bypassed by every override below, not satisfied:
 
 - **npm**: `npm link` in `packages/ts` (after `npm run build`) and/or
   `packages/conformance`, then `npm link @speckle/bundle-spec` in the consumer; or
@@ -72,9 +76,9 @@ Native overrides, nothing bespoke — each points the consumer at your working c
 - **Python**: `pip install -e <path>/packages/python` (or `uv pip install -e …`), or a
   `[tool.uv.sources] speckle-bundle-spec = { path = "…/packages/python", editable = true }`
   override in the consumer's `pyproject.toml`.
-- **.NET**: `dotnet pack packages/csharp -o <feed-dir>` and add `<feed-dir>` as a package
-  source (`nuget.config` or `dotnet nuget add source`), bumping `<Version>` to a
-  prerelease if the consumer already restored the same number; or temporarily swap the
+- **.NET**: `dotnet pack packages/csharp -o <feed-dir> -p:Version=<x.y.z-local>` and add
+  `<feed-dir>` as a package source (`nuget.config` or `dotnet nuget add source`), pointing
+  the consumer's `PackageReference` at that version; or temporarily swap the
   `PackageReference` for a `ProjectReference` to `packages/csharp/Speckle.Bundle.Spec.csproj`.
 - **C++**: configure the consumer with
   `-DFETCHCONTENT_SOURCE_DIR_BUNDLESPEC=<path>/packages/cpp` — FetchContent uses that
@@ -84,7 +88,7 @@ Native overrides, nothing bespoke — each points the consumer at your working c
 
 - **Edit `spec/bundle-spec.sql`, never generated code.** CI (`npm run check`) fails on
   stale output. Manifests (`package.json`, `pyproject.toml`, `.csproj`, `CMakeLists.txt`)
-  are hand-written.
+  are hand-written and version-less.
 - **Retire ids in place, never reuse them** (`status='retired'`). Gaps are intentional.
 - Short semantics live in the spec (as columns); long-form rationale lives in `docs/rationale/`.
 

@@ -7,7 +7,6 @@ import {
   schemaVersion,
   SEMVER_RE
 } from '../../codegen/lib/duck.mjs'
-import { manifestVersions } from '../../codegen/lib/versions.mjs'
 
 let fails = 0
 const check = (cond, msg) => {
@@ -134,13 +133,10 @@ check(
   'IN_SUBASSEMBLY remains retired'
 )
 
-// 10. meta.schema_version is the spec's semver string and names the release of every
-// package: one value, asserted across each hand-written manifest and the conformance
-// package's exact dependency on the catalog (VERSIONING.md).
+// 10. meta.schema_version is a semver string: it is the release tag every package ships
+// under (VERSIONING.md), and the release gate compares the two verbatim.
 const sv = schemaVersion()
 check(typeof sv === 'string' && SEMVER_RE.test(sv), `meta.schema_version is a semver string (${sv})`)
-for (const { file, version } of manifestVersions())
-  check(version === sv, `${file} carries ${sv} (found ${JSON.stringify(version)})`)
 
 console.log(fails === 0 ? '\nconformance: PASS' : `\nconformance: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

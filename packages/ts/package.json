@@ -1,6 +1,6 @@
 {
   "name": "@speckle/bundle-spec",
-  "version": "1.4.0",
+  "version": "0.0.0",
   "description": "Speckle bundle format catalog: generated TypeScript constants and the executable DuckDB SQL spec they derive from.",
   "license": "Apache-2.0",
   "repository": {

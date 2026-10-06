@@ -1,12 +1,11 @@
 // Release-gate tests: the verdict a maintainer sees when tagging, and the release notes
-// the GitHub Release gets. The repo as committed must be releasable at its own version;
-// each rule that can refuse a tag must refuse for its own reason.
+// the GitHub Release gets. The repo as committed must be releasable at its own
+// schema_version; each rule that can refuse a tag must refuse for its own reason.
 import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { REPO, schemaVersion } from '../../codegen/lib/duck.mjs'
-import { manifestVersions } from '../../codegen/lib/versions.mjs'
 import { changelogSection, releaseProblems } from '../../scripts/release-gate.mjs'
 
 let fails = 0
@@ -18,12 +17,11 @@ const check = (cond, msg) => {
 }
 
 const sv = schemaVersion()
-const manifests = manifestVersions()
 const gate = (...args) =>
   spawnSync(process.execPath, [join(REPO, 'scripts', 'release-gate.mjs'), ...args], { encoding: 'utf8' })
 
-// 1. the repository as committed is releasable at its own version, by tag or ref, and the
-// notes it would publish are exactly that version's changelog section.
+// 1. the repository as committed is releasable at its own schema_version, by tag or ref,
+// and the notes it would publish are exactly that version's changelog section.
 const tmp = mkdtempSync(join(tmpdir(), 'bundle-spec-release-gate-'))
 const own = gate(sv, '--notes', join(tmp, 'notes.md'))
 check(own.status === 0, `the repo passes the gate for tag ${sv} (exit=${own.status})${own.stderr}`)
@@ -33,14 +31,13 @@ check(notes.split('\n').filter((l) => l.startsWith('## ')).length === 1, 'releas
 check(gate(`refs/tags/${sv}`).status === 0, `the gate accepts the ref form refs/tags/${sv}`)
 rmSync(tmp, { recursive: true, force: true })
 
-// 2. a tag naming a version the manifests do not carry is refused, naming the manifest.
+// 2. a tag that is not the SQL meta row's schema_version is refused, naming both.
 const other = gate('0.0.1')
 check(other.status === 1, `tag 0.0.1 is refused (exit=${other.status})`)
-check(other.stderr.includes('packages/ts/package.json'), 'refusal names the disagreeing manifest')
-check(other.stderr.includes('meta.schema_version'), 'refusal names the SQL meta row')
+check(other.stderr.includes(`meta.schema_version is ${sv}, tag is 0.0.1`), 'refusal names the SQL meta row and the tag')
 
-// 3. the changelog rules, on fixture changelogs with the versions in agreement.
-const agreeing = { tag: sv, schemaVersion: sv, manifests }
+// 3. the changelog rules, on fixture changelogs with the tag equal to the meta row.
+const agreeing = { tag: sv, schemaVersion: sv }
 check(
   releaseProblems({ ...agreeing, changelog: `# Changelog\n\n## schema_version 0.9.0 — old\n` }).some((p) =>
     p.includes(`no "## schema_version ${sv}" section`)

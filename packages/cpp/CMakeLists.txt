@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 
-# The project version is the spec release (VERSIONING.md); hand-bumped, asserted by the
-# conformance test against meta.schema_version.
-project(bundlespec VERSION 1.4.0 LANGUAGES CXX)
+# The release tarball carries the tag in a VERSION file (VERSIONING.md); a checkout has
+# none and reports 0.0.0, like every other package built outside a release.
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/VERSION")
+  file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/VERSION" BUNDLESPEC_VERSION LIMIT_COUNT 1)
+else()
+  set(BUNDLESPEC_VERSION 0.0.0)
+endif()
+project(bundlespec VERSION ${BUNDLESPEC_VERSION} LANGUAGES CXX)
 
 add_library(bundlespec INTERFACE)
 add_library(bundlespec::bundlespec ALIAS bundlespec)

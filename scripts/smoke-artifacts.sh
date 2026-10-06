@@ -1,32 +1,38 @@
 #!/usr/bin/env bash
 # Consumer smoke of the artifacts in out/ (spec § Testing Decisions, artifact seam): each
-# ecosystem's artifact is consumed from a scratch project outside the repo and must report
-# the manifest version. Needs node, uv, dotnet, cmake + a C++17 compiler and the duckdb CLI.
+# ecosystem's artifact is consumed from a scratch project outside the repo. Every package
+# must report <version> (what build-artifacts.sh stamped) and every generated constant must
+# report the SQL meta.schema_version; the release gate makes the two equal on a tag.
+# Needs node, uv, dotnet, cmake + a C++17 compiler and the duckdb CLI.
+#   scripts/smoke-artifacts.sh <version>
 set -euo pipefail
 cd "$(dirname "$0")/.."
 REPO=$(pwd)
-VERSION=$(node -p "require('./packages/ts/package.json').version")
+VERSION=${1:?usage: smoke-artifacts.sh <version>}
+SCHEMA=$(node -e "import('./codegen/lib/duck.mjs').then((m) => console.log(m.schemaVersion()))")
 SCRATCH=$(mktemp -d)
 trap 'rm -rf "$SCRATCH"' EXIT
 
-expect() { # expect <surface> <actual>
-  if [ "$2" != "$VERSION" ]; then
-    echo "✗ $1 reports '$2', manifests say $VERSION" >&2
+expect() { # expect <surface> <expected> <actual>
+  if [ "$3" != "$2" ]; then
+    echo "✗ $1 reports '$3', expected $2" >&2
     exit 1
   fi
-  echo "✓ $1 reports $VERSION"
+  echo "✓ $1 reports $2"
 }
 
 echo "== npm: install the packed tarballs into a scratch project"
 mkdir "$SCRATCH/npm" && cd "$SCRATCH/npm"
 npm init -y >/dev/null
 npm install --no-audit --no-fund "$REPO"/out/npm/speckle-bundle-spec-*.tgz "$REPO"/out/npm/speckle-bundle-spec-conformance-*.tgz >/dev/null
-expect "@speckle/bundle-spec SCHEMA_VERSION" "$(node --input-type=module -e "import { SCHEMA_VERSION } from '@speckle/bundle-spec'; console.log(SCHEMA_VERSION)")"
-expect "@speckle/bundle-spec/spec/bundle-spec.sql meta row" "$(node --input-type=module -e "
+expect "@speckle/bundle-spec package version" "$VERSION" "$(node -p "require('@speckle/bundle-spec/package.json').version")"
+expect "@speckle/bundle-spec SCHEMA_VERSION" "$SCHEMA" "$(node --input-type=module -e "import { SCHEMA_VERSION } from '@speckle/bundle-spec'; console.log(SCHEMA_VERSION)")"
+expect "@speckle/bundle-spec/spec/bundle-spec.sql meta row" "$SCHEMA" "$(node --input-type=module -e "
   import { createRequire } from 'node:module'
   const sql = createRequire(import.meta.url).resolve('@speckle/bundle-spec/spec/bundle-spec.sql')
   console.log(/INSERT INTO meta VALUES \('([^']+)'/.exec((await import('node:fs')).readFileSync(sql, 'utf8'))[1])")"
-expect "@speckle/bundle-spec-conformance dependency" "$(node -p "require('@speckle/bundle-spec-conformance/package.json').dependencies['@speckle/bundle-spec']")"
+expect "@speckle/bundle-spec-conformance package version" "$VERSION" "$(node -p "require('@speckle/bundle-spec-conformance/package.json').version")"
+expect "@speckle/bundle-spec-conformance dependency on the catalog" "$VERSION" "$(node -p "require('@speckle/bundle-spec-conformance/package.json').dependencies['@speckle/bundle-spec']")"
 npx validate-bundle "$REPO/packages/conformance/query/bundle" >/dev/null
 echo "✓ validate-bundle bin validates the golden bundle"
 node --input-type=module -e "
@@ -42,8 +48,8 @@ cd "$REPO"
 echo "== python: install the wheel"
 wheel=$(ls out/python/*.whl)
 py() { uv run --no-project --isolated --with "$wheel" python -c "$1"; }
-expect "speckle-bundle-spec SCHEMA_VERSION" "$(py 'import speckle_bundle_spec as s; print(s.SCHEMA_VERSION)')"
-expect "speckle-bundle-spec distribution version" "$(py 'from importlib.metadata import version; print(version("speckle-bundle-spec"))')"
+expect "speckle-bundle-spec distribution version" "$VERSION" "$(py 'from importlib.metadata import version; print(version("speckle-bundle-spec"))')"
+expect "speckle-bundle-spec SCHEMA_VERSION" "$SCHEMA" "$(py 'import speckle_bundle_spec as s; print(s.SCHEMA_VERSION)')"
 # The package root is hand-written; every public name of the generated modules must be reachable from it.
 py '
 import importlib, speckle_bundle_spec as root
@@ -68,14 +74,16 @@ cat > nuget.config <<EOF
 </configuration>
 EOF
 dotnet new console --name Smoke --output . --force >/dev/null
-dotnet add package Speckle.Bundle.Spec --version "$VERSION" >/dev/null
+dotnet add package Speckle.Bundle.Spec --version "[$VERSION]" >/dev/null
 cat > Program.cs <<'EOF'
+System.Console.WriteLine(typeof(Speckle.Bundle.Spec.BundleSpec).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false) is [System.Reflection.AssemblyInformationalVersionAttribute a] ? a.InformationalVersion.Split('+')[0] : "?");
 System.Console.WriteLine(Speckle.Bundle.Spec.BundleSpec.SchemaVersion);
 System.Console.WriteLine(Speckle.Bundle.Spec.Catalog.RelTypes.Length > 0 && Speckle.Bundle.Spec.BundleSchemas.ByTable.Count > 0);
 EOF
-out=$(dotnet run --nologo 2>&1 | tail -2)
-expect "Speckle.Bundle.Spec.BundleSpec.SchemaVersion" "$(echo "$out" | head -1)"
-if [ "$(echo "$out" | tail -1)" != "True" ]; then echo "✗ Catalog/BundleSchemas empty or unresolved: $out" >&2; exit 1; fi
+out=$(dotnet run --nologo 2>&1 | tail -3)
+expect "Speckle.Bundle.Spec package version (restored at exactly [$VERSION], assembly informational version)" "$VERSION" "$(echo "$out" | sed -n 1p)"
+expect "Speckle.Bundle.Spec.BundleSpec.SchemaVersion" "$SCHEMA" "$(echo "$out" | sed -n 2p)"
+if [ "$(echo "$out" | sed -n 3p)" != "True" ]; then echo "✗ Catalog/BundleSchemas empty or unresolved: $out" >&2; exit 1; fi
 echo "✓ Catalog and BundleSchemas resolve from the package"
 cd "$REPO"
 
@@ -102,10 +110,10 @@ cat > main.cpp <<'EOF'
 int main() { std::puts(bundlespec::kSchemaVersion); return 0; }
 EOF
 cmake -S . -B build >configure.log 2>&1 || { cat configure.log; exit 1; }
-expect "bundlespec_VERSION (CMake project version)" "$(sed -n 's/.*bundlespec_VERSION=//p' configure.log)"
+expect "bundlespec_VERSION (CMake project version)" "$VERSION" "$(sed -n 's/.*bundlespec_VERSION=//p' configure.log)"
 cmake --build build >build.log 2>&1 || { cat build.log; exit 1; }
-expect "bundlespec::kSchemaVersion" "$(./build/smoke)"
+expect "bundlespec::kSchemaVersion" "$SCHEMA" "$(./build/smoke)"
 cd "$REPO"
 
 echo
-echo "smoke: all five artifacts report $VERSION"
+echo "smoke: all five artifacts report package version $VERSION, schema_version $SCHEMA"

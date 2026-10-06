@@ -1,6 +1,6 @@
 [project]
 name = "speckle-bundle-spec"
-version = "1.4.0"
+dynamic = ["version"]
 description = "Speckle bundle format vocabulary: generated Rel/NodeKind enums, catalog rows, table schemas and column indices. SCHEMA_VERSION is the package version."
 readme = "README.md"
 license = "Apache-2.0"
@@ -16,8 +16,14 @@ classifiers = [
 repository = "https://github.com/specklesystems/speckle-bundle-spec"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+# The version is the git tag (VERSIONING.md); a checkout gets a dev version, the release
+# build pins it with SETUPTOOLS_SCM_PRETEND_VERSION.
+[tool.hatch.version]
+source = "vcs"
+raw-options = { root = "../..", local_scheme = "no-local-version" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["speckle_bundle_spec"]

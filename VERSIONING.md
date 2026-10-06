@@ -1,12 +1,12 @@
 # Bundle spec versioning
 
-How `schema_version` is bumped, every file that carries the number, and how a tag
-becomes a release.
+How `schema_version` is bumped, where the number lives, and how a tag becomes a release.
 
 ## One number everywhere
 
 `schema_version` **is** the package version — the semver string producers stamp into
-`{base}.envelope.meta.parquet`, and the version of all five published artifacts:
+`{base}.envelope.meta.parquet`, the git tag, and the version of all five published
+artifacts:
 
 | Artifact | Registry |
 |---|---|
@@ -20,6 +20,13 @@ One number answers both "what vocabulary was this bundle written against" and "w
 pin". Consequence, accepted on purpose: a validator, harness or docs fix is a **patch
 release**, and bundles written afterwards carry that patch number with no schema change.
 There is no second versioning scheme for the tooling.
+
+The number lives in exactly one tracked file: the `meta` row of `spec/bundle-spec.sql`.
+No manifest carries it — `packages/*/package.json` say `0.0.0`, the csproj has no
+`<Version>`, `pyproject.toml` is `dynamic` (hatch-vcs), `CMakeLists.txt` reads a `VERSION`
+file that only the release tarball contains. `scripts/build-artifacts.sh <version>` stamps
+every artifact at build time: the tag on a release, `0.0.0` on a PR build, and the release
+gate refuses a tag that is not the `meta` row's value.
 
 Consumers never gate on the value (the validator only checks columns are present); the
 number is provenance — the only thing that tells a reader which catalog a bundle was
@@ -47,33 +54,23 @@ Between releases, log changes under `## unreleased (schema_version <next>, addit
 
 ## Bump checklist
 
-Every version-carrying file is a hand-written literal; nothing is generated behind your
-back. The conformance test asserts the SQL `meta` row and the manifests in step 2 agree;
-the prose in steps 1 and 6 has no guard — grep for the old string before committing.
-
 1. `spec/bundle-spec.sql` — `INSERT INTO meta VALUES ('<x.y.z>', …)` (the source) and the
    header comment `(schema_version <x.y.z>)` on line 2.
-2. The five manifests, same string:
-   - `packages/ts/package.json` `"version"`
-   - `packages/conformance/package.json` `"version"` **and** `"dependencies"."@speckle/bundle-spec"` (exact, no range)
-   - `packages/python/pyproject.toml` `version`
-   - `packages/csharp/Speckle.Bundle.Spec.csproj` `<Version>`
-   - `packages/cpp/CMakeLists.txt` `project(bundlespec VERSION <x.y.z> …)`
-3. `npm install` — `package-lock.json` records the workspace versions and is tracked.
-4. `npm run generate` — regenerates every package's code (the stamp lands as
+2. `npm run generate` — regenerates every package's code (the stamp lands as
    `SCHEMA_VERSION` / `SchemaVersion` / `kSchemaVersion`) and `docs/reference.md`.
-5. `CHANGELOG.md` — rename `## unreleased (schema_version <x.y.z>, additive)` to
+3. `CHANGELOG.md` — rename `## unreleased (schema_version <x.y.z>, additive)` to
    `## schema_version <x.y.z> — <title>`. The release gate refuses a tag while an
    `## unreleased (schema_version <x.y.z>…)` heading exists or the released section is
    missing.
-6. `README.md` — the install table (`@…@<x.y.z>`, `==<x.y.z>`, `[<x.y.z>]`, the Release
+4. `README.md` — the install table (`@…@<x.y.z>`, `==<x.y.z>`, `[<x.y.z>]`, the Release
    tarball URL) and the "current vocabulary (schema_version <x.y.z>)" line at the bottom —
-   and the `GLOSSARY.md` `schema_version` entry.
-7. `npm test && npm run check` — the conformance test's version-agreement check, the
-   release-gate test (the repo passes its own gate at `<x.y.z>`), and no generated-code
-   drift. `scripts/build-artifacts.sh && scripts/smoke-artifacts.sh` is the dry build PR
-   CI runs if you want it locally (needs uv, dotnet, cmake + a C++ compiler).
-8. One commit (e.g. `chore: release <x.y.z>`), PR, merge.
+   and the `GLOSSARY.md` `schema_version` entry. Prose only; nothing guards it — grep for
+   the old string.
+5. `npm test && npm run check` — the release-gate test (the repo passes its own gate at
+   `<x.y.z>`) and no generated-code drift. `scripts/build-artifacts.sh <x.y.z> &&
+   scripts/smoke-artifacts.sh <x.y.z>` is what CI runs if you want it locally (needs uv,
+   dotnet, cmake + a C++ compiler).
+6. One commit (e.g. `chore: release <x.y.z>`), PR, merge.
 
 ## Release: the tag is the release
 
@@ -83,11 +80,13 @@ git tag <x.y.z> <merge-commit> && git push origin <x.y.z>
 
 `.github/workflows/release.yml` runs, in order:
 
-1. **Gate** — `scripts/release-gate.mjs`: the tag equals `meta.schema_version` and every
-   manifest in the checklist; `CHANGELOG.md` has `## schema_version <x.y.z>` and no
+1. **Gate** — `scripts/release-gate.mjs`: the tag equals `meta.schema_version`;
+   `CHANGELOG.md` has `## schema_version <x.y.z>` and no
    `## unreleased (schema_version <x.y.z>…)`.
-2. **Verify** — the PR workflow (`ci.yml`): regenerate-and-diff, the test suite, the dry
-   build of all five artifacts and the consumer smoke of each (`scripts/smoke-artifacts.sh`).
+2. **Verify** — the PR workflow (`ci.yml`) called with the tag: regenerate-and-diff, the
+   test suite, the build of all five artifacts stamped with the tag and the consumer smoke
+   of each (`scripts/smoke-artifacts.sh`), which checks both the package version and the
+   generated `SCHEMA_VERSION` constants.
 3. **Publish**, one job per target, all from the artifacts the verify job built: npmjs
    (OIDC trusted publishing, provenance) and Verdaccio over Tailscale (`speckledevbot`'s
    `NPM_TOKEN`); PyPI (OIDC); nuget.org (OIDC via `NuGet/login`, `NUGET_USER`); a GitHub

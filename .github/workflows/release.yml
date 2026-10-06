@@ -18,7 +18,7 @@ env:
 
 jobs:
   gate:
-    name: tag == manifests == SQL meta == changelog
+    name: tag == SQL meta == changelog
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,9 +44,11 @@ jobs:
           if-no-files-found: error
 
   verify:
-    name: check, test, dry-build
+    name: check, test, build at the tag
     needs: gate
     uses: $/.github/workflows/ci.yml
+    with:
+      version: ${{ github.ref_name }}
     permissions:
       contents: read
 
