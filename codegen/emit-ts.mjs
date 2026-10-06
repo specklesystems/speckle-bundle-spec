@@ -1,9 +1,9 @@
-// Emit generated/ts/bundleSpec.ts — enums + metadata the viewer & server import
+// Emit packages/ts/src/bundleSpec.ts — enums + metadata the viewer & server import
 // instead of hardcoding rel/kind ids and column names.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  REPO,
+  OUT,
   GENERATED_HEADER,
   relTypes,
   nodeKinds,
@@ -56,7 +56,7 @@ export function emitTs() {
     `/** Logical table → column names, generated from the DDL. */\n` +
     `export const TABLES = {\n${tables}\n} as const\n`
 
-  const dir = join(REPO, 'generated', 'ts')
+  const dir = OUT.ts
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundleSpec.ts'), out)
   return join(dir, 'bundleSpec.ts')

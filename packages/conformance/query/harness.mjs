@@ -1,7 +1,7 @@
 // Engine-agnostic half of the query conformance suite: loading, the mount plan an engine
 // must reproduce, and result comparison. Pure JS (no DuckDB, no fs beyond loading the
 // suite) so the server Query Engine and the browser attach path run it verbatim from the
-// vendored copy; the .NET / Python engines reimplement these ~80 lines in-language.
+// installed package; the .NET / Python engines reimplement these ~80 lines in-language.
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 

@@ -1,8 +1,8 @@
-// Emit generated/python/bundle_rows.py — one frozen dataclass per row-shaped table.
+// Emit packages/python/speckle_bundle_spec/bundle_rows.py — one frozen dataclass per row-shaped table.
 // Mirrors BundleRows.cs: DDL column order, defaults only on the trailing nullable run.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER } from './lib/duck.mjs'
 import { mapType } from './lib/types.mjs'
 import { tableRows } from './lib/tables.mjs'
 
@@ -36,7 +36,7 @@ from dataclasses import dataclass
 ${classes}
 `
 
-  const dir = join(REPO, 'generated', 'python')
+  const dir = OUT.py
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_rows.py'), out)
   return join(dir, 'bundle_rows.py')

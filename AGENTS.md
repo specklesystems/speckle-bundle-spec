@@ -4,6 +4,18 @@ Single source of truth for the Speckle bundle format (eav + envelope + geometry)
 
 Repo vocabulary and architecture: `GLOSSARY.md` — read it first.
 
+## Layout and release (ADR-0004)
+
+Codegen writes into `packages/{ts,conformance,python,csharp,cpp}/`; each is what
+ships (npm, PyPI, nuget.org, GitHub Release) at the one version that is
+`meta.schema_version`. Manifests there are hand-written and never generated;
+`VERSIONING.md` lists every file carrying the version and the bump order, and
+`tests/conformance` check #10 asserts they agree. `npm run check` is the
+generated-code drift gate. The tag is the release: `.github/workflows/release.yml`
+gates (`scripts/release-gate.mjs`) then publishes; a partial failure is re-run per
+job, never re-tagged. Consumers pin the exact version in their own dependency
+declaration — never copy generated code into a consumer.
+
 ## Agent config (ADR-0008)
 
 Tracked sources: this file, repo-local `agents/skills/` and `agents/mcp/`

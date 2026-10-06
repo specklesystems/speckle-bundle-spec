@@ -1,10 +1,10 @@
-// Emit generated/cpp/envelope_spec.h — enums + the catalog rows the native
+// Emit packages/cpp/include/envelope_spec.h — enums + the catalog rows the native
 // producers ship. Replaces the hand-written arrays in envelope_catalog.h:
 // iterate REL_TYPES/NODE_KINDS instead of positional const char* arrays.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  REPO,
+  OUT,
   GENERATED_HEADER,
   relTypes,
   nodeKinds,
@@ -69,7 +69,7 @@ ${kindRows}
 }  // namespace bundlespec
 `
 
-  const dir = join(REPO, 'generated', 'cpp')
+  const dir = OUT.cpp
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'envelope_spec.h'), out)
   return join(dir, 'envelope_spec.h')

@@ -1,0 +1,59 @@
+name: CI
+
+# Regenerate-and-diff, the test suite, and a dry build of all five artifacts exercised the
+# way a consumer would (scripts/smoke-artifacts.sh). The release workflow calls this same
+# job before publishing, so a packaging break is caught by the PR, never by the tag.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions: {}
+
+env:
+  DUCKDB_VERSION: 1.5.5
+
+jobs:
+  verify:
+    name: check, test, dry-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          package-manager-cache: false # this job also builds the release artifacts
+
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: false # https://docs.zizmor.sh/audits/#cache-poisoning
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install the duckdb CLI
+        run: |
+          curl -fsSL -o duckdb.zip "https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip"
+          mkdir -p "$HOME/.local/bin" && unzip -q duckdb.zip -d "$HOME/.local/bin"
+          duckdb --version
+
+      - run: npm ci
+      - name: Generated code is in step with the spec
+        run: npm run check
+      - run: npm test
+      - name: Dry-build all five artifacts
+        run: scripts/build-artifacts.sh
+      - name: Exercise the artifacts as a consumer
+        run: scripts/smoke-artifacts.sh
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: artifacts
+          path: out/
+          if-no-files-found: error

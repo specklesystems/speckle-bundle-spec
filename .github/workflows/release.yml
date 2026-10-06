@@ -1,0 +1,181 @@
+name: Release
+
+# Tag X.Y.Z → gates → one publish job per registry (VERSIONING.md § Release owns the
+# procedure and the partial-failure recovery: re-run failed jobs, never re-tag).
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DUCKDB_VERSION: 1.5.5
+  VERDACCIO_URL: https://npmregistry.mermaid-emperor.ts.net
+
+jobs:
+  gate:
+    name: tag == manifests == SQL meta == changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Install the duckdb CLI
+        run: |
+          curl -fsSL -o duckdb.zip "https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip"
+          mkdir -p "$HOME/.local/bin" && unzip -q duckdb.zip -d "$HOME/.local/bin"
+          duckdb --version
+      - run: npm ci
+      - run: node scripts/release-gate.mjs "$GITHUB_REF_NAME" --notes notes.md
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: release-notes
+          path: notes.md
+          if-no-files-found: error
+
+  verify:
+    name: check, test, dry-build
+    needs: gate
+    uses: $/.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  publish-npmjs:
+    name: npmjs (OIDC)
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing + provenance
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: artifacts
+          path: out
+      # Node 24 bundles npm ≥ 11.5.1, the first with OIDC trusted publishing.
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm --version
+      - name: Publish both packages
+        run: |
+          for tgz in out/npm/*.tgz; do
+            npm publish "$tgz" --access public --provenance
+          done
+
+  publish-verdaccio:
+    name: Verdaccio (Tailscale)
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Tailscale OAuth federation
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: artifacts
+          path: out
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4.2.0
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TAILSCALE_OAUTH_CLIENT_AUDIENCE }}
+          tags: tag:ci
+          ping: npmregistry.mermaid-emperor.ts.net
+      - name: Auth to the private registry
+        run: |
+          if [ -z "${NPM_TOKEN}" ]; then echo "NPM_TOKEN is empty"; exit 1; fi
+          host="${VERDACCIO_URL#https://}"
+          printf '//%s/:_authToken=%s\n' "$host" "$NPM_TOKEN" > "$HOME/.npmrc"
+          npm whoami --registry "$VERDACCIO_URL"
+      - name: Publish the same tarballs
+        # The registry deliberately does not proxy @speckle/*; the server resolves these
+        # names only from here (spec §4, "dual npm publish is forced").
+        run: |
+          for tgz in out/npm/*.tgz; do
+            npm publish "$tgz" --registry "$VERDACCIO_URL" --access public
+          done
+
+  publish-pypi:
+    name: PyPI (OIDC)
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write # PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: artifacts
+          path: out
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: false
+      - run: uv publish out/python/*.whl out/python/*.tar.gz
+
+  publish-nuget:
+    name: nuget.org (OIDC)
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: nuget.org
+    permissions:
+      contents: read
+      id-token: write # NuGet/login exchanges the GitHub OIDC token for a temp API key
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: artifacts
+          path: out
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push out/nuget/*.nupkg --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
+
+  github-release:
+    name: GitHub Release (C++ tarball + sha256)
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: artifacts
+          path: out
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: release-notes
+      - name: Create the release, then attach the assets
+        run: |
+          tag="$GITHUB_REF_NAME"
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "$tag" --notes-file notes.md
+          gh release upload "$tag" -R "$GITHUB_REPOSITORY" out/cpp/*.tar.gz out/cpp/*.sha256 --clobber

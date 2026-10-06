@@ -1,0 +1,37 @@
+{
+  "name": "@speckle/bundle-spec-conformance",
+  "version": "1.4.0",
+  "description": "Speckle bundle format conformance tooling: the bundle validator and the query-conformance suite (harness, golden cases, fixture bundle). Needs the duckdb CLI at runtime.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/specklesystems/speckle-bundle-spec.git",
+    "directory": "packages/conformance"
+  },
+  "type": "module",
+  "bin": {
+    "validate-bundle": "validator/validate-bundle.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./query/harness.d.mts",
+      "default": "./query/harness.mjs"
+    },
+    "./query/*": "./query/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/",
+    "query/",
+    "validator/"
+  ],
+  "dependencies": {
+    "@speckle/bundle-spec": "1.4.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

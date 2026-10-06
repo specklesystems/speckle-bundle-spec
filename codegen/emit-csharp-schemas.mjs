@@ -1,10 +1,10 @@
-// Emit generated/csharp/BundleSchemas.cs — a typed column descriptor per produced
+// Emit packages/csharp/BundleSchemas.cs — a typed column descriptor per produced
 // table. Library-agnostic on purpose: the managed writer maps ArrowType → its own
 // field builder once (Apache.Arrow / Parquet.NET), then builds every table schema
 // from these descriptors instead of hand-declaring them.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
 import { mapType, camel, CS_TYPES } from './lib/types.mjs'
 
 const pascal = (s) => {
@@ -58,7 +58,7 @@ ${byTableMap}
 }
 `
 
-  const dir = join(REPO, 'generated', 'csharp')
+  const dir = OUT.cs
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'BundleSchemas.cs'), out)
   return join(dir, 'BundleSchemas.cs')

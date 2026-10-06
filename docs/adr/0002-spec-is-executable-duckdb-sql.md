@@ -34,8 +34,9 @@ The same engine validates a real bundle against the spec.
 ## Consequences
 
 - Codegen and the validator require the `duckdb` CLI. Acceptable: it's already the
-  consumer engine, and `generated/` is committed, so day-to-day *consumers* need no
-  toolchain — only spec editors and validation CI do.
+  consumer engine, and generated code is committed inside each package under
+  `packages/`, so day-to-day *consumers* need no toolchain — only spec editors and
+  validation CI do.
 - `duckdb -json` encodes BOOLEAN as the strings `"true"`/`"false"` (both truthy in JS);
   the query helper coerces them centrally.
 - Short semantics live in the spec as columns; long-form rationale lives in

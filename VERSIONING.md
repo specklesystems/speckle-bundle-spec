@@ -1,28 +1,33 @@
-# Bundle spec versioning (25.08.2026)
+# Bundle spec versioning
 
-How `schema_version` is bumped, where the number lives, and what has to be
-re-vendored so every producer stamps the same value.
+How `schema_version` is bumped, every file that carries the number, and how a tag
+becomes a release.
 
-## One number, written twice
+## One number everywhere
 
-`schema_version` **is** the package semver (`1.0.0`), stored as a string.
+`schema_version` **is** the package version — the semver string producers stamp into
+`{base}.envelope.meta.parquet`, and the version of all five published artifacts:
 
-| Copy | Lives in | Read by |
-|---|---|---|
-| **`schema_version`** (semver string) | `spec/bundle-spec.sql` — the `INSERT INTO meta VALUES ('<x.y.z>', …)` row | codegen → every generated target (`SchemaVersion` / `kSchemaVersion` / `SCHEMA_VERSION`, all strings); producers stamp it into `{base}.envelope.meta.parquet` |
-| **package version** | `package.json` + `package-lock.json` | `publish.mjs` → `dist/bundle-spec.lock.json`, artifact filenames (`bundle-spec-cpp-<version>.tar.gz`) |
+| Artifact | Registry |
+|---|---|
+| `@speckle/bundle-spec` (catalog + the SQL) | npmjs and the private Verdaccio registry |
+| `@speckle/bundle-spec-conformance` (validator bin + query-conformance suite) | npmjs and Verdaccio |
+| `speckle-bundle-spec` | PyPI |
+| `Speckle.Bundle.Spec` | nuget.org |
+| `speckle-bundle-spec-cpp-X.Y.Z.tar.gz` | GitHub Release asset |
 
-Rule: the two copies are **equal** — `npm test` (conformance) and `npm run publish:artifacts`
-fail on mismatch. Major = breaking meaning change (below); minor/patch are free for additive
-or doc-only changes and *do* get stamped into bundles, so a reader can tell `1.1.0` from `1.0.0`.
+One number answers both "what vocabulary was this bundle written against" and "what do I
+pin". Consequence, accepted on purpose: a validator, harness or docs fix is a **patch
+release**, and bundles written afterwards carry that patch number with no schema change.
+There is no second versioning scheme for the tooling.
 
 Consumers never gate on the value (the validator only checks columns are present); the
-number is provenance. That still matters: it's the only thing that tells a reader which
-catalog a bundle was written against.
+number is provenance — the only thing that tells a reader which catalog a bundle was
+written against.
 
-## When to bump `schema_version`
+## When to bump which part
 
-Bump when the **meaning** of an existing bundle changes, i.e. a consumer reading an old
+**Major** — the meaning of an existing bundle changes, i.e. a consumer reading an old
 bundle with the new vocabulary would be wrong:
 
 - a rel / node-kind id changes meaning, or a retired id is un-retired
@@ -30,93 +35,107 @@ bundle with the new vocabulary would be wrong:
 - a file in `bundle_files` is renamed, or its optional/required status flips
 - precedence rules change (e.g. material/colour ladders)
 
-Do **not** bump the **major** for purely additive changes — new rel/kind ids, new optional
-columns, new optional files, comment/rationale edits. Log them under `## unreleased
-(schema_version <x.y.z>, additive)` in `CHANGELOG.md`; they ship as a minor/patch release. Retire ids in place (`status='retired'`), never reuse.
+**Minor** — additive schema changes: new rel/kind ids, new optional columns, new optional
+files. Writers pin exactly, so an additive minor still needs an adoption PR per writer
+(the generated column indices shift).
 
-## Bump checklist — this repo
+**Patch** — tooling, docs, comment/rationale edits. Retire ids in place
+(`status='retired'`), never reuse.
 
-1. `spec/bundle-spec.sql`
-   - `INSERT INTO meta VALUES ('<x.y.z>', …)` (line ~38) — the actual source
-   - header comment `(schema_version <x.y.z>)` (line 2)
-2. `package.json` `"version"` → the same `<x.y.z>`, then `npm install --package-lock-only` so
-   `package-lock.json` follows (it is tracked, CI `npm ci` fails on mismatch). Conformance
-   fails if the two strings differ.
-3. `npm run generate` — regenerates `generated/{ts,cpp,csharp,python}` and
-   `docs/reference.md`. Confirm the stamp landed:
-   ```bash
-   grep -rn -E "SCHEMA_VERSION = |SchemaVersion = |kSchemaVersion = " generated   # all quoted "<x.y.z>"
-   ```
-4. `CHANGELOG.md` — close the `## unreleased` block into `## schema_version <x.y.z> — <title>`
-   and open a fresh `## unreleased (schema_version <x.y.z>, additive)`.
-5. `README.md` — the "current vocabulary (schema_version <x.y.z>)" line at the bottom, and
-   the `GLOSSARY.md` glossary entry.
-6. `npm test && npm run check` — conformance + no drift in `generated/`.
-7. Commit spec + generated + docs together (one commit, e.g. `chore: pin schema version to <x.y.z>`).
-8. `npm run publish:artifacts` → `dist/bundle-spec.lock.json` + cpp tarball + python
-   package. The lockfile is deterministic (same spec ⇒ byte-identical), so this can be
-   re-run by anyone from the commit.
+Between releases, log changes under `## unreleased (schema_version <next>, additive)` in
+`CHANGELOG.md`, where `<next>` is the version they will ship as.
 
-## Downstream — where the number is copied
+## Bump checklist
 
-Every consumer gets the value one of three ways. Check all of them after a bump.
+Every version-carrying file is a hand-written literal; nothing is generated behind your
+back. The conformance test asserts the SQL `meta` row and the manifests in step 2 agree;
+the prose in steps 1 and 6 has no guard — grep for the old string before committing.
 
-### A. Linked from a sibling checkout (nothing to copy)
+1. `spec/bundle-spec.sql` — `INSERT INTO meta VALUES ('<x.y.z>', …)` (the source) and the
+   header comment `(schema_version <x.y.z>)` on line 2.
+2. The five manifests, same string:
+   - `packages/ts/package.json` `"version"`
+   - `packages/conformance/package.json` `"version"` **and** `"dependencies"."@speckle/bundle-spec"` (exact, no range)
+   - `packages/python/pyproject.toml` `version`
+   - `packages/csharp/Speckle.Bundle.Spec.csproj` `<Version>`
+   - `packages/cpp/CMakeLists.txt` `project(bundlespec VERSION <x.y.z> …)`
+3. `npm install` — `package-lock.json` records the workspace versions and is tracked.
+4. `npm run generate` — regenerates every package's code (the stamp lands as
+   `SCHEMA_VERSION` / `SchemaVersion` / `kSchemaVersion`) and `docs/reference.md`.
+5. `CHANGELOG.md` — rename `## unreleased (schema_version <x.y.z>, additive)` to
+   `## schema_version <x.y.z> — <title>`. The release gate refuses a tag while an
+   `## unreleased (schema_version <x.y.z>…)` heading exists or the released section is
+   missing.
+6. `README.md` — the install table (`@…@<x.y.z>`, `==<x.y.z>`, `[<x.y.z>]`, the Release
+   tarball URL) and the "current vocabulary (schema_version <x.y.z>)" line at the bottom —
+   and the `GLOSSARY.md` `schema_version` entry.
+7. `npm test && npm run check` — the conformance test's version-agreement check, the
+   release-gate test (the repo passes its own gate at `<x.y.z>`), and no generated-code
+   drift. `scripts/build-artifacts.sh && scripts/smoke-artifacts.sh` is the dry build PR
+   CI runs if you want it locally (needs uv, dotnet, cmake + a C++ compiler).
+8. One commit (e.g. `chore: release <x.y.z>`), PR, merge.
 
-| Repo | Wiring |
-|---|---|
-| `speckle-sharp-sdk` | `src/Speckle.Sdk.Parquet/Speckle.Sdk.Parquet.csproj` `<Compile Include="../../../speckle-bundle-spec/generated/csharp/BundleSpec.cs">` — `EnvelopeWriter.cs` stamps `SpecBundle.SchemaVersion` |
-| `speckle-converters` native (`rvextract`, `nwextract`) | CMake `BUNDLE_SPEC` defaults to `../../../speckle-bundle-spec`; container builds point it at the extracted published artifact and set `-DBUNDLE_SPEC_EXPECT_VERSION=<x.y.z>` (build fails on mismatch) |
+## Release: the tag is the release
 
-Action: pull the sibling checkout; for the unified image, update the default in
-`speckle-converters/mise.toml` (`build` task: `BUNDLE_SPEC_VERSION:-<x.y.z>`) and the
-artifact it fetches. `BUNDLE_SPEC_EXPECT_VERSION` compares the package version string
-(`"1.0.0"`) — now the same value as `kSchemaVersion`.
-
-### B. Vendored copy + pin file (re-vendor + verify)
-
-| Repo | Vendored files | Pin |
-|---|---|---|
-| `specklepy` | `src/specklepy/bundle/spec/bundle_spec.py`, `bundle_schemas.py`, `bundle_cols.py` ← `generated/python/` | `src/specklepy/bundle/spec/BUNDLE_SPEC_PIN.json` (`version`, `schemaVersion`, `specHash`) |
-| `speckle-converters` | `vendor/speckle-bundle-spec` and `vendor/specklepy` are git submodules — bump the submodule SHAs | CI job `bundle-spec-pin` runs `verify-pin.mjs --cpp dist/cpp`; `dispatch/src/dispatch/ledger.py` has a `schema_version: str = "<x.y.z>"` default that must be updated by hand (was `int` before schema_version became a string) |
-
-Re-vendor recipe (specklepy):
 ```bash
-cp speckle-bundle-spec/generated/python/bundle_{spec,schemas,cols}.py specklepy/src/specklepy/bundle/spec/
-# update version / schemaVersion / specHash in BUNDLE_SPEC_PIN.json from dist/bundle-spec.lock.json
-cd speckle-bundle-spec && npm run verify-pin -- --python ../specklepy/src/specklepy/bundle/spec
+git tag <x.y.z> <merge-commit> && git push origin <x.y.z>
 ```
 
-### C. Hand-written literal (grep and edit)
+`.github/workflows/release.yml` runs, in order:
 
-| Repo | Location |
+1. **Gate** — `scripts/release-gate.mjs`: the tag equals `meta.schema_version` and every
+   manifest in the checklist; `CHANGELOG.md` has `## schema_version <x.y.z>` and no
+   `## unreleased (schema_version <x.y.z>…)`.
+2. **Verify** — the PR workflow (`ci.yml`): regenerate-and-diff, the test suite, the dry
+   build of all five artifacts and the consumer smoke of each (`scripts/smoke-artifacts.sh`).
+3. **Publish**, one job per target, all from the artifacts the verify job built: npmjs
+   (OIDC trusted publishing, provenance) and Verdaccio over Tailscale (`speckledevbot`'s
+   `NPM_TOKEN`); PyPI (OIDC); nuget.org (OIDC via `NuGet/login`, `NUGET_USER`); a GitHub
+   Release whose notes are the changelog section, carrying the C++ tarball and its
+   `.sha256`.
+
+Every gate runs before the first publish. If one registry fails after others succeeded,
+**re-run the failed job(s)** of that same workflow run (Actions → the run → "Re-run failed
+jobs"); never delete or move the tag, and never re-tag the same version. Registries do
+not accept a second upload of a version, so a successful job re-run is a no-op where the
+registry allows it (nuget `--skip-duplicate`, release asset `--clobber`) and a refused
+duplicate elsewhere — both mean "already there".
+
+Tags before `1.4.0` were never published as packages and will not be backfilled.
+
+## Downstream — the declaration is the pin
+
+Every first-party consumer pins the **exact** version in its ordinary dependency
+declaration; there is nothing else to keep in step. A spec release is not done until each
+of these has a merged, human-reviewed bump PR (atlas ADR-0004: the schema change ships
+together with its writer adoptions).
+
+| Repo | Declaration |
 |---|---|
-| `speckle-sketchup` | `speckle_connector_3/src/artifacts/envelope_writer.rb` `SCHEMA_VERSION = '<x.y.z>'` + comment in `artifacts/vocab.rb` |
-| `speckle-converters` | `dispatch/src/dispatch/ledger.py` default arg (see above) |
+| `speckle-server-internal` | `@speckle/bundle-spec` (dependency), `@speckle/bundle-spec-conformance` (devDependency) |
+| `speckle-sharp-sdk` | `<PackageReference Include="Speckle.Bundle.Spec" Version="[x.y.z]" />` in `Speckle.Sdk.Parquet` |
+| `specklepy` | `speckle-bundle-spec==x.y.z` in `pyproject.toml` (`specklepy.bundle.spec` re-exports it) |
+| `speckle-converters` | CMake `FetchContent_Declare(bundlespec URL …/speckle-bundle-spec-cpp-x.y.z.tar.gz URL_HASH SHA256=…)` plus its expected-version assertion against `bundlespec_VERSION`; golden validation calls the conformance package's `validate-bundle` bin |
 
-These have no drift guard. Find them across the working set with:
-```bash
-grep -rn -E "SCHEMA_VERSION\s*=\s*['\"][0-9.]+|SchemaVersion\s*=\s*\"[0-9.]+|kSchemaVersion\s*=\s*\"[0-9.]+|schema_version: str = \"[0-9.]+" \
-  --include='*.rb' --include='*.py' --include='*.cs' --include='*.h' --include='*.ts' . \
-  | grep -vE "node_modules|/bin/|/obj/|/dist/"
-```
-Every hit must show the new string — and every producer must write `schema_version` as a
-string column (VARCHAR / UTF8), not int32.
+`speckle-sketchup` keeps a hand-transcribed Ruby vocabulary (`SCHEMA_VERSION = '<x.y.z>'`
+in `envelope_writer.rb`) with no drift guard — grep and edit it by hand.
 
 ## Not this number
 
-`Version.schemaVersion` on the server GraphQL API (`ENVELOPE_BUNDLE_SCHEMA_VERSION = 3` in
-`speckle-server/.../modules/data/domain/types.ts`, `QUERYABLE_SCHEMA_VERSION = 3` in
-frontend-3, `schemaVersion === 3` in the WebGPU viewer) is the **server-side storage-format
-flag** ("this version has a parquet bundle"), not the bundle catalog version. It does not
-move when `schema_version` moves. Don't touch it during a spec bump.
+`Version.schemaVersion` on the server GraphQL API (`ENVELOPE_BUNDLE_SCHEMA_VERSION = 3`
+in `speckle-server/.../modules/data/domain/types.ts`, `QUERYABLE_SCHEMA_VERSION = 3` in
+frontend-3, `schemaVersion === 3` in the WebGPU viewer) is the **server-side
+storage-format flag** ("this version has a parquet bundle"), not the bundle catalog
+version. It does not move when `schema_version` moves. Don't touch it during a spec bump.
 
 ## Verify after a bump
 
-- `speckle-bundle-spec`: `npm run check` green, `dist/bundle-spec.lock.json` shows the new `schemaVersion`.
+- The GitHub Release for the tag exists with the tarball and `.sha256`; each registry
+  lists the version.
 - Send a model from each producer and read `{base}.envelope.meta.parquet`:
   ```sql
   SELECT schema_version, produced_by, sdk_name FROM 'x.envelope.meta.parquet';
   ```
   All producers must report the same `schema_version`.
-- `npm run validate -- <bundle-dir>` passes on a fresh bundle from each producer.
+- `npx validate-bundle <bundle-dir>` (from `@speckle/bundle-spec-conformance`) passes on a
+  fresh bundle from each producer.

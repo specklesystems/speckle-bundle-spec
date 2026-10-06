@@ -1,4 +1,5 @@
-// Regenerate every artifact from spec/bundle-spec.sql.
+// Regenerate every artifact from spec/bundle-spec.sql into the package that ships it.
+import { emitSql } from './emit-sql.mjs'
 import { emitTs } from './emit-ts.mjs'
 import { emitTsKinds } from './emit-ts-kinds.mjs'
 import { emitTsTables } from './emit-ts-tables.mjs'
@@ -20,6 +21,7 @@ import { emitPythonTables } from './emit-python-tables.mjs'
 import { emitDocs } from './emit-docs.mjs'
 
 const steps = [
+  ['SQL copy', emitSql],
   ['TypeScript', emitTs],
   ['TS nodes', emitTsKinds],
   ['TS rows', emitTsTables],

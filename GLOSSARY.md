@@ -92,4 +92,5 @@ the glob `{base}.geometries*.parquet`.
 
 **schema_version**:
 The semver string in `meta` stamping which spec release a bundle was built
-against — equal to this package's version (currently `1.4.0`).
+against — equal to the version of every package this repo publishes (currently
+`1.4.0`; see `VERSIONING.md`).

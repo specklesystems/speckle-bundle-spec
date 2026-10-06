@@ -1,11 +1,11 @@
-// Emit generated/csharp/BundleNodes.cs — one record per live node kind, carrying
+// Emit packages/csharp/BundleNodes.cs — one record per live node kind, carrying
 // exactly the columns that kind declares. Writers construct one instead of passing
 // loose scalars; readers project a nodes row into one and reject a NULL in a
 // mandatory slot. Positional records only: init-only setters break net48 consumers
 // of the ILRepack'd netstandard2.0 assembly (CS0570).
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER } from './lib/duck.mjs'
 import { mapType, pascal, kindTypeName } from './lib/types.mjs'
 import { nodeKindFields } from './lib/kinds.mjs'
 
@@ -33,7 +33,7 @@ export function emitCsharpKinds() {
 ${records}
 `
 
-  const dir = join(REPO, 'generated', 'csharp')
+  const dir = OUT.cs
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'BundleNodes.cs'), out)
   return join(dir, 'BundleNodes.cs')

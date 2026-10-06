@@ -1,9 +1,7 @@
 # Changelog
 
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
-string of this package (see `VERSIONING.md`).
-
-## unreleased (schema_version 1.4.0, additive)
+of every package this repo publishes (see `VERSIONING.md`).
 
 ## schema_version 1.4.0 — revit_warnings.warning_kind (additive)
 
@@ -13,6 +11,10 @@ string of this package (see `VERSIONING.md`).
   class. Lets every consumer group warnings the same way without its own class map; which
   kinds "need attention" stays a consumer judgement (FEA-576).
 - Additive: the file is optional and only rvextract writes it.
+- First version distributed as registry packages (ENG-10426): `@speckle/bundle-spec` and
+  `@speckle/bundle-spec-conformance` on npm, `speckle-bundle-spec` on PyPI,
+  `Speckle.Bundle.Spec` on nuget.org and the C++ header tarball on the GitHub Release, all
+  at this version. The schema is unchanged from the previous untagged head.
 
 ## schema_version 1.3.0 — model health files (additive)
 

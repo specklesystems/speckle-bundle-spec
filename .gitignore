@@ -1,9 +1,12 @@
 node_modules/
 *.log
 .DS_Store
-# publish artifacts (built by `npm run publish:artifacts`; the lockfile is the pin)
-dist/
-# generated/ is COMMITTED (vendored by consumers) — do not ignore it.
+# Package build output. Codegen output under packages/ is COMMITTED (npm run check guards it).
+packages/ts/dist/
+packages/csharp/bin/
+packages/csharp/obj/
+packages/python/dist/
+out/
 
 # Python
 __pycache__/

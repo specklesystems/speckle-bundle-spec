@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os'
 import { REPO, SPEC } from '../../codegen/lib/duck.mjs'
 
 const DUCKDB = process.env.DUCKDB_BIN || 'duckdb'
-const VALIDATOR = join(REPO, 'validator', 'validate-bundle.mjs')
+const VALIDATOR = join(REPO, 'packages', 'conformance', 'validator', 'validate-bundle.mjs')
 
 let fails = 0
 const check = (cond, msg) => {

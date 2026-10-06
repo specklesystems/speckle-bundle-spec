@@ -1,16 +1,20 @@
+#!/usr/bin/env node
 // Validate a real bundle against the spec. Usage:
-//   node validator/validate-bundle.mjs <bundle-dir> [base]
+//   validate-bundle <bundle-dir> [base]        (the @speckle/bundle-spec-conformance bin)
 // Attaches the bundle's parquets and checks: required files present, node.kind
 // and relation.rel values are known (not retired), and the nodes table carries
 // the spec's columns. Run this in each PRODUCER's CI against a freshly emitted
-// bundle → a producer cannot drift from the spec without going red.
+// bundle → a producer cannot drift from the spec without going red. The spec is
+// the SQL shipped in the @speckle/bundle-spec version this package depends on.
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { query, relTypes, nodeKinds, bundleFiles, tableColumns } from '../codegen/lib/duck.mjs'
+import { packagedSpec } from '../lib/spec.mjs'
+
+const { query, relTypes, nodeKinds, bundleFiles, tableColumns } = packagedSpec()
 
 const dir = process.argv[2]
 if (!dir) {
-  console.error('usage: validate-bundle.mjs <bundle-dir> [base]')
+  console.error('usage: validate-bundle <bundle-dir> [base]')
   process.exit(2)
 }
 const files = readdirSync(dir)

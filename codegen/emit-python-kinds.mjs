@@ -1,8 +1,8 @@
-// Emit generated/python/bundle_nodes.py — one frozen dataclass per live node kind.
+// Emit packages/python/speckle_bundle_spec/bundle_nodes.py — one frozen dataclass per live node kind.
 // Mirrors BundleNodes.cs.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER } from './lib/duck.mjs'
 import { mapType, kindTypeName } from './lib/types.mjs'
 import { nodeKindFields } from './lib/kinds.mjs'
 
@@ -37,7 +37,7 @@ from dataclasses import dataclass
 ${classes}
 `
 
-  const dir = join(REPO, 'generated', 'python')
+  const dir = OUT.py
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_nodes.py'), out)
   return join(dir, 'bundle_nodes.py')
