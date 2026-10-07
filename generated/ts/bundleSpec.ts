@@ -95,6 +95,7 @@ export const TABLES = {
   nodes: ['id', 'kind', 'name', 'def_ref', 'transform', 'units', 'subtype', 'argb', 'opacity', 'metalness', 'roughness', 'emissive', 'ior', 'elevation', 'gh_topology'],
   object_type: ['object_index', 'type_index'],
   objects: ['object_index', 'application_id'],
+  path_stats: ['path_index', 'object_count', 'n_string', 'n_double', 'n_boolean', 'distinct_strings', 'min_double', 'max_double'],
   paths: ['path_index', 'path'],
   property_set_definitions: ['set_name', 'set_key', 'set_description', 'field_name', 'field_bucket_id', 'data_type', 'default_string', 'default_double', 'default_boolean', 'unit', 'description', 'applies_to'],
   relations: ['rel', 'src', 'dst', 'ord'],

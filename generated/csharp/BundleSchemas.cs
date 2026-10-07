@@ -107,6 +107,18 @@ public static class BundleSchemas
         new("application_id", ArrowType.Utf8, false),
     };
 
+    public static readonly ColumnSpec[] PathStats =
+    {
+        new("path_index", ArrowType.Int32, false),
+        new("object_count", ArrowType.Int32, false),
+        new("n_string", ArrowType.Int32, false),
+        new("n_double", ArrowType.Int32, false),
+        new("n_boolean", ArrowType.Int32, false),
+        new("distinct_strings", ArrowType.Int32, false),
+        new("min_double", ArrowType.Float64, true),
+        new("max_double", ArrowType.Float64, true),
+    };
+
     public static readonly ColumnSpec[] Paths =
     {
         new("path_index", ArrowType.Int32, false),
@@ -211,6 +223,7 @@ public static class BundleSchemas
         ["nodes"] = Nodes,
         ["object_type"] = ObjectType,
         ["objects"] = Objects,
+        ["path_stats"] = PathStats,
         ["paths"] = Paths,
         ["property_set_definitions"] = PropertySetDefinitions,
         ["relations"] = Relations,

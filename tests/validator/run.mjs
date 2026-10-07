@@ -33,9 +33,9 @@ const FILES = {
   meta: 'fx.envelope.meta.parquet',
   geometries: 'fx.geometries.parquet'
 }
-function writeBundle(dir, fixtureSql) {
+function writeBundle(dir, fixtureSql, extraFiles = {}) {
   mkdirSync(dir, { recursive: true })
-  const copies = Object.entries(FILES)
+  const copies = Object.entries({ ...FILES, ...extraFiles })
     .map(([t, f]) => `COPY ${t} TO '${join(dir, f)}' (FORMAT PARQUET);`)
     .join('\n')
   execFileSync(DUCKDB, [], { input: readFileSync(SPEC, 'utf8') + '\n' + fixtureSql + '\n' + copies })
@@ -170,6 +170,54 @@ writeBundle(
 const nmw = validate(nodeMaterialWrongKind)
 check(nmw.status !== 0, `NODE_HAS_MATERIAL to a non-MATERIAL node is a hard error (exit=${nmw.status})`)
 check(nmw.stderr.includes('every target is a MATERIAL node'), 'failure names the NODE_HAS_MATERIAL kind rule')
+
+// 10–13. path_stats ⇒ sorted eav/type_eav (docs/rationale/eav-sort-order.md). COPY keeps
+// insertion order, so the INSERT order below is the file's row order.
+const SORT_FILES = {
+  types: 'fx.eav.types.parquet',
+  type_eav: 'fx.eav.type_eav.parquet',
+  object_type: 'fx.eav.object_type.parquet',
+  path_stats: 'fx.eav.path_stats.parquet'
+}
+const eavBase = `INSERT INTO objects VALUES (0, 'a'), (1, 'b');
+   INSERT INTO paths VALUES (0, 'name'), (1, 'level'), (2, 'mass');
+   INSERT INTO types VALUES (0, 'UB');
+   INSERT INTO object_type VALUES (0, 0), (1, 0);
+   INSERT INTO type_eav VALUES (0, 2, NULL, 10, NULL, NULL, NULL);
+   INSERT INTO path_stats VALUES (0, 2, 2, 0, 0, 2, NULL, NULL), (1, 2, 2, 0, 0, 1, NULL, NULL), (2, 2, 0, 2, 0, 0, 10, 10);`
+const sortedEav = `INSERT INTO eav VALUES
+     (0, 0, 'A', NULL, NULL, NULL, NULL), (1, 0, 'B', NULL, NULL, NULL, NULL),
+     (0, 1, 'L1', NULL, NULL, NULL, NULL), (1, 1, 'L1', NULL, NULL, NULL, NULL);`
+const objectOrderedEav = `INSERT INTO eav VALUES
+     (0, 0, 'A', NULL, NULL, NULL, NULL), (0, 1, 'L1', NULL, NULL, NULL, NULL),
+     (1, 0, 'B', NULL, NULL, NULL, NULL), (1, 1, 'L1', NULL, NULL, NULL, NULL);`
+
+const sortedWithStats = join(tmp, 'sorted-with-stats')
+writeBundle(sortedWithStats, `${eavBase}\n${sortedEav}`, SORT_FILES)
+const sws = validate(sortedWithStats)
+check(sws.status === 0, `sorted eav with path_stats validates (exit=${sws.status})`)
+
+const unsortedWithStats = join(tmp, 'unsorted-with-stats')
+writeBundle(unsortedWithStats, `${eavBase}\n${objectOrderedEav}`, SORT_FILES)
+const uws = validate(unsortedWithStats)
+check(uws.status !== 0, `object-ordered eav with path_stats is a hard error (exit=${uws.status})`)
+check(uws.stderr.includes('eav: sorted by (path_index, object_index)'), 'failure names the eav sort rule')
+
+const { path_stats: _stats, ...noStatsFiles } = SORT_FILES
+const unsortedNoStats = join(tmp, 'unsorted-no-stats')
+writeBundle(unsortedNoStats, `${eavBase}\n${objectOrderedEav}`, noStatsFiles)
+const uns = validate(unsortedNoStats)
+check(uns.status === 0, `object-ordered eav without path_stats still validates (exit=${uns.status})`)
+
+const duplicateStats = join(tmp, 'duplicate-stats')
+writeBundle(
+  duplicateStats,
+  `${eavBase}\n${sortedEav}\nINSERT INTO path_stats VALUES (0, 1, 1, 0, 0, 1, NULL, NULL);`,
+  SORT_FILES
+)
+const ds = validate(duplicateStats)
+check(ds.status !== 0, `path_stats with a duplicated path is a hard error (exit=${ds.status})`)
+check(ds.stderr.includes('path_stats: one row per path_index'), 'failure names the path_stats uniqueness rule')
 
 rmSync(tmp, { recursive: true, force: true })
 console.log(fails === 0 ? '\nvalidator tests: PASS' : `\nvalidator tests: ${fails} FAILURE(S)`)

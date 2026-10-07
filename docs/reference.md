@@ -73,6 +73,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `model` | `{base}.eav.model.parquet` | no | no | no | OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment). |
 | `revit_warnings` | `{base}.eav.revit_warnings.parquet` | no | no | no | OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool's display text (FEA-576). |
 | `revit_external_links` | `{base}.eav.revit_external_links.parquet` | no | no | no | OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576). |
+| `path_stats` | `{base}.eav.path_stats.parquet` | no | no | no | OPTIONAL per-path summary over instance + type-inherited attributes. Present ⇒ eav and type_eav are sorted by path_index (ENG-10508). |
 
 ## Table shapes
 
@@ -169,6 +170,19 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 |---|---|---|
 | object_index | INTEGER | Dense int K (the object K-space). Relations with src_ns/dst_ns=object reference this. |
 | application_id | VARCHAR | Source-stable id; the flat WorldTree node id IS this. |
+
+### `path_stats`
+
+| column | type | note |
+|---|---|---|
+| path_index | INTEGER | · |
+| object_count | INTEGER | Distinct objects carrying the path, counting type-inherited values once per object. |
+| n_string | INTEGER | Rows with value_string set; n_double / n_boolean likewise. |
+| n_double | INTEGER | · |
+| n_boolean | INTEGER | · |
+| distinct_strings | INTEGER | Distinct value_string values for the path. |
+| min_double | DOUBLE | Range of value_double for the path; NULL when the path has no numeric rows. |
+| max_double | DOUBLE | · |
 
 ### `paths`
 

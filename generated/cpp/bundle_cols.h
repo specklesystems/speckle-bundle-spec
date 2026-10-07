@@ -94,6 +94,18 @@ inline constexpr int application_id = 1;
 inline constexpr int columnCount = 2;
 }  // namespace bundlespec::col::objects
 
+namespace bundlespec::col::path_stats {
+inline constexpr int path_index = 0;
+inline constexpr int object_count = 1;
+inline constexpr int n_string = 2;
+inline constexpr int n_double = 3;
+inline constexpr int n_boolean = 4;
+inline constexpr int distinct_strings = 5;
+inline constexpr int min_double = 6;
+inline constexpr int max_double = 7;
+inline constexpr int columnCount = 8;
+}  // namespace bundlespec::col::path_stats
+
 namespace bundlespec::col::paths {
 inline constexpr int path_index = 0;
 inline constexpr int path = 1;
