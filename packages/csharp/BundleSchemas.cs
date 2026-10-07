@@ -143,6 +143,7 @@ public static class BundleSchemas
         new("element_id", ArrowType.Utf8, false),
         new("name", ArrowType.Utf8, true),
         new("view_specific", ArrowType.Boolean, false),
+        new("is_included", ArrowType.Boolean, true),
     };
 
     public static readonly ColumnSpec[] RevitWarnings =

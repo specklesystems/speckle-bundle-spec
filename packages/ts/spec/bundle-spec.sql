@@ -273,6 +273,8 @@ COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-typ
 --  computed by the producer from the source document (rvextract today):
 --    fileSizeBytes, warnings (count; the rows themselves are the `revit_warnings` file),
 --    cadImports, cadLinks, rvtLinkTypes, rvtLinkInstances (the items are `revit_external_links`),
+--    rvtLinksIncluded (how many of rvtLinkInstances were converted into this bundle — the
+--    count of `revit_external_links.is_included`; absent when the producer cannot tell),
 --    inPlaceFamilies, loadableFamilies, genericModels, modelGroupTypes, modelGroups,
 --    detailGroups, worksets, views, schedules, viewTemplates, sheets  → value_double;
 --    isWorkshared → value_boolean. Counts follow the authoring tool's own definitions
@@ -325,13 +327,15 @@ CREATE TABLE revit_external_links (
   kind          VARCHAR NOT NULL,
   element_id    VARCHAR NOT NULL,
   name          VARCHAR,
-  view_specific BOOLEAN NOT NULL
+  view_specific BOOLEAN NOT NULL,
+  is_included   BOOLEAN
 );
 COMMENT ON TABLE revit_external_links IS 'Optional: external files referenced by the source document — one row per placed instance (a file placed twice is two rows).';
 COMMENT ON COLUMN revit_external_links.kind IS 'rvt_link (linked Revit model) | cad_link (linked CAD) | cad_import (CAD imported into the document). CAD nested inside family definitions is not listed — the authoring tool does not count it either.';
 COMMENT ON COLUMN revit_external_links.element_id IS 'Producer-native id of the placed instance (Revit ElementId, as text).';
 COMMENT ON COLUMN revit_external_links.name IS 'File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it.';
 COMMENT ON COLUMN revit_external_links.view_specific IS 'True when placed in a single view (Revit: "Current view only") rather than in the model.';
+COMMENT ON COLUMN revit_external_links.is_included IS 'rvt_link: whether this placement''s linked model was converted into this bundle (its objects carry IN_MODEL to their own CONTAINER(Model)). False when the linked file was not supplied, is nested in another link, or failed to convert. NULL for kinds whose content is never a separate model (cad_link, cad_import), when the producer could not tell, and in bundles written before the column existed.';
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 2 — semantic catalogs (data). These tables carry the vocabulary AND its

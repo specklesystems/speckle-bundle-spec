@@ -16,5 +16,5 @@ public sealed record CameraView(int View, string? Name, bool IsDefault, int? Ord
 /// <summary>One <c>revit_warnings</c> row, in column order. Columns: <c>warning_index</c>, <c>warning_class</c>, <c>warning_type</c>, <c>warning_kind</c>, <c>failure_definition_id</c>, <c>description</c>, <c>element_id</c>, <c>element_application_id</c>, <c>element_category</c>.</summary>
 public sealed record RevitWarning(int WarningIndex, string WarningClass, int? WarningType, string WarningKind, string? FailureDefinitionId, string Description, string? ElementId = null, string? ElementApplicationId = null, string? ElementCategory = null);
 
-/// <summary>One <c>revit_external_links</c> row, in column order. Columns: <c>kind</c>, <c>element_id</c>, <c>name</c>, <c>view_specific</c>.</summary>
-public sealed record RevitExternalLink(string Kind, string ElementId, string? Name, bool ViewSpecific);
+/// <summary>One <c>revit_external_links</c> row, in column order. Columns: <c>kind</c>, <c>element_id</c>, <c>name</c>, <c>view_specific</c>, <c>is_included</c>.</summary>
+public sealed record RevitExternalLink(string Kind, string ElementId, string? Name, bool ViewSpecific, bool? IsIncluded = null);
