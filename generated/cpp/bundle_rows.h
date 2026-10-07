@@ -86,6 +86,7 @@ struct RevitExternalLink {
   std::string element_id;
   std::optional<std::string> name;
   bool view_specific;
+  std::optional<bool> is_included;
 };
 
 }  // namespace bundlespec

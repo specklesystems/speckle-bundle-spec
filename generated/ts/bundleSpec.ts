@@ -98,7 +98,7 @@ export const TABLES = {
   paths: ['path_index', 'path'],
   property_set_definitions: ['set_name', 'set_key', 'set_description', 'field_name', 'field_bucket_id', 'data_type', 'default_string', 'default_double', 'default_boolean', 'unit', 'description', 'applies_to'],
   relations: ['rel', 'src', 'dst', 'ord'],
-  revit_external_links: ['kind', 'element_id', 'name', 'view_specific'],
+  revit_external_links: ['kind', 'element_id', 'name', 'view_specific', 'is_included'],
   revit_warnings: ['warning_index', 'warning_class', 'warning_type', 'warning_kind', 'failure_definition_id', 'description', 'element_id', 'element_application_id', 'element_category'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
   structural_results: ['object_index', 'element_name', 'location', 'result_type', 'load_case', 'component', 'position_label', 'station', 'step', 'value', 'value_text'],

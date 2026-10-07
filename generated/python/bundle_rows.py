@@ -96,3 +96,4 @@ class RevitExternalLink:
     element_id: str
     name: str | None
     view_specific: bool
+    is_included: bool | None = None

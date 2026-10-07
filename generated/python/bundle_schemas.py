@@ -120,6 +120,7 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("element_id", "string", False),
         ColumnSpec("name", "string", True),
         ColumnSpec("view_specific", "bool", False),
+        ColumnSpec("is_included", "bool", True),
     ],
     "revit_warnings": [
         ColumnSpec("warning_index", "int32", False),

@@ -79,4 +79,5 @@ export type RevitExternalLink = {
   elementId: string
   name: string | null
   viewSpecific: boolean
+  isIncluded: boolean | null
 }
