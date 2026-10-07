@@ -129,7 +129,8 @@ inline constexpr int kind = 0;
 inline constexpr int element_id = 1;
 inline constexpr int name = 2;
 inline constexpr int view_specific = 3;
-inline constexpr int columnCount = 4;
+inline constexpr int is_included = 4;
+inline constexpr int columnCount = 5;
 }  // namespace bundlespec::col::revit_external_links
 
 namespace bundlespec::col::revit_warnings {

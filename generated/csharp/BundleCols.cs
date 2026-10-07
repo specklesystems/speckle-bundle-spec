@@ -143,7 +143,8 @@ public static class BundleCols
         public const int ElementId = 1;
         public const int Name = 2;
         public const int ViewSpecific = 3;
-        public const int ColumnCount = 4;
+        public const int IsIncluded = 4;
+        public const int ColumnCount = 5;
     }
 
     public static class RevitWarnings

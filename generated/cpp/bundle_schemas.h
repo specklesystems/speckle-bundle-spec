@@ -151,7 +151,8 @@ inline std::shared_ptr<arrow::Schema> revitExternalLinksSchema() {
       arrow::field("kind", arrow::utf8()),
       arrow::field("element_id", arrow::utf8()),
       arrow::field("name", arrow::utf8()),
-      arrow::field("view_specific", arrow::boolean())
+      arrow::field("view_specific", arrow::boolean()),
+      arrow::field("is_included", arrow::boolean())
   });
 }
 

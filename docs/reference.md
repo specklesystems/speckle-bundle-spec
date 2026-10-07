@@ -211,6 +211,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | element_id | VARCHAR | Producer-native id of the placed instance (Revit ElementId, as text). |
 | name | VARCHAR | File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it. |
 | view_specific | BOOLEAN | True when placed in a single view (Revit: "Current view only") rather than in the model. |
+| is_included | BOOLEAN | rvt_link: whether this placement's linked model was converted into this bundle (its objects carry IN_MODEL to their own CONTAINER(Model)). False when the linked file was not supplied, is nested in another link, or failed to convert. NULL for kinds whose content is never a separate model (cad_link, cad_import), when the producer could not tell, and in bundles written before the column existed. |
 
 ### `revit_warnings`
 

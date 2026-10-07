@@ -5,6 +5,13 @@ string of this package (see `VERSIONING.md`).
 
 ## unreleased (schema_version 1.4.0, additive)
 
+- `revit_external_links` gains `is_included` (nullable): for an `rvt_link` row, whether that
+  placement's linked model was converted into the bundle. Lets a consumer show which linked
+  models a version carries from the rows it already lists. Additive: older bundles lack
+  the column, and a reader treats absent as NULL.
+- `model` gains the documented `modelHealth.rvtLinksIncluded` row: the number of
+  `rvtLinkInstances` placements whose linked model is in the bundle. No schema change.
+
 ## schema_version 1.4.0 — revit_warnings.warning_kind (additive)
 
 - `revit_warnings` gains `warning_kind` (NOT NULL): a closed, neutral taxonomy of each
