@@ -68,7 +68,7 @@ CREATE TABLE eav (
   unit                     VARCHAR,
   internal_definition_name VARCHAR
 );
-COMMENT ON TABLE eav IS 'Per-object flattened attributes (entity-attribute-value). Unbounded, self-describing via paths.';
+COMMENT ON TABLE eav IS 'Per-object flattened attributes (entity-attribute-value). Unbounded, self-describing via paths. Row order: producers SHOULD write rows sorted by (path_index, object_index), so parquet row-group statistics let a path-filtered read skip row groups; a producer that writes path_stats MUST (see path_stats, docs/rationale/eav-sort-order.md).';
 COMMENT ON COLUMN eav.value_string IS 'Exactly one of value_string/value_double/value_boolean is set; consumer coalesces.';
 
 CREATE TABLE types (
@@ -86,13 +86,29 @@ CREATE TABLE type_eav (
   unit                     VARCHAR,
   internal_definition_name VARCHAR
 );
-COMMENT ON TABLE type_eav IS 'Type-scoped attributes (same shape as eav, keyed by type_index).';
+COMMENT ON TABLE type_eav IS 'Type-scoped attributes (same shape as eav, keyed by type_index). Row order: SHOULD be sorted by (path_index, type_index); MUST be when path_stats is present.';
 
 CREATE TABLE object_type (
   object_index INTEGER NOT NULL,
   type_index   INTEGER NOT NULL
 );
 COMMENT ON TABLE object_type IS 'Object → type weak reference (an object inherits its type_eav rows).';
+
+CREATE TABLE path_stats (
+  path_index       INTEGER NOT NULL,
+  object_count     INTEGER NOT NULL,
+  n_string         INTEGER NOT NULL,
+  n_double         INTEGER NOT NULL,
+  n_boolean        INTEGER NOT NULL,
+  distinct_strings INTEGER NOT NULL,
+  min_double       DOUBLE,
+  max_double       DOUBLE
+);
+COMMENT ON TABLE path_stats IS 'OPTIONAL per-path summary of the object_properties population (instance eav UNION ALL type_eav rows resolved to objects through object_type), one row per path_index that has rows. Its presence is the signal that eav and type_eav are sorted by path: a consumer may read statistics from here and from row-group metadata instead of sampling. Producers ship it together with the sort, never without it (docs/rationale/eav-sort-order.md).';
+COMMENT ON COLUMN path_stats.object_count IS 'Distinct objects carrying the path, counting type-inherited values once per object.';
+COMMENT ON COLUMN path_stats.n_string IS 'Rows with value_string set; n_double / n_boolean likewise.';
+COMMENT ON COLUMN path_stats.distinct_strings IS 'Distinct value_string values for the path.';
+COMMENT ON COLUMN path_stats.min_double IS 'Range of value_double for the path; NULL when the path has no numeric rows.';
 
 -- ── envelope (the graph: synthetic nodes + typed edges) ──────────────────────
 CREATE TABLE nodes (
@@ -449,4 +465,5 @@ INSERT INTO bundle_files VALUES
   (16, 'property_set_definitions', '{base}.eav.property_set_definitions.parquet', '{base}.eav.property_set_definitions.parquet', false, false, false, 'OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths).'),
   (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment).'),
   (18, 'revit_warnings', '{base}.eav.revit_warnings.parquet', '{base}.eav.revit_warnings.parquet', false, false, false, 'OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool''s display text (FEA-576).'),
-  (19, 'revit_external_links', '{base}.eav.revit_external_links.parquet', '{base}.eav.revit_external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).');
+  (19, 'revit_external_links', '{base}.eav.revit_external_links.parquet', '{base}.eav.revit_external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).'),
+  (20, 'path_stats', '{base}.eav.path_stats.parquet', '{base}.eav.path_stats.parquet', false, false, false, 'OPTIONAL per-path summary over instance + type-inherited attributes. Present ⇒ eav and type_eav are sorted by path_index (ENG-10508).');

@@ -104,6 +104,19 @@ public static class BundleCols
         public const int ColumnCount = 2;
     }
 
+    public static class PathStats
+    {
+        public const int PathIndex = 0;
+        public const int ObjectCount = 1;
+        public const int NString = 2;
+        public const int NDouble = 3;
+        public const int NBoolean = 4;
+        public const int DistinctStrings = 5;
+        public const int MinDouble = 6;
+        public const int MaxDouble = 7;
+        public const int ColumnCount = 8;
+    }
+
     public static class Paths
     {
         public const int PathIndex = 0;

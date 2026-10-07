@@ -11,6 +11,14 @@ string of this package (see `VERSIONING.md`).
   the column, and a reader treats absent as NULL.
 - `model` gains the documented `modelHealth.rvtLinksIncluded` row: the number of
   `rvtLinkInstances` placements whose linked model is in the bundle. No schema change.
+- `path_stats` (`{base}.eav.path_stats.parquet`), optional: one row per `path_index` over
+  instance eav plus type params resolved through `object_type` (object count, value-type
+  counts, distinct strings, numeric range). Present means `eav` is sorted by
+  `(path_index, object_index)` and `type_eav` by `(path_index, type_index)`. Producers
+  SHOULD sort and MUST when they write `path_stats`. Object-ordered bundles without it stay
+  valid. The validator now fails a bundle whose `path_stats` sits over unsorted eav, or
+  repeats a path. Native converters already write it (dispatch post-pass); the bundle
+  migrator does from ENG-10508. Rationale: `docs/rationale/eav-sort-order.md`.
 
 ## schema_version 1.4.0 — revit_warnings.warning_kind (additive)
 

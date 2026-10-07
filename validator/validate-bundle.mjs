@@ -223,5 +223,36 @@ if (present('relations') && present('nodes')) {
   }
 }
 
+// 9. path_stats ⇒ sorted eav (docs/rationale/eav-sort-order.md). Consumers read a
+// present path_stats as "sorted, trust the stats" and an absent one as "object-ordered,
+// sample row groups"; sorted-looking metadata over an unsorted file, or stats with a
+// duplicated path, mislead every consumer that plans reads from them.
+if (present('path_stats')) {
+  for (const [table, key] of [['eav', 'object_index'], ['type_eav', 'type_index']]) {
+    if (!present(table)) continue
+    const [r] = query(
+      `SELECT count(*) FILTER (WHERE prev_path IS NOT NULL AND (path_index, ${key}) < (prev_path, prev_key)) AS bad
+       FROM (SELECT path_index, ${key},
+                    lag(path_index) OVER (ORDER BY file_row_number) AS prev_path,
+                    lag(${key}) OVER (ORDER BY file_row_number) AS prev_key
+             FROM read_parquet('${join(dir, spec(table).file_glob.replace('{base}', base)).replace(/'/g, "''")}', file_row_number = true))`,
+      { withSpec: false }
+    )
+    check(
+      Number(r.bad) === 0,
+      `${table}: sorted by (path_index, ${key}) because path_stats is present` +
+        (Number(r.bad) ? ` — ${r.bad} row(s) out of order` : '')
+    )
+  }
+  const [s] = query(
+    `SELECT count(*) AS n, count(DISTINCT path_index) AS d FROM ${pq('path_stats')}`,
+    { withSpec: false }
+  )
+  check(
+    Number(s.n) === Number(s.d),
+    `path_stats: one row per path_index` + (Number(s.n) !== Number(s.d) ? ` — ${s.n} rows, ${s.d} paths` : '')
+  )
+}
+
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

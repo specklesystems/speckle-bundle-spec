@@ -109,6 +109,20 @@ inline std::shared_ptr<arrow::Schema> objectsSchema() {
   });
 }
 
+// path_stats
+inline std::shared_ptr<arrow::Schema> pathStatsSchema() {
+  return arrow::schema({
+      arrow::field("path_index", arrow::int32()),
+      arrow::field("object_count", arrow::int32()),
+      arrow::field("n_string", arrow::int32()),
+      arrow::field("n_double", arrow::int32()),
+      arrow::field("n_boolean", arrow::int32()),
+      arrow::field("distinct_strings", arrow::int32()),
+      arrow::field("min_double", arrow::float64()),
+      arrow::field("max_double", arrow::float64())
+  });
+}
+
 // paths
 inline std::shared_ptr<arrow::Schema> pathsSchema() {
   return arrow::schema({

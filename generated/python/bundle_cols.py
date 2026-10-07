@@ -107,6 +107,20 @@ class OBJECTS:
     COLUMN_COUNT = 2
 
 
+class PATH_STATS:
+    """Column indices of the path_stats table (spec order)."""
+
+    PATH_INDEX = 0
+    OBJECT_COUNT = 1
+    N_STRING = 2
+    N_DOUBLE = 3
+    N_BOOLEAN = 4
+    DISTINCT_STRINGS = 5
+    MIN_DOUBLE = 6
+    MAX_DOUBLE = 7
+    COLUMN_COUNT = 8
+
+
 class PATHS:
     """Column indices of the paths table (spec order)."""
 

@@ -15,6 +15,11 @@ The flat entity-attribute-value store. Each object has unbounded `(path, value)`
 rows; properties are not nested. The unbounded, source-variable half of the model.
 _Avoid_: properties blob, props dictionary.
 
+**path_stats**:
+The optional per-path summary of eav (instance plus type-inherited rows). Its presence
+means `eav` and `type_eav` are sorted by `path_index`; the two always ship together.
+See `docs/rationale/eav-sort-order.md`.
+
 **Envelope**:
 The graph laid *beside* the flat data: synthetic `nodes` plus typed `relations`.
 Hierarchy and relationships live here, never nested in the objects.

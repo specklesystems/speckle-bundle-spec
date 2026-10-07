@@ -91,6 +91,16 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("object_index", "int32", False),
         ColumnSpec("application_id", "string", False),
     ],
+    "path_stats": [
+        ColumnSpec("path_index", "int32", False),
+        ColumnSpec("object_count", "int32", False),
+        ColumnSpec("n_string", "int32", False),
+        ColumnSpec("n_double", "int32", False),
+        ColumnSpec("n_boolean", "int32", False),
+        ColumnSpec("distinct_strings", "int32", False),
+        ColumnSpec("min_double", "float64", True),
+        ColumnSpec("max_double", "float64", True),
+    ],
     "paths": [
         ColumnSpec("path_index", "int32", False),
         ColumnSpec("path", "string", False),
