@@ -36,11 +36,11 @@ Pin it exactly.
 
 | Ecosystem | Install |
 |---|---|
-| TypeScript / Node | `npm i @speckle/bundle-spec@1.4.0` — `import { Rel, NodeKind, SCHEMA_VERSION } from '@speckle/bundle-spec'`; the SQL is at `@speckle/bundle-spec/spec/bundle-spec.sql` |
-| Tests / CI (any ecosystem) | `npm i -D @speckle/bundle-spec-conformance@1.4.0` — `npx validate-bundle <bundle-dir>`; the query-conformance suite is `import { loadSuite } from '@speckle/bundle-spec-conformance'` over the package's `query/` directory. Needs the `duckdb` CLI on `PATH` (or `DUCKDB_BIN`) |
-| Python | `speckle-bundle-spec==1.4.0` — `from speckle_bundle_spec import Rel, SCHEMA_VERSION` (specklepy users keep `specklepy.bundle.spec`) |
-| .NET | `<PackageReference Include="Speckle.Bundle.Spec" Version="[1.4.0]" />` — namespace `Speckle.Bundle.Spec`, `BundleSpec.SchemaVersion` |
-| C++ (CMake ≥ 3.14) | `FetchContent_Declare(bundlespec URL https://github.com/specklesystems/speckle-bundle-spec/releases/download/1.4.0/speckle-bundle-spec-cpp-1.4.0.tar.gz URL_HASH SHA256=<from the .sha256 asset>)`, `FetchContent_MakeAvailable(bundlespec)`, link `bundlespec::bundlespec`; `bundlespec_VERSION` is the fetched version, `bundle_schemas.h` needs Arrow on the consumer's side |
+| TypeScript / Node | `npm i @speckle/bundle-spec@1.4.1` — `import { Rel, NodeKind, SCHEMA_VERSION } from '@speckle/bundle-spec'`; the SQL is at `@speckle/bundle-spec/spec/bundle-spec.sql` |
+| Tests / CI (any ecosystem) | `npm i -D @speckle/bundle-spec-conformance@1.4.1` — `npx validate-bundle <bundle-dir>`; the query-conformance suite is `import { loadSuite } from '@speckle/bundle-spec-conformance'` over the package's `query/` directory. Needs the `duckdb` CLI on `PATH` (or `DUCKDB_BIN`) |
+| Python | `speckle-bundle-spec==1.4.1` — `from speckle_bundle_spec import Rel, SCHEMA_VERSION` (specklepy users keep `specklepy.bundle.spec`) |
+| .NET | `<PackageReference Include="Speckle.Bundle.Spec" Version="[1.4.1]" />` — namespace `Speckle.Bundle.Spec`, `BundleSpec.SchemaVersion` |
+| C++ (CMake ≥ 3.14) | `FetchContent_Declare(bundlespec URL https://github.com/specklesystems/speckle-bundle-spec/releases/download/1.4.1/speckle-bundle-spec-cpp-1.4.1.tar.gz URL_HASH SHA256=<from the .sha256 asset>)`, `FetchContent_MakeAvailable(bundlespec)`, link `bundlespec::bundlespec`; `bundlespec_VERSION` is the fetched version, `bundle_schemas.h` needs Arrow on the consumer's side |
 
 The private Verdaccio registry carries the two npm packages too (it does not proxy
 `@speckle/*`); the server resolves them from there like every other `@speckle/*` package.
@@ -92,5 +92,5 @@ in the consumer are bypassed by every override below, not satisfied:
 - **Retire ids in place, never reuse them** (`status='retired'`). Gaps are intentional.
 - Short semantics live in the spec (as columns); long-form rationale lives in `docs/rationale/`.
 
-See `docs/reference.md` for the current vocabulary (schema_version 1.4.0), and
+See `docs/reference.md` for the current vocabulary (schema_version 1.4.1), and
 `VERSIONING.md` for how to bump `schema_version` and release.

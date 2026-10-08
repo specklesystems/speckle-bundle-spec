@@ -3,6 +3,16 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 of every package this repo publishes (see `VERSIONING.md`).
 
+## schema_version 1.4.1 — first complete registry release (patch)
+
+- No schema change. `1.4.0` reached PyPI, nuget.org and the internal npm registry but its
+  GitHub Release was created by hand before the workflow ran; the repo has immutable
+  releases, so the C++ tarball could never be attached and the tag cannot be reused. The
+  C++ target starts at `1.4.1` and the other targets ship `1.4.1` for one number everywhere.
+- `release.yml` creates the GitHub Release with its assets in one step (draft → upload →
+  publish) and refuses a release that already exists; `VERSIONING.md` says to tag with git,
+  never through the GitHub "Draft a new release" UI.
+
 ## schema_version 1.4.0 — revit_warnings.warning_kind, revit_external_links.is_included (additive)
 
 - `revit_warnings` gains `warning_kind` (NOT NULL): a closed, neutral taxonomy of each
