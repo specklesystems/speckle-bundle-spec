@@ -1,10 +1,10 @@
-// Emit generated/python/bundle_schemas.py — a typed column descriptor per produced
+// Emit packages/python/speckle_bundle_spec/bundle_schemas.py — a typed column descriptor per produced
 // table. Library-agnostic on purpose (no pyarrow import here): the producer maps the
 // string ArrowType token → its own pyarrow field builder once, then builds every table
 // schema from these descriptors instead of hand-declaring them. Mirrors BundleSchemas.cs.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
 import { mapType } from './lib/types.mjs'
 
 export function emitPythonSchemas() {
@@ -48,7 +48,7 @@ ${tableBlocks}
 }
 `
 
-  const dir = join(REPO, 'generated', 'python')
+  const dir = OUT.py
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_schemas.py'), out)
   return join(dir, 'bundle_schemas.py')

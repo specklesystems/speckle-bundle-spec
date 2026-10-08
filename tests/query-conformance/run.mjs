@@ -1,7 +1,7 @@
-// Reference runner for conformance/query: mounts the committed synthetic bundle in the
-// DuckDB CLI exactly as the contract prescribes, then asserts schema.json and every golden
-// case. Runs under `npm test` so a spec or fixture edit that breaks a golden goes red HERE
-// before any engine vendors it. Engines run the same suite via their own runner.
+// Reference runner for the query-conformance suite: mounts the committed synthetic bundle
+// in the DuckDB CLI exactly as the contract prescribes, then asserts schema.json and every
+// golden case. Runs under `npm test` so a spec or fixture edit that breaks a golden goes
+// red HERE before any engine installs it. Engines run the same suite via their own runner.
 import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import { REPO } from '../../codegen/lib/duck.mjs'
@@ -14,10 +14,10 @@ import {
   loadSuite,
   mountPlan,
   rowsFromObjects
-} from '../../conformance/query/harness.mjs'
+} from '../../packages/conformance/query/harness.mjs'
 
 const DUCKDB = process.env.DUCKDB_BIN || 'duckdb'
-const suite = loadSuite(join(REPO, 'conformance', 'query'))
+const suite = loadSuite(join(REPO, 'packages', 'conformance', 'query'))
 const { alias } = suite.schema
 const q = (s) => s.replace(/'/g, "''")
 

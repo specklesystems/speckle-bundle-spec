@@ -1,0 +1,34 @@
+{
+  "name": "@speckle/bundle-spec",
+  "version": "0.0.0",
+  "description": "Speckle bundle format catalog: generated TypeScript constants and the executable DuckDB SQL spec they derive from.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/specklesystems/speckle-bundle-spec.git",
+    "directory": "packages/ts"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./spec/bundle-spec.sql": "./spec/bundle-spec.sql",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "spec/"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

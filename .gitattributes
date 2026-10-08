@@ -1,6 +1,6 @@
-# codegen/verify-pin.mjs hashes the generated targets byte-for-byte, so a Windows
+# Generated code under packages/ is byte-compared by `npm run check`, so a Windows
 # checkout must produce the same bytes as CI does on Linux — LF, whatever core.autocrlf
-# is set to. Without this a re-vendor computes CRLF hashes and the pin silently mismatches.
+# is set to.
 * text=auto eol=lf
 
 # Conformance gold fixtures: never line-ending convert.

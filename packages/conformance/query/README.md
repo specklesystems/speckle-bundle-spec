@@ -16,11 +16,11 @@ fixture.sql      the deterministic recipe the bundle is built from (run after th
 schema.json      the mounted-schema expectation (generated from the spec)
 cases.json       golden (sql, expected) pairs, all fully ORDER BY-ed
 local/           side files for the local-data-join cases (read_csv against the bundle)
-harness.mjs      loader, mount plan, result comparison — pure JS, vendored by the JS engines
+harness.mjs      loader, mount plan, result comparison — pure JS, the package's main entry for the JS engines
 ```
 
-Rebuild with `npm run build:query-fixture` (needs the `duckdb` CLI). The reference runner,
-`tests/query-conformance/run.mjs`, is part of `npm test`.
+Rebuild with `npm run build:query-fixture` at the repo root (needs the `duckdb` CLI). The
+reference runner, `tests/query-conformance/run.mjs`, is part of `npm test`.
 
 ## The contract an engine must satisfy
 
@@ -97,7 +97,17 @@ per-engine patch.
 
 ## Distribution
 
-Consumers vendor this directory the way specklepy vendors `generated/python`:
-`npm run publish:artifacts` lists every file under `conformance/query/` in
-`dist/bundle-spec.lock.json` (target `queryConformance`), and
-`npm run verify-pin -- --query-conformance <vendored dir>` checks a vendored copy against it.
+This directory ships inside `@speckle/bundle-spec-conformance` (a dev-only dependency for
+engines; the same version as the `@speckle/bundle-spec` catalog). JS engines import the
+harness from the package root and point `loadSuite` at its `query/` directory:
+
+```js
+import { loadSuite } from '@speckle/bundle-spec-conformance'
+import { createRequire } from 'node:module'
+import { dirname } from 'node:path'
+const suite = loadSuite(dirname(createRequire(import.meta.url).resolve('@speckle/bundle-spec-conformance/query/cases.json')))
+```
+
+The .NET and Python engines read `cases.json`, `schema.json`, `bundle/` and `local/` from
+the same installed package (or a checkout of this repo at the pinned tag) and reimplement
+the harness in-language.

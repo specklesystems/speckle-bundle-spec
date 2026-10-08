@@ -1,10 +1,10 @@
-// Emit generated/cpp/bundle_schemas.h — one arrow::Schema factory per produced
+// Emit packages/cpp/include/bundle_schemas.h — one arrow::Schema factory per produced
 // table, so bundle_writer.h builds its parquet schemas FROM the spec instead of
 // hand-declaring them. Arrow-dependent, so kept out of envelope_spec.h (which
 // stays include-light for pure enum consumers).
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
 import { mapType, camel } from './lib/types.mjs'
 
 export function emitCppSchemas() {
@@ -40,7 +40,7 @@ ${fns}
 }  // namespace bundlespec
 `
 
-  const dir = join(REPO, 'generated', 'cpp')
+  const dir = OUT.cpp
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_schemas.h'), out)
   return join(dir, 'bundle_schemas.h')

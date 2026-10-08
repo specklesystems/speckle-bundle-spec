@@ -1,9 +1,6 @@
 // Spec invariants — run in CI on every spec edit. No bundle needed; these guard
 // the spec itself (the rules a human might break while editing bundle-spec.sql).
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import {
-  REPO,
   relTypes,
   nodeKinds,
   query,
@@ -136,12 +133,10 @@ check(
   'IN_SUBASSEMBLY remains retired'
 )
 
-// 10. meta.schema_version is the spec's semver string and names the package release:
-// one value, not two numbers kept in step by hand (VERSIONING.md).
+// 10. meta.schema_version is a semver string: it is the release tag every package ships
+// under (VERSIONING.md), and the release gate compares the two verbatim.
 const sv = schemaVersion()
 check(typeof sv === 'string' && SEMVER_RE.test(sv), `meta.schema_version is a semver string (${sv})`)
-const pkgVersion = JSON.parse(readFileSync(join(REPO, 'package.json'), 'utf8')).version
-check(sv === pkgVersion, `meta.schema_version equals package.json version (${pkgVersion})`)
 
 console.log(fails === 0 ? '\nconformance: PASS' : `\nconformance: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

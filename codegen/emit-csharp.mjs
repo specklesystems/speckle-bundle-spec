@@ -1,9 +1,9 @@
-// Emit generated/csharp/BundleSpec.cs — enums + catalog rows for the managed
+// Emit packages/csharp/BundleSpec.cs — enums + catalog rows for the managed
 // EnvelopeWriter, kept in lockstep with the native producer via the same spec.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  REPO,
+  OUT,
   GENERATED_HEADER,
   relTypes,
   nodeKinds,
@@ -71,7 +71,7 @@ ${kindRows}
 }
 `
 
-  const dir = join(REPO, 'generated', 'csharp')
+  const dir = OUT.cs
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'BundleSpec.cs'), out)
   return join(dir, 'BundleSpec.cs')

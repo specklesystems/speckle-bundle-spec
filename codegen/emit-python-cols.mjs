@@ -1,11 +1,11 @@
-// Emit generated/python/bundle_cols.py — NAMED column-index constants per produced
+// Emit packages/python/speckle_bundle_spec/bundle_cols.py — NAMED column-index constants per produced
 // table, so the specklepy producer addresses its column arrays by name instead of
 // hard-coded ordinals. A spec column INSERTION shifts these automatically; a
 // rename/removal breaks the consumer's imports. Mirrors bundle_cols.h / BundleCols.cs.
-// Zero runtime deps so it vendors cleanly into specklepy.
+// Zero runtime deps.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
 import { snake } from './lib/types.mjs'
 
 export function emitPythonCols() {
@@ -38,7 +38,7 @@ automatically and a rename/removal fails their imports.
 ${classes}
 `
 
-  const dir = join(REPO, 'generated', 'python')
+  const dir = OUT.py
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_cols.py'), out)
   return join(dir, 'bundle_cols.py')

@@ -1,8 +1,8 @@
-// Emit generated/cpp/bundle_rows.h — one struct per row-shaped table, in DDL column
+// Emit packages/cpp/include/bundle_rows.h — one struct per row-shaped table, in DDL column
 // order. Include-light (no arrow), like envelope_spec.h.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER } from './lib/duck.mjs'
 import { mapType } from './lib/types.mjs'
 import { tableRows } from './lib/tables.mjs'
 
@@ -34,7 +34,7 @@ ${structs}
 }  // namespace bundlespec
 `
 
-  const dir = join(REPO, 'generated', 'cpp')
+  const dir = OUT.cpp
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_rows.h'), out)
   return join(dir, 'bundle_rows.h')

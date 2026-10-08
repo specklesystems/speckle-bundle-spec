@@ -1,7 +1,7 @@
-// Emit generated/ts/bundleRows.ts — one type alias per row-shaped table, in DDL column order.
+// Emit packages/ts/src/bundleRows.ts — one type alias per row-shaped table, in DDL column order.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER } from './lib/duck.mjs'
 import { mapType, camel } from './lib/types.mjs'
 import { tableRows } from './lib/tables.mjs'
 
@@ -20,7 +20,7 @@ export function emitTsTables() {
 
   const out = GENERATED_HEADER('ts') + `\n${types}\n`
 
-  const dir = join(REPO, 'generated', 'ts')
+  const dir = OUT.ts
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundleRows.ts'), out)
   return join(dir, 'bundleRows.ts')

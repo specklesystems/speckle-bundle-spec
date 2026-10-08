@@ -1,11 +1,11 @@
-// Emit generated/csharp/BundleCols.cs — NAMED column-index constants per produced
+// Emit packages/csharp/BundleCols.cs — NAMED column-index constants per produced
 // table, so the managed writer addresses its column arrays by name instead of
 // hard-coded ordinals. A spec column INSERTION shifts these automatically; a
 // rename/removal breaks the consumer's compile — the writer cannot silently
 // drift from the schema it builds via BundleSchemas.cs. Mirrors bundle_cols.h.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
 import { camel } from './lib/types.mjs'
 
 const pascal = (s) => {
@@ -46,7 +46,7 @@ ${classes}
 }
 `
 
-  const dir = join(REPO, 'generated', 'csharp')
+  const dir = OUT.cs
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'BundleCols.cs'), out)
   return join(dir, 'BundleCols.cs')

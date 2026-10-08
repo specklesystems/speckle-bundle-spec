@@ -1,21 +1,21 @@
-// Build the query-conformance synthetic bundle: run the spec DDL + conformance/query/
+// Build the query-conformance synthetic bundle: run the spec DDL + the suite's
 // fixture.sql in DuckDB, COPY every bundle_files table to its spec-named parquet, and
 // emit schema.json (the mounted-schema expectation, derived from the spec so the spec
 // stays the only hand-authored source of column truth).
 //
-//   node codegen/build-query-fixture.mjs      # → conformance/query/bundle/, schema.json
+//   node codegen/build-query-fixture.mjs      # → packages/conformance/query/bundle/, schema.json
 //
-// The parquet bytes are committed (consumers vendor the directory); this script is the
-// reproducible recipe, not a CI check — DuckDB writer versions differ in parquet metadata,
+// The parquet bytes are committed (they ship in @speckle/bundle-spec-conformance); this
+// script is the reproducible recipe, not a CI check — DuckDB writer versions differ in parquet metadata,
 // so byte-identity across machines is not a goal. Row content is deterministic.
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { REPO, SPEC, bundleFiles, tableColumns } from './lib/duck.mjs'
-import { PATHS_RAW_VIEW } from '../conformance/query/harness.mjs'
+import { PATHS_RAW_VIEW } from '../packages/conformance/query/harness.mjs'
 
 const DUCKDB = process.env.DUCKDB_BIN || 'duckdb'
-const SUITE = join(REPO, 'conformance', 'query')
+const SUITE = join(REPO, 'packages', 'conformance', 'query')
 const BUNDLE_DIR = join(SUITE, 'bundle')
 const BASE = 'gold'
 const ALIAS = 'gold'
@@ -104,4 +104,4 @@ const schema = {
 writeFileSync(join(SUITE, 'schema.json'), JSON.stringify(schema, null, 2) + '\n')
 
 const sizeKb = written.reduce((s, n) => s + readFileSync(join(BUNDLE_DIR, n)).length, 0) / 1024
-console.log(`query fixture → conformance/query/bundle/ (${written.length} files, ${sizeKb.toFixed(0)} KB), schema.json`)
+console.log(`query fixture → packages/conformance/query/bundle/ (${written.length} files, ${sizeKb.toFixed(0)} KB), schema.json`)

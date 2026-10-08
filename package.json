@@ -1,25 +1,25 @@
 {
-  "name": "@speckle/bundle-spec",
-  "version": "1.4.0",
-  "description": "Single source of truth for the Speckle bundle format (eav + envelope + geometry). Schema and semantics live in spec/bundle-spec.sql; everything else is generated.",
+  "name": "speckle-bundle-spec",
+  "private": true,
+  "description": "Single source of truth for the Speckle bundle format (eav + envelope + geometry). Schema and semantics live in spec/bundle-spec.sql; every package under packages/ is generated from it.",
   "type": "module",
-  "main": "generated/ts/bundleSpec.ts",
-  "files": [
-    "spec/",
-    "generated/ts/",
-    "conformance/"
+  "workspaces": [
+    "packages/ts",
+    "packages/conformance"
   ],
   "scripts": {
     "generate": "node codegen/generate-all.mjs",
-    "publish:artifacts": "node codegen/publish.mjs",
-    "verify-pin": "node codegen/verify-pin.mjs",
-    "validate": "node validator/validate-bundle.mjs",
+    "build": "npm run build --workspace packages/ts",
+    "validate": "node packages/conformance/validator/validate-bundle.mjs",
     "build:query-fixture": "node codegen/build-query-fixture.mjs",
-    "test": "node tests/conformance/run.mjs && node tests/validator/run.mjs && node tests/query-conformance/run.mjs",
-    "check": "node codegen/generate-all.mjs && git diff --exit-code generated docs/reference.md"
+    "test": "node tests/conformance/run.mjs && node tests/validator/run.mjs && node tests/query-conformance/run.mjs && node tests/release-gate/run.mjs",
+    "check": "node codegen/generate-all.mjs && git diff --exit-code packages docs/reference.md"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "license": "Apache-2.0"
 }

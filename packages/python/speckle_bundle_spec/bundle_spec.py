@@ -2,8 +2,8 @@
 # Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
 """Speckle bundle vocabulary (schema_version 1.4.0).
 
-Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate with
-`node codegen/generate-all.mjs` in that repo, then re-vendor into specklepy.
+Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Ships as the
+`speckle-bundle-spec` package on PyPI; regenerate with `npm run generate` in that repo.
 """
 
 from enum import IntEnum

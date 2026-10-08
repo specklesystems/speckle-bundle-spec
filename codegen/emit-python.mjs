@@ -1,10 +1,10 @@
-// Emit generated/python/bundle_spec.py — Rel/NodeKind IntEnums + catalog rows +
+// Emit packages/python/speckle_bundle_spec/bundle_spec.py — Rel/NodeKind IntEnums + catalog rows +
 // SCHEMA_VERSION the specklepy producer imports instead of hardcoding rel/kind ids.
-// Zero runtime deps (stdlib enum / typing only) so it vendors cleanly into specklepy.
+// Zero runtime deps (stdlib enum / typing only).
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  REPO,
+  OUT,
   GENERATED_HEADER,
   relTypes,
   nodeKinds,
@@ -42,8 +42,8 @@ export function emitPython() {
     GENERATED_HEADER('py') +
     `"""Speckle bundle vocabulary (schema_version ${schemaVersion()}).
 
-Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate with
-\`node codegen/generate-all.mjs\` in that repo, then re-vendor into specklepy.
+Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Ships as the
+\`speckle-bundle-spec\` package on PyPI; regenerate with \`npm run generate\` in that repo.
 """
 
 from enum import IntEnum
@@ -91,7 +91,7 @@ ${kindRows}
 ]
 `
 
-  const dir = join(REPO, 'generated', 'python')
+  const dir = OUT.py
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_spec.py'), out)
   return join(dir, 'bundle_spec.py')

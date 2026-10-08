@@ -5,7 +5,7 @@ status: accepted
 # Producers generate schemas from the spec; bundles are validated against it
 
 Producers build their Arrow/parquet schemas from generated artifacts
-(`generated/cpp/bundle_schemas.h`, `generated/csharp/BundleSchemas.cs`) rather than
+(`packages/cpp/include/bundle_schemas.h`, `packages/csharp/BundleSchemas.cs`) rather than
 hand-declaring `arrow::schema({...})`, and a conformance validator checks any real
 bundle against the spec (columns present, relation/node ids known and not retired).
 Together these replace the previously hand-maintained guarantee that the native

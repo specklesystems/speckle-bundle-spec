@@ -1,4 +1,4 @@
-// Emit generated/cpp/bundle_cols.h — NAMED column-index constants per produced
+// Emit packages/cpp/include/bundle_cols.h — NAMED column-index constants per produced
 // table, so writers address Arrow builders/rows by name instead of hard-coded
 // ordinals. A spec column INSERTION shifts these automatically; a rename/removal
 // breaks the consumer's compile — either way the writer cannot silently drift
@@ -7,7 +7,7 @@
 // Include-light on purpose (no arrow) — usable by any translation unit.
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { REPO, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
+import { OUT, GENERATED_HEADER, tableColumns } from './lib/duck.mjs'
 import { snake } from './lib/types.mjs'
 
 export function emitCppCols() {
@@ -42,7 +42,7 @@ export function emitCppCols() {
 ${blocks}
 `
 
-  const dir = join(REPO, 'generated', 'cpp')
+  const dir = OUT.cpp
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'bundle_cols.h'), out)
   return join(dir, 'bundle_cols.h')
