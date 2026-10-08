@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.4.0)
+--  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.4.1)
 -- ════════════════════════════════════════════════════════════════════════════
 --  This file IS the spec. It is executable DuckDB SQL:
 --    • CREATE TABLE …            → the shape of every parquet in the bundle
@@ -35,7 +35,7 @@
 -- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
 CREATE TABLE meta (schema_version VARCHAR NOT NULL, produced_by VARCHAR NOT NULL,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES ('1.4.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES ('1.4.1', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
 
 -- ════════════════════════════════════════════════════════════════════════════

@@ -175,9 +175,19 @@ jobs:
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: release-notes
-      - name: Create the release, then attach the assets
+      # Immutable releases lock assets at publish time, so the assets must go in with the
+      # create (gh drafts, uploads, then publishes). A published release without the tarball
+      # can never get it and its tag cannot be reused — the fix is the next patch (VERSIONING.md).
+      - name: Create the release with its assets
         run: |
           tag="$GITHUB_REF_NAME"
-          gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
-            || gh release create "$tag" -R "$GITHUB_REPOSITORY" --title "$tag" --notes-file notes.md
-          gh release upload "$tag" -R "$GITHUB_REPOSITORY" out/cpp/*.tar.gz out/cpp/*.sha256 --clobber
+          state="$(gh release view "$tag" -R "$GITHUB_REPOSITORY" --json isDraft,assets \
+            -q '"\(.isDraft) \([.assets[].name] | join(" "))"' 2>/dev/null || true)"
+          case "$state" in
+            "") ;;
+            "true"*) gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes ;;
+            *"speckle-bundle-spec-cpp-$tag.tar.gz"*) echo "release $tag already carries the tarball"; exit 0 ;;
+            *) echo "::error::release $tag is published without the C++ tarball; immutable releases take assets only at creation and the tag cannot be reused — release the next patch (VERSIONING.md)"; exit 1 ;;
+          esac
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" --verify-tag --title "$tag" --notes-file notes.md \
+            out/cpp/*.tar.gz out/cpp/*.sha256

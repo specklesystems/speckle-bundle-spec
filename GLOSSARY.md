@@ -93,4 +93,4 @@ the glob `{base}.geometries*.parquet`.
 **schema_version**:
 The semver string in `meta` stamping which spec release a bundle was built
 against — equal to the version of every package this repo publishes (currently
-`1.4.0`; see `VERSIONING.md`).
+`1.4.1`; see `VERSIONING.md`).

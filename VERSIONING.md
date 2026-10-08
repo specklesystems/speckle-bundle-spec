@@ -78,6 +78,11 @@ Between releases, log changes under `## unreleased (schema_version <next>, addit
 git tag <x.y.z> <merge-commit> && git push origin <x.y.z>
 ```
 
+Tag with git, never through GitHub's "Draft a new release": the UI suggests the next
+patch after the last tag, and the repo has immutable releases — a release created by hand
+is published before the workflow reaches it, its assets are locked, and that tag can never
+carry the C++ tarball (`1.4.0` lost it this way). The workflow creates the release.
+
 `.github/workflows/release.yml` runs, in order:
 
 1. **Gate** — `scripts/release-gate.mjs`: the tag equals `meta.schema_version`;
@@ -90,15 +95,17 @@ git tag <x.y.z> <merge-commit> && git push origin <x.y.z>
 3. **Publish**, one job per target, all from the artifacts the verify job built: npmjs
    (OIDC trusted publishing, provenance) and Verdaccio over Tailscale (`speckledevbot`'s
    `NPM_TOKEN`); PyPI (OIDC); nuget.org (OIDC via `NuGet/login`, `NUGET_USER`); a GitHub
-   Release whose notes are the changelog section, carrying the C++ tarball and its
-   `.sha256`.
+   Release whose notes are the changelog section, created with the C++ tarball and its
+   `.sha256` in one step (draft → upload → publish, as immutable releases require).
 
 Every gate runs before the first publish. If one registry fails after others succeeded,
 **re-run the failed job(s)** of that same workflow run (Actions → the run → "Re-run failed
 jobs"); never delete or move the tag, and never re-tag the same version. Registries do
 not accept a second upload of a version, so a successful job re-run is a no-op where the
-registry allows it (nuget `--skip-duplicate`, release asset `--clobber`) and a refused
-duplicate elsewhere — both mean "already there".
+registry allows it (nuget `--skip-duplicate`, a GitHub Release that already carries the
+tarball) and a refused duplicate elsewhere — both mean "already there". The one
+unrecoverable case: a GitHub Release published without the tarball (someone created it
+by hand) — the job fails on purpose, and the C++ target starts at the next patch.
 
 Tags before `1.4.0` were never published as packages and will not be backfilled.
 
