@@ -17,14 +17,8 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ── meta ─────────────────────────────────────────────────────────────────────
--- Reference point (ENG-8947 → ENG-9099): producers that RE-BASE geometry by a source
--- reference point (Revit project base / survey point / shared coordinates) record it as
--- MODEL-scoped eav rows in the `model` file (17), NOT here: `referencePoint.kind`
--- (projectBasePoint | surveyPoint | sharedCoordinates | internalOriginFallback),
--- `referencePoint.transform` (the FULL rigid transform applied — 16 row-major doubles,
--- InstanceProxy layout) and `referencePoint.units`. "internalOriginFallback" = a reference
--- point was REQUESTED but missing from the model; the producer converted at the internal
--- origin (no transform row) — recorded degradation, not silence. No rows = internal origin.
+-- Model placement (ENG-8947 → ENG-9099): where the model sits is a MODEL-scoped record —
+-- `modelPlacement.*` rows in the `model` file (17, see the model table comment), NOT here.
 -- The former meta columns reference_point_kind/_offset are REMOVED (xyz-only offsets lost
 -- rotation and meta is the wrong home for model data); consumers tolerate them as extra
 -- columns on old bundles but must not read them.
@@ -280,6 +274,33 @@ COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-typ
 --    isWorkshared → value_boolean. Counts follow the authoring tool's own definitions
 --  (views excludes templates/sheets/browser views; worksets = user worksets, 0 when not
 --  workshared). Absent rows ⇒ the producer did not compute health, not "zero".
+--  Model placement (ENG-9099, ENG-9177): `modelPlacement.*` rows are the ONLY placement
+--  record — where the model sits, independent of whether stored geometry already carries it:
+--    transform          value_string: the selected datum as the producer's INTERNAL frame →
+--                       that datum's space; 16 comma-separated row-major doubles, basis vectors
+--                       as columns, translation at 3/7/11 in `units` (InstanceProxy layout).
+--    appliedToGeometry  value_boolean. true: stored coordinates already carry `transform` —
+--                       place them as-is; a host round-trip applies its inverse to restore
+--                       internal coordinates. false: stored coordinates ARE internal — apply
+--                       `transform` to place the model.
+--    units              value_string: units of the translation column.
+--    default            value_string: the datum kind `transform` encodes; internalOrigin when
+--                       the requested datum is missing from the model.
+--    source             value_string: the requested kind, or internalOriginFallback when it was
+--                       missing — recorded degradation, not silence.
+--    options.<kind>.transform  every datum the model offers, same convention, for switching.
+--  Kinds are producer-defined (e.g. internalOrigin, projectBasePoint, surveyPoint,
+--  sharedCoordinates, drawingWcs, gridCoordinates, mapConversion). Producers write transform,
+--  appliedToGeometry and units together; without a parseable transform and appliedToGeometry
+--  the record is unusable and reads as absent, and a reader's fallback for a missing units row
+--  is not part of the contract.
+--  Legacy `referencePoint.kind/.transform/.units` rows (pre-ENG-9099/ENG-9177 bundles) are
+--  read-only: producers must not write them. Their transform is the datum's SOURCE transform
+--  (datum → internal) over geometry it was already applied to, i.e. modelPlacement.transform =
+--  inverse(referencePoint.transform), appliedToGeometry = true, default = source =
+--  referencePoint.kind when that row is present.
+--  Readers: a usable modelPlacement record wins; failing that a legacy referencePoint.transform
+--  MAY be honoured as mapped above; otherwise stored coordinates are the placement (identity).
 CREATE TABLE model (
   path          VARCHAR NOT NULL,
   value_string  VARCHAR,
@@ -447,6 +468,6 @@ INSERT INTO bundle_files VALUES
   (14, 'camera_views','{base}.envelope.camera_views.parquet','{base}.envelope.camera_views.parquet',false, false, true, 'Named camera viewpoints (eye/forward/up + projection).'),
   (15, 'structural_results', '{base}.eav.structural_results.parquet', '{base}.eav.structural_results.parquet', false, false, false, 'OPTIONAL per-domain purpose file: structural analysis/design results (long/tidy scalar rows). Present only when a structural producer (ETABS/CSi/SAP/TSD) publishes results for a locked model.'),
   (16, 'property_set_definitions', '{base}.eav.property_set_definitions.parquet', '{base}.eav.property_set_definitions.parquet', false, false, false, 'OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths).'),
-  (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment).'),
+  (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the model-placement record: modelPlacement.* (legacy referencePoint.* rows are read-only) and the model health counts: modelHealth.* (see the model table comment for both).'),
   (18, 'revit_warnings', '{base}.eav.revit_warnings.parquet', '{base}.eav.revit_warnings.parquet', false, false, false, 'OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool''s display text (FEA-576).'),
   (19, 'revit_external_links', '{base}.eav.revit_external_links.parquet', '{base}.eav.revit_external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).');

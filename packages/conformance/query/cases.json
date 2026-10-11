@@ -225,10 +225,17 @@
     },
     {
       "name": "model_scoped_eav",
-      "sql": "SELECT path, value_string, value_double FROM gold.model ORDER BY path",
+      "sql": "SELECT path, value_string, value_double, value_boolean FROM gold.model ORDER BY path",
       "expected": {
-        "columns": ["path", "value_string", "value_double"],
-        "rows": [["model.storeys", null, 3], ["referencePoint.kind", "internalOrigin", null], ["referencePoint.units", "m", null]]
+        "columns": ["path", "value_string", "value_double", "value_boolean"],
+        "rows": [
+          ["model.storeys", null, 3, null],
+          ["modelPlacement.appliedToGeometry", null, null, false],
+          ["modelPlacement.default", "internalOrigin", null, null],
+          ["modelPlacement.source", "internalOrigin", null, null],
+          ["modelPlacement.transform", "1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1", null, null],
+          ["modelPlacement.units", "m", null, null]
+        ]
       }
     },
     {
