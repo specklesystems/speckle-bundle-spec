@@ -3,6 +3,25 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 of every package this repo publishes (see `VERSIONING.md`).
 
+## unreleased (schema_version 1.5.0, additive)
+
+**Model placement is `modelPlacement.*`; `referencePoint.*` is legacy (ENG-9099, ENG-9177)**
+- The spec now documents the placement record every producer writes: `modelPlacement.transform`
+  (the selected datum as INTERNAL → datum, 16 row-major doubles, InstanceProxy layout),
+  `.appliedToGeometry`, `.units`, `.default`, `.source` and `.options.<kind>.transform`, in the
+  `model` file. Every connector, native and Python producer has written these rows, and the Revit
+  receive and server viewer have read only these, since ENG-9099/ENG-9177; the spec still
+  described the `referencePoint.*` rows they replaced.
+- `referencePoint.kind` / `.transform` / `.units` become legacy and read-only: producers must not
+  write them. The spec defines how they map onto the new record (their transform is the inverse,
+  over baked geometry) and the reader precedence: `modelPlacement.*`, then optionally legacy
+  rows, then identity. This supersedes the 1.1.0 entry "Reference point moves to eav.model".
+- No column, file or id change: the record is eav paths in the existing `model` file. Classed as
+  additive because the documented vocabulary gains paths, as `modelHealth.*` did in 1.3.0; legacy
+  bundles keep a defined meaning.
+- Query conformance: the fixture's `model` rows and the `model_scoped_eav` case now carry a
+  `modelPlacement.*` record and select `value_boolean`.
+
 ## schema_version 1.4.1 — first complete registry release (patch)
 
 - No schema change. `1.4.0` reached PyPI, nuget.org and the internal npm registry but its

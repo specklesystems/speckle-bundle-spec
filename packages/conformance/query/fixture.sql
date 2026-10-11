@@ -106,6 +106,9 @@ INSERT INTO property_set_definitions VALUES
   ('Dimensions', 'dimensions', 'Geometric quantities', 'Length', NULL, 'double', NULL, NULL, NULL, 'm', 'Nominal length', 'Walls');
 
 INSERT INTO model VALUES
-  ('referencePoint.kind', 'internalOrigin', NULL, NULL, NULL),
-  ('referencePoint.units', 'm', NULL, NULL, NULL),
+  ('modelPlacement.default', 'internalOrigin', NULL, NULL, NULL),
+  ('modelPlacement.source', 'internalOrigin', NULL, NULL, NULL),
+  ('modelPlacement.transform', '1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1', NULL, NULL, NULL),
+  ('modelPlacement.units', 'm', NULL, NULL, NULL),
+  ('modelPlacement.appliedToGeometry', NULL, NULL, false, NULL),
   ('model.storeys', NULL, 3, NULL, NULL);
