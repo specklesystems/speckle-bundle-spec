@@ -214,7 +214,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | view_specific | BOOLEAN | True when placed in a single view (Revit: "Current view only") rather than in the model. |
 | is_included | BOOLEAN | rvt_link: whether this placement's linked model was converted into this bundle (its objects carry IN_MODEL to their own CONTAINER(Model)). False when the linked file was not supplied, is nested in another link, or failed to convert. NULL for kinds whose content is never a separate model (cad_link, cad_import), when the producer could not tell, and in bundles written before the column existed. |
 | workset | VARCHAR | Workset the placed instance is on, by name (ENG-11122); NULL when the document is not workshared and in bundles written before the column existed. |
-| transform | VARCHAR | rvt_link: the placement's total transform, row-major 4x4 as CSV like nodes.transform, translation in the unit of the model row modelPlacement.units (ENG-11122). NULL for cad_link / cad_import and in bundles written before the column existed. |
+| transform | VARCHAR | rvt_link: the placement's total transform, link internal coordinates to host internal coordinates, row-major 4x4 as CSV like nodes.transform, translation in the unit of the model row modelPlacement.units (ENG-11122). NULL for cad_link / cad_import and in bundles written before the column existed. |
 
 ### `revit_views`
 

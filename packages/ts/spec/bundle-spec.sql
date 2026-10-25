@@ -290,8 +290,8 @@ COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-typ
 --  project information parameters (built-in and shared), one row per parameter that has a
 --  value, unit as on eav rows.
 --  Document (ENG-11121): `document.fileName` (source file name, no directory),
---  `document.isCentral` / `document.isLocal` (value_boolean; a workshared file that is
---  neither is detached), `document.centralModelPath` (the central path the file records;
+--  `document.isCentral` / `document.isLocal` (value_boolean, as the file records them),
+--  `document.centralModelPath` (the central path the file records;
 --  absent when none), `document.lengthUnit` (the project's length display unit, the same
 --  abbreviation eav rows carry).
 CREATE TABLE model (
@@ -353,7 +353,7 @@ COMMENT ON COLUMN revit_external_links.name IS 'File name of the linked/imported
 COMMENT ON COLUMN revit_external_links.view_specific IS 'True when placed in a single view (Revit: "Current view only") rather than in the model.';
 COMMENT ON COLUMN revit_external_links.is_included IS 'rvt_link: whether this placement''s linked model was converted into this bundle (its objects carry IN_MODEL to their own CONTAINER(Model)). False when the linked file was not supplied, is nested in another link, or failed to convert. NULL for kinds whose content is never a separate model (cad_link, cad_import), when the producer could not tell, and in bundles written before the column existed.';
 COMMENT ON COLUMN revit_external_links.workset IS 'Workset the placed instance is on, by name (ENG-11122); NULL when the document is not workshared and in bundles written before the column existed.';
-COMMENT ON COLUMN revit_external_links.transform IS 'rvt_link: the placement''s total transform, row-major 4x4 as CSV like nodes.transform, translation in the unit of the model row modelPlacement.units (ENG-11122). NULL for cad_link / cad_import and in bundles written before the column existed.';
+COMMENT ON COLUMN revit_external_links.transform IS 'rvt_link: the placement''s total transform, link internal coordinates to host internal coordinates, row-major 4x4 as CSV like nodes.transform, translation in the unit of the model row modelPlacement.units (ENG-11122). NULL for cad_link / cad_import and in bundles written before the column existed.';
 
 -- ── revit_views (optional, the views, templates and sheets of the source file) ─
 --  One row per view the model health counts count (modelHealth.views + viewTemplates +
