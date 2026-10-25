@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.4.1)
+--  Speckle bundle format — SINGLE SOURCE OF TRUTH   (schema_version 1.5.0)
 -- ════════════════════════════════════════════════════════════════════════════
 --  This file IS the spec. It is executable DuckDB SQL:
 --    • CREATE TABLE …            → the shape of every parquet in the bundle
@@ -35,7 +35,7 @@
 -- schema_version is the semver of this spec (== package.json version) so one string, not two numbers, names the vocabulary.
 CREATE TABLE meta (schema_version VARCHAR NOT NULL, produced_by VARCHAR NOT NULL,
                    producer_version VARCHAR, sdk_name VARCHAR, sdk_version VARCHAR, migrated_from_schema_version INTEGER);
-INSERT INTO meta VALUES ('1.4.1', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
+INSERT INTO meta VALUES ('1.5.0', 'speckle-bundle-spec', NULL, NULL, NULL, NULL);
 COMMENT ON COLUMN meta.schema_version IS 'Semver of the spec this bundle was written against; equals the speckle-bundle-spec package version.';
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -280,6 +280,20 @@ COMMENT ON COLUMN property_set_definitions.applies_to IS 'Csv of host entity-typ
 --    isWorkshared → value_boolean. Counts follow the authoring tool's own definitions
 --  (views excludes templates/sheets/browser views; worksets = user worksets, 0 when not
 --  workshared). Absent rows ⇒ the producer did not compute health, not "zero".
+--  Annotation and housekeeping counts (ENG-11118), value_double, same rules: modelLines,
+--  detailLines, referencePlanes, textNotes, textNotesNotUppercase (text notes whose text
+--  has a lower-case letter), filledRegions, maskingRegions, dimensionsWithOverride
+--  (dimensions with at least one segment whose value is replaced by text), revisionClouds,
+--  revisions, viewFilters, scopeBoxes, sheetSets, parts, masses (mass instances). The views
+--  themselves are the `revit_views` file.
+--  Project information (ENG-11117): `projectInfo.<parameter name>` rows carry the document's
+--  project information parameters (built-in and shared), one row per parameter that has a
+--  value, unit as on eav rows.
+--  Document (ENG-11121): `document.fileName` (source file name, no directory),
+--  `document.isCentral` / `document.isLocal` (value_boolean, as the file records them),
+--  `document.centralModelPath` (the central path the file records;
+--  absent when none), `document.lengthUnit` (the project's length display unit, the same
+--  abbreviation eav rows carry).
 CREATE TABLE model (
   path          VARCHAR NOT NULL,
   value_string  VARCHAR,
@@ -328,7 +342,9 @@ CREATE TABLE revit_external_links (
   element_id    VARCHAR NOT NULL,
   name          VARCHAR,
   view_specific BOOLEAN NOT NULL,
-  is_included   BOOLEAN
+  is_included   BOOLEAN,
+  workset       VARCHAR,
+  transform     VARCHAR
 );
 COMMENT ON TABLE revit_external_links IS 'Optional: external files referenced by the source document — one row per placed instance (a file placed twice is two rows).';
 COMMENT ON COLUMN revit_external_links.kind IS 'rvt_link (linked Revit model) | cad_link (linked CAD) | cad_import (CAD imported into the document). CAD nested inside family definitions is not listed — the authoring tool does not count it either.';
@@ -336,6 +352,33 @@ COMMENT ON COLUMN revit_external_links.element_id IS 'Producer-native id of the 
 COMMENT ON COLUMN revit_external_links.name IS 'File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it.';
 COMMENT ON COLUMN revit_external_links.view_specific IS 'True when placed in a single view (Revit: "Current view only") rather than in the model.';
 COMMENT ON COLUMN revit_external_links.is_included IS 'rvt_link: whether this placement''s linked model was converted into this bundle (its objects carry IN_MODEL to their own CONTAINER(Model)). False when the linked file was not supplied, is nested in another link, or failed to convert. NULL for kinds whose content is never a separate model (cad_link, cad_import), when the producer could not tell, and in bundles written before the column existed.';
+COMMENT ON COLUMN revit_external_links.workset IS 'Workset the placed instance is on, by name (ENG-11122); NULL when the document is not workshared and in bundles written before the column existed.';
+COMMENT ON COLUMN revit_external_links.transform IS 'rvt_link: the placement''s total transform, link internal coordinates to host internal coordinates, row-major 4x4 as CSV like nodes.transform, translation in the unit of the model row modelPlacement.units (ENG-11122). NULL for cad_link / cad_import and in bundles written before the column existed.';
+
+-- ── revit_views (optional, the views, templates and sheets of the source file) ─
+--  One row per view the model health counts count (modelHealth.views + viewTemplates +
+--  sheets), so the counts and the rows always agree. Lets a check judge views and sheets
+--  by name, template and placement (ENG-11116). Views are referenced by element id, not
+--  object_index: views are not exported objects.
+CREATE TABLE revit_views (
+  element_id        VARCHAR NOT NULL,
+  name              VARCHAR,
+  view_type         VARCHAR NOT NULL,
+  is_template       BOOLEAN NOT NULL,
+  view_template_id  VARCHAR,
+  sheet_number      VARCHAR,
+  sheet_placements  INTEGER,
+  orientation       VARCHAR
+);
+COMMENT ON TABLE revit_views IS 'Optional: the source document''s views, view templates and sheets, one row per element; is_template rows = modelHealth.viewTemplates, other DrawingSheet rows = modelHealth.sheets, the rest = modelHealth.views.';
+COMMENT ON COLUMN revit_views.element_id IS 'Producer-native element id of the view (Revit ElementId, as text). view_template_id refers to rows by this id.';
+COMMENT ON COLUMN revit_views.name IS 'View name as shown in the project browser; for a sheet, the sheet name.';
+COMMENT ON COLUMN revit_views.view_type IS 'The authoring tool''s view type name (Revit ViewType: FloorPlan, CeilingPlan, Elevation, Section, ThreeD, Schedule, DraftingView, Legend, DrawingSheet, AreaPlan, EngineeringPlan, Detail, …).';
+COMMENT ON COLUMN revit_views.is_template IS 'True for a view template.';
+COMMENT ON COLUMN revit_views.view_template_id IS 'element_id of the view template applied to this view; NULL when none is applied, and for templates and sheets.';
+COMMENT ON COLUMN revit_views.sheet_number IS 'DrawingSheet only: the sheet number.';
+COMMENT ON COLUMN revit_views.sheet_placements IS 'How many sheet viewports show this view (0 = on no sheet). NULL for sheets and templates, and for view types a sheet shows by other means than a viewport (schedules).';
+COMMENT ON COLUMN revit_views.orientation IS 'Plan views only: project_north | true_north, the view''s Orientation setting. NULL for other view types.';
 
 -- ════════════════════════════════════════════════════════════════════════════
 --  PART 2 — semantic catalogs (data). These tables carry the vocabulary AND its
@@ -449,4 +492,5 @@ INSERT INTO bundle_files VALUES
   (16, 'property_set_definitions', '{base}.eav.property_set_definitions.parquet', '{base}.eav.property_set_definitions.parquet', false, false, false, 'OPTIONAL schema catalog: AEC property-set definitions (shape only — values stay in eav, attachment derived from value paths).'),
   (17, 'model', '{base}.eav.model.parquet', '{base}.eav.model.parquet', false, false, false, 'OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment).'),
   (18, 'revit_warnings', '{base}.eav.revit_warnings.parquet', '{base}.eav.revit_warnings.parquet', false, false, false, 'OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool''s display text (FEA-576).'),
-  (19, 'revit_external_links', '{base}.eav.revit_external_links.parquet', '{base}.eav.revit_external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).');
+  (19, 'revit_external_links', '{base}.eav.revit_external_links.parquet', '{base}.eav.revit_external_links.parquet', false, false, false, 'OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576).'),
+  (20, 'revit_views', '{base}.eav.revit_views.parquet', '{base}.eav.revit_views.parquet', false, false, false, 'OPTIONAL the source document''s views, view templates and sheets, one row per element, matching the modelHealth view counts (ENG-11116).');

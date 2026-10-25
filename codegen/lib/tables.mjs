@@ -12,6 +12,7 @@ const ROW_TABLES = {
   camera_views: 'CameraView',
   revit_warnings: 'RevitWarning',
   revit_external_links: 'RevitExternalLink',
+  revit_views: 'RevitView',
 }
 
 /** Row tables as { table, typeName, fields: [{ column, duckType, optional, defaulted, comment }] }. */

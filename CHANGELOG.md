@@ -3,6 +3,26 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 of every package this repo publishes (see `VERSIONING.md`).
 
+## schema_version 1.5.0 — revit_views, link workset and transform, more model health rows (additive)
+
+- New optional file `revit_views` (`{base}.eav.revit_views.parquet`): the source document's
+  views, view templates and sheets, one row per element, with the applied view template,
+  sheet number, how many sheet viewports show the view, and plan orientation. Its rows are
+  exactly what `modelHealth.views` / `viewTemplates` / `sheets` count, so a check can judge
+  views and sheets by name, template and placement (ENG-11116).
+- `revit_external_links` gains `workset` and `transform` (nullable, appended): the link
+  instance's workset and, for `rvt_link`, its placement transform (ENG-11122). Older
+  bundles lack the columns; a reader treats absent as NULL.
+- `model` gains documented rows, no schema change:
+  - `modelHealth.*` annotation and housekeeping counts: `modelLines`, `detailLines`,
+    `referencePlanes`, `textNotes`, `textNotesNotUppercase`, `filledRegions`,
+    `maskingRegions`, `dimensionsWithOverride`, `revisionClouds`, `revisions`,
+    `viewFilters`, `scopeBoxes`, `sheetSets`, `parts`, `masses` (ENG-11118);
+  - `projectInfo.<parameter name>`: the document's project information (ENG-11117);
+  - `document.fileName`, `document.isCentral`, `document.isLocal`,
+    `document.centralModelPath`, `document.lengthUnit` (ENG-11121).
+- Additive: every new file and column is optional and only rvextract writes them.
+
 ## schema_version 1.4.1 — first complete registry release (patch)
 
 - No schema change. `1.4.0` reached PyPI, nuget.org and the internal npm registry but its

@@ -87,6 +87,20 @@ struct RevitExternalLink {
   std::optional<std::string> name;
   bool view_specific;
   std::optional<bool> is_included;
+  std::optional<std::string> workset;
+  std::optional<std::string> transform;
+};
+
+// One revit_views row, in column order.
+struct RevitView {
+  std::string element_id;
+  std::optional<std::string> name;
+  std::string view_type;
+  bool is_template;
+  std::optional<std::string> view_template_id;
+  std::optional<std::string> sheet_number;
+  std::optional<int32_t> sheet_placements;
+  std::optional<std::string> orientation;
 };
 
 }  // namespace bundlespec

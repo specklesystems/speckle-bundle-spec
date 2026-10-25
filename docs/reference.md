@@ -1,5 +1,5 @@
 <!-- GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT. Run npm run generate. -->
-# Speckle bundle format — reference (schema_version 1.4.1)
+# Speckle bundle format — reference (schema_version 1.5.0)
 
 Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/rationale/`.
 
@@ -73,6 +73,7 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | `model` | `{base}.eav.model.parquet` | no | no | no | OPTIONAL model/document-scoped attributes (object-less eav rows: Revit/Civil3D/Grasshopper document settings, project info). Home of the reference-point record: referencePoint.kind/.transform/.units (see meta header comment) and the model health counts: modelHealth.* (see the model table comment). |
 | `revit_warnings` | `{base}.eav.revit_warnings.parquet` | no | no | no | OPTIONAL authoring-tool warnings persisted in the source document, one row per (warning, offending element), with the tool's display text (FEA-576). |
 | `revit_external_links` | `{base}.eav.revit_external_links.parquet` | no | no | no | OPTIONAL external files the source document links or imports (linked models, linked/imported CAD), one row per placed instance (FEA-576). |
+| `revit_views` | `{base}.eav.revit_views.parquet` | no | no | no | OPTIONAL the source document's views, view templates and sheets, one row per element, matching the modelHealth view counts (ENG-11116). |
 
 ## Table shapes
 
@@ -212,6 +213,21 @@ Generated from `spec/bundle-spec.sql`. Rationale & design history live in `docs/
 | name | VARCHAR | File name of the linked/imported file as the document records it (no directory); NULL when the producer cannot resolve it. |
 | view_specific | BOOLEAN | True when placed in a single view (Revit: "Current view only") rather than in the model. |
 | is_included | BOOLEAN | rvt_link: whether this placement's linked model was converted into this bundle (its objects carry IN_MODEL to their own CONTAINER(Model)). False when the linked file was not supplied, is nested in another link, or failed to convert. NULL for kinds whose content is never a separate model (cad_link, cad_import), when the producer could not tell, and in bundles written before the column existed. |
+| workset | VARCHAR | Workset the placed instance is on, by name (ENG-11122); NULL when the document is not workshared and in bundles written before the column existed. |
+| transform | VARCHAR | rvt_link: the placement's total transform, link internal coordinates to host internal coordinates, row-major 4x4 as CSV like nodes.transform, translation in the unit of the model row modelPlacement.units (ENG-11122). NULL for cad_link / cad_import and in bundles written before the column existed. |
+
+### `revit_views`
+
+| column | type | note |
+|---|---|---|
+| element_id | VARCHAR | Producer-native element id of the view (Revit ElementId, as text). view_template_id refers to rows by this id. |
+| name | VARCHAR | View name as shown in the project browser; for a sheet, the sheet name. |
+| view_type | VARCHAR | The authoring tool's view type name (Revit ViewType: FloorPlan, CeilingPlan, Elevation, Section, ThreeD, Schedule, DraftingView, Legend, DrawingSheet, AreaPlan, EngineeringPlan, Detail, …). |
+| is_template | BOOLEAN | True for a view template. |
+| view_template_id | VARCHAR | element_id of the view template applied to this view; NULL when none is applied, and for templates and sheets. |
+| sheet_number | VARCHAR | DrawingSheet only: the sheet number. |
+| sheet_placements | INTEGER | How many sheet viewports show this view (0 = on no sheet). NULL for sheets and templates, and for view types a sheet shows by other means than a viewport (schedules). |
+| orientation | VARCHAR | Plan views only: project_north \| true_north, the view's Orientation setting. NULL for other view types. |
 
 ### `revit_warnings`
 

@@ -152,7 +152,23 @@ inline std::shared_ptr<arrow::Schema> revitExternalLinksSchema() {
       arrow::field("element_id", arrow::utf8()),
       arrow::field("name", arrow::utf8()),
       arrow::field("view_specific", arrow::boolean()),
-      arrow::field("is_included", arrow::boolean())
+      arrow::field("is_included", arrow::boolean()),
+      arrow::field("workset", arrow::utf8()),
+      arrow::field("transform", arrow::utf8())
+  });
+}
+
+// revit_views
+inline std::shared_ptr<arrow::Schema> revitViewsSchema() {
+  return arrow::schema({
+      arrow::field("element_id", arrow::utf8()),
+      arrow::field("name", arrow::utf8()),
+      arrow::field("view_type", arrow::utf8()),
+      arrow::field("is_template", arrow::boolean()),
+      arrow::field("view_template_id", arrow::utf8()),
+      arrow::field("sheet_number", arrow::utf8()),
+      arrow::field("sheet_placements", arrow::int32()),
+      arrow::field("orientation", arrow::utf8())
   });
 }
 

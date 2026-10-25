@@ -151,7 +151,23 @@ class REVIT_EXTERNAL_LINKS:
     NAME = 2
     VIEW_SPECIFIC = 3
     IS_INCLUDED = 4
-    COLUMN_COUNT = 5
+    WORKSET = 5
+    TRANSFORM = 6
+    COLUMN_COUNT = 7
+
+
+class REVIT_VIEWS:
+    """Column indices of the revit_views table (spec order)."""
+
+    ELEMENT_ID = 0
+    NAME = 1
+    VIEW_TYPE = 2
+    IS_TEMPLATE = 3
+    VIEW_TEMPLATE_ID = 4
+    SHEET_NUMBER = 5
+    SHEET_PLACEMENTS = 6
+    ORIENTATION = 7
+    COLUMN_COUNT = 8
 
 
 class REVIT_WARNINGS:

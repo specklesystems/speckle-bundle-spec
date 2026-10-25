@@ -97,3 +97,19 @@ class RevitExternalLink:
     name: str | None
     view_specific: bool
     is_included: bool | None = None
+    workset: str | None = None
+    transform: str | None = None
+
+
+@dataclass(frozen=True)
+class RevitView:
+    """One revit_views row, in column order."""
+
+    element_id: str
+    name: str | None
+    view_type: str
+    is_template: bool
+    view_template_id: str | None = None
+    sheet_number: str | None = None
+    sheet_placements: int | None = None
+    orientation: str | None = None

@@ -130,8 +130,22 @@ inline constexpr int element_id = 1;
 inline constexpr int name = 2;
 inline constexpr int view_specific = 3;
 inline constexpr int is_included = 4;
-inline constexpr int columnCount = 5;
+inline constexpr int workset = 5;
+inline constexpr int transform = 6;
+inline constexpr int columnCount = 7;
 }  // namespace bundlespec::col::revit_external_links
+
+namespace bundlespec::col::revit_views {
+inline constexpr int element_id = 0;
+inline constexpr int name = 1;
+inline constexpr int view_type = 2;
+inline constexpr int is_template = 3;
+inline constexpr int view_template_id = 4;
+inline constexpr int sheet_number = 5;
+inline constexpr int sheet_placements = 6;
+inline constexpr int orientation = 7;
+inline constexpr int columnCount = 8;
+}  // namespace bundlespec::col::revit_views
 
 namespace bundlespec::col::revit_warnings {
 inline constexpr int warning_index = 0;
