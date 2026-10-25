@@ -80,4 +80,18 @@ export type RevitExternalLink = {
   name: string | null
   viewSpecific: boolean
   isIncluded: boolean | null
+  workset: string | null
+  transform: string | null
+}
+
+/** One `revit_views` row, in column order. */
+export type RevitView = {
+  elementId: string
+  name: string | null
+  viewType: string
+  isTemplate: boolean
+  viewTemplateId: string | null
+  sheetNumber: string | null
+  sheetPlacements: number | null
+  orientation: string | null
 }

@@ -6,7 +6,7 @@ namespace Speckle.Bundle.Spec;
 
 public static class BundleSpec
 {
-    public const string SchemaVersion = "1.4.1";
+    public const string SchemaVersion = "1.5.0";
 }
 
 public enum Rel

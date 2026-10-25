@@ -144,6 +144,20 @@ public static class BundleSchemas
         new("name", ArrowType.Utf8, true),
         new("view_specific", ArrowType.Boolean, false),
         new("is_included", ArrowType.Boolean, true),
+        new("workset", ArrowType.Utf8, true),
+        new("transform", ArrowType.Utf8, true),
+    };
+
+    public static readonly ColumnSpec[] RevitViews =
+    {
+        new("element_id", ArrowType.Utf8, false),
+        new("name", ArrowType.Utf8, true),
+        new("view_type", ArrowType.Utf8, false),
+        new("is_template", ArrowType.Boolean, false),
+        new("view_template_id", ArrowType.Utf8, true),
+        new("sheet_number", ArrowType.Utf8, true),
+        new("sheet_placements", ArrowType.Int32, true),
+        new("orientation", ArrowType.Utf8, true),
     };
 
     public static readonly ColumnSpec[] RevitWarnings =
@@ -215,6 +229,7 @@ public static class BundleSchemas
         ["property_set_definitions"] = PropertySetDefinitions,
         ["relations"] = Relations,
         ["revit_external_links"] = RevitExternalLinks,
+        ["revit_views"] = RevitViews,
         ["revit_warnings"] = RevitWarnings,
         ["scene_views"] = SceneViews,
         ["structural_results"] = StructuralResults,

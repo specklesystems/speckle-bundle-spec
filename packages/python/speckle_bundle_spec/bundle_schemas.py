@@ -121,6 +121,18 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("name", "string", True),
         ColumnSpec("view_specific", "bool", False),
         ColumnSpec("is_included", "bool", True),
+        ColumnSpec("workset", "string", True),
+        ColumnSpec("transform", "string", True),
+    ],
+    "revit_views": [
+        ColumnSpec("element_id", "string", False),
+        ColumnSpec("name", "string", True),
+        ColumnSpec("view_type", "string", False),
+        ColumnSpec("is_template", "bool", False),
+        ColumnSpec("view_template_id", "string", True),
+        ColumnSpec("sheet_number", "string", True),
+        ColumnSpec("sheet_placements", "int32", True),
+        ColumnSpec("orientation", "string", True),
     ],
     "revit_warnings": [
         ColumnSpec("warning_index", "int32", False),
