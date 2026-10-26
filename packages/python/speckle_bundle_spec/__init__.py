@@ -17,6 +17,7 @@ from speckle_bundle_spec.bundle_cols import (
     PROPERTY_SET_DEFINITIONS,
     RELATIONS,
     REVIT_EXTERNAL_LINKS,
+    REVIT_VIEWS,
     REVIT_WARNINGS,
     SCENE_VIEWS,
     STRUCTURAL_RESULTS,
@@ -35,6 +36,7 @@ from speckle_bundle_spec.bundle_rows import (
     CameraView,
     PropertySetField,
     RevitExternalLink,
+    RevitView,
     RevitWarning,
     StructuralResult,
 )
@@ -64,6 +66,7 @@ __all__ = [
     "RELATIONS",
     "REL_TYPES",
     "REVIT_EXTERNAL_LINKS",
+    "REVIT_VIEWS",
     "REVIT_WARNINGS",
     "SCENE_VIEWS",
     "SCHEMA_VERSION",
@@ -84,6 +87,7 @@ __all__ = [
     "Rel",
     "RelTypeRow",
     "RevitExternalLink",
+    "RevitView",
     "RevitWarning",
     "StructuralResult",
 ]
