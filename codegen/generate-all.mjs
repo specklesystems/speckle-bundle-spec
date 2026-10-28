@@ -19,6 +19,7 @@ import { emitPythonCols } from './emit-python-cols.mjs'
 import { emitPythonKinds } from './emit-python-kinds.mjs'
 import { emitPythonTables } from './emit-python-tables.mjs'
 import { emitDocs } from './emit-docs.mjs'
+import { emitDocsData } from './emit-docs-data.mjs'
 
 const steps = [
   ['SQL copy', emitSql],
@@ -40,7 +41,8 @@ const steps = [
   ['Python cols', emitPythonCols],
   ['Python nodes', emitPythonKinds],
   ['Python rows', emitPythonTables],
-  ['docs', emitDocs]
+  ['docs', emitDocs],
+  ['docs data', emitDocsData]
 ]
 for (const [label, fn] of steps) console.log(`  ${label.padEnd(11)} → ${fn()}`)
 console.log('done.')

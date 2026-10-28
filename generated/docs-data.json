@@ -1,0 +1,544 @@
+{
+  "schemaVersion": "1.2.0",
+  "generatedFrom": "spec/bundle-spec.sql",
+  "relations": [
+    {
+      "id": 1,
+      "name": "DISPLAY",
+      "src": "object",
+      "dst": "geometry",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "dwgextract",
+        "dgnextract",
+        "skpextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "Object → its own mesh.",
+      "why": "Top-level direct meshes (walls, in-place). Navis never uses it — everything there is an instance."
+    },
+    {
+      "id": 2,
+      "name": "SOLID",
+      "src": "object",
+      "dst": "geometry",
+      "status": "live",
+      "emittedBy": [
+        "dwgextract",
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "Solid body, distinct from a display mesh.",
+      "why": "Rhino/Civil3D ship true solids beside tessellated display meshes; within a definition member, receive prefers the solid over its meshes."
+    },
+    {
+      "id": 3,
+      "name": "SUBELEMENT",
+      "src": "object",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "dwgextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "Parent → child containment.",
+      "why": "Railings, mullions, curtain panels — a hierarchy the flat eav cannot encode."
+    },
+    {
+      "id": 4,
+      "name": "DEFINES",
+      "src": "node",
+      "dst": "geometry",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "dwgextract",
+        "dgnextract",
+        "skpextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "DEFINITION → shared geometry.",
+      "why": "The instancing contract: one mesh owned by a definition, reused by placements. ord is the MEMBER ordinal: rows sharing (definition, ord) are one member's geometries (e.g. a solid + its display meshes) and join to DEFINES_MEMBER on the same key."
+    },
+    {
+      "id": 5,
+      "name": "HAS_MATERIAL",
+      "src": "geometry",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "dwgextract",
+        "dgnextract",
+        "skpextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Geometry → MATERIAL node.",
+      "why": "Base render appearance (full PBR). src is geometry ONLY (union removed post-v5): placement paint lives on OBJECT_HAS_MATERIAL (26). Pre-split bundles may still carry INSTANCE srcs tagged ord=1 (ENG-8849 era) — consumers keep the geometry-first fallback."
+    },
+    {
+      "id": 6,
+      "name": "HAS_COLOR",
+      "src": "geometry",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "dwgextract",
+        "dgnextract",
+        "skpextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Geometry → COLOR node.",
+      "why": "Display colour — kept distinct from HAS_MATERIAL because it drives a different viewer render mode. src is geometry ONLY (union removed post-v5): object-plane colour lives on OBJECT_HAS_COLOR (27). Pre-split bundles may still carry object srcs."
+    },
+    {
+      "id": 7,
+      "name": "ON_LEVEL",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → LEVEL node.",
+      "why": "Storey membership; also the default scene-view tier."
+    },
+    {
+      "id": 8,
+      "name": "DISPLAY_INSTANCE",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "dwgextract",
+        "dgnextract",
+        "skpextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "Object → INSTANCE node (top level).",
+      "why": "Place a definition here with a transform. STRICTLY a render contract — every edge is a world-space render root. For the object↔placement association WITHOUT rendering (definition members) use PLACES (24); overloading this rel would draw members untransformed at the origin on deployed consumers [ENG-8782]."
+    },
+    {
+      "id": 9,
+      "name": "DEFINES_INSTANCE",
+      "src": "node",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "dwgextract",
+        "skpextract",
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "DEFINITION → nested INSTANCE node.",
+      "why": "Nested instancing — a definition that itself contains placed instances. ord shares the definition's SINGLE member-ordinal space with DEFINES (4) and DEFINES_MEMBER (25) — one authored sequence numbers all members, geometry and nested-instance alike, so interleaved member order round-trips."
+    },
+    {
+      "id": 10,
+      "name": "IN_COLLECTION",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "nwextract",
+        "dwgextract",
+        "dgnextract",
+        "skpextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → CONTAINER(Collection).",
+      "why": "Authored layer/collection-tree membership."
+    },
+    {
+      "id": 11,
+      "name": "IN_MODEL",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "dgnextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → CONTAINER(Model).",
+      "why": "Federation tier (source-file grouping); outermost scene-view tier when >1 model."
+    },
+    {
+      "id": 12,
+      "name": "IN_ROOM",
+      "src": "object",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → containing room object.",
+      "why": "Spatial occupancy (furniture/door/window → room). Rooms are objects, not nodes."
+    },
+    {
+      "id": 14,
+      "name": "IN_SYSTEM",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "dwgextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → CONTAINER(MEP System | Network).",
+      "why": "MEP grouping membership. Carries BOTH authored Revit systems and derived Navis networks — the container subtype distinguishes them (the IN_NETWORK collapse)."
+    },
+    {
+      "id": 17,
+      "name": "IN_GROUP",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "dwgextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → CONTAINER(Group).",
+      "why": "Authored scene-group membership (Rhino/AutoCAD groups). A separate axis from IN_COLLECTION: an object keeps its layer AND its group(s); groups may nest (CONTAINER def_ref) and overlap. Un-retired post-v5."
+    },
+    {
+      "id": 18,
+      "name": "IN_ASSEMBLY",
+      "src": "object",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "teklaextract"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "Member object → containing assembly object.",
+      "why": "Authored fabrication membership, separate from SUBELEMENT ownership. ord=0 is the main member; ord>=1 orders secondary or nested-assembly members."
+    },
+    {
+      "id": 21,
+      "name": "CONNECTS_TO",
+      "src": "object",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "nwextract",
+        "dwgextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": "scope",
+      "description": "Object → object connectivity (directed).",
+      "why": "The connectivity graph. ord scopes it: system-K (MEP flow), opening-K (room adjacency), 0 (Navis port-cluster / unscoped)."
+    },
+    {
+      "id": 22,
+      "name": "HOSTED_ON",
+      "src": "object",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "rvextract",
+        "teklaextract",
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Hosted element → host.",
+      "why": "Revit hosting (door/window → wall, fixture → ceiling/floor/face) from ODA getHostId. A DIFFERENT semantic from SUBELEMENT ownership (owningElemId): a door is placed on a wall, not a component of it. Emitted only when the element has no owner (legacy precedence) and both endpoints are converted. Un-retired post-v5."
+    },
+    {
+      "id": 23,
+      "name": "BOUNDS",
+      "src": "object",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "rvextract"
+      ],
+      "ordSemantics": null,
+      "description": "Bounding element → room object.",
+      "why": "The room envelope, for downstream egress / plan analysis. BOTH halves, undifferentiated: the plan perimeter (walls, columns, room separation lines — Revit computes these in 2D at the room's computation height) and the horizontal caps (floors, ceilings, roofs). Filter the src object by category for the plan-only footprint."
+    },
+    {
+      "id": 24,
+      "name": "PLACES",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Member object → its INSTANCE node (association only).",
+      "why": "The object↔node map for one source thing split across both planes. Ties a render-edge-less definition-member object to its nested placement so its properties and IN_COLLECTION stay reachable; replaces the @speckle.instance_k eav stamp [ENG-9110]. NEVER a render root — that is DISPLAY_INSTANCE."
+    },
+    {
+      "id": 25,
+      "name": "DEFINES_MEMBER",
+      "src": "node",
+      "dst": "object",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "DEFINITION → member object.",
+      "why": "Definition membership on the OBJECT plane, where nothing is deduped — emitted for EVERY member, geometry and nested-instance alike. ord is THE member ordinal: one authored sequence per definition, shared with DEFINES (4) and DEFINES_INSTANCE (9), so interleaved member order round-trips. A geometry member's content is its DEFINES rows joined on (definition, ord) — dedup-safe even when content-hashing collapses identical meshes across definitions; an instance member's placement is its PLACES edge. Replaces the @speckle.geometry_k eav stamp."
+    },
+    {
+      "id": 26,
+      "name": "OBJECT_HAS_MATERIAL",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → MATERIAL node (placement paint).",
+      "why": "Placement painting on the object plane (SketchUp instance painting, ENG-8849 — formerly HAS_MATERIAL's INSTANCE src / the ord=1 stamp). FILL semantics: geometry-level HAS_MATERIAL always wins; the object's material fills definition geometry with no material of its own, resolved down the placement chain (a nested member object reaches its placement via PLACES). NOTE: OBJECT_HAS_COLOR (27) deliberately INVERTS this precedence — material is intrinsic, colour is presentational."
+    },
+    {
+      "id": 27,
+      "name": "OBJECT_HAS_COLOR",
+      "src": "object",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Object → COLOR node (object-plane colour).",
+      "why": "Object-plane colour (formerly HAS_COLOR's object src). OVERRIDE semantics — deliberately the INVERSE of OBJECT_HAS_MATERIAL: material is intrinsic (geometry owns, object fills), colour is presentational (object overrides, geometry is the default). Deployed receives already resolve object colour last-write-wins over geometry colour, and this rel's own use cases — per-object colour on deduped twin meshes, clash/status highlighting, CAD ByBlock-style inheritance — only work when the object wins. Resolution: object > geometry > NODE_HAS_COLOR (container default) > none."
+    },
+    {
+      "id": 28,
+      "name": "NODE_HAS_MATERIAL",
+      "src": "node",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Node → MATERIAL node (container appearance).",
+      "why": "The authored layer/tag render material (Rhino layer material, AutoCAD/Civil3D layer material, SketchUp tag material) — the assignment receivers restore on the rebuilt container, which the member-geometry flatten [ENG-9108] erased before this rel existed. Weakest tier of the material ladder (FILL semantics, rel 26): geometry HAS_MATERIAL wins, then OBJECT_HAS_MATERIAL, then the container's NODE_HAS_MATERIAL reached via the object's membership edge (IN_COLLECTION). Producers keep flattening the inherited material onto member geometry so render-only consumers never need the ladder walk; this edge carries the authored source of that flatten."
+    },
+    {
+      "id": 29,
+      "name": "NODE_HAS_COLOR",
+      "src": "node",
+      "dst": "node",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": null,
+      "description": "Node → COLOR node (container display colour).",
+      "why": "Layer/tag display colour as a first-class edge, the colour twin of NODE_HAS_MATERIAL and — like it — the weakest tier: colour resolves object > geometry > container (the container edge is the ByLayer default that applies when nothing more specific does, so OBJECT_HAS_COLOR's override precedence, rel 27, is untouched). Supersedes the argb managed producers stamped directly on CONTAINER rows — an undocumented carrier; consumers prefer this edge and keep reading CONTAINER argb as the fallback for older bundles."
+    },
+    {
+      "id": 30,
+      "name": "CENTERLINE",
+      "src": "object",
+      "dst": "geometry",
+      "status": "live",
+      "emittedBy": [
+        "managed"
+      ],
+      "ordSemantics": "ordinal",
+      "description": "Object → its centerline / axis.",
+      "why": "The axis a run or member follows, distinct from the shell that renders it. Downstream routing, length take-off, clash lines and single-line drawings all need the curve, not the tessellated tube. TWO SHAPES, both under one rel because a consumer asking \"where is the axis\" does not care which: (a) the element's own authored location curve, for anything placed along a curve — a duct, pipe, conduit or tray IS its centerline, and a framing member's axis is the same datum; (b) for a point-placed MEP fitting (elbow, tee, cross, transition), which has no location curve at all, ONE SEGMENT PER CONNECTOR from the connector to the fitting's node — what a single-line drawing draws, and the only shape that survives a branch, where no single curve can. ord is the branch index, so (b) is multi-valued and ordered. CAVEAT on (a): for some families the authored curve is not literally the centre — a Revit wall's location line follows its Location Line type parameter and may be a core or finish face. STRICTLY NOT a render edge, which is why it is its own rel rather than a role on DISPLAY (1): a consumer drawing every geometry-target rel would draw the axis through the middle of the duct."
+    }
+  ],
+  "nodeKinds": [
+    {
+      "id": 1,
+      "name": "DEFINITION",
+      "description": "Shared geometry template.",
+      "why": "Target of DEFINES; reused by many placements.",
+      "subtypes": [],
+      "fields": [
+        {
+          "column": "name",
+          "type": "VARCHAR",
+          "optional": true
+        },
+        {
+          "column": "def_ref",
+          "type": "INTEGER",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "INSTANCE",
+      "description": "A placement / occurrence.",
+      "why": "Carries the composed transform; bulk-scanned on load.",
+      "subtypes": [],
+      "fields": [
+        {
+          "column": "transform",
+          "type": "VARCHAR",
+          "optional": false
+        },
+        {
+          "column": "units",
+          "type": "VARCHAR",
+          "optional": true
+        },
+        {
+          "column": "def_ref",
+          "type": "INTEGER",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "MATERIAL",
+      "description": "Full-PBR render asset.",
+      "why": "Target of HAS_MATERIAL. name is the authored host material name (nullable) — receivers recreate the host material under it instead of a colour-derived placeholder. emissive/ior complete the universal PBR scalar set [ENG-8791].",
+      "subtypes": [],
+      "fields": [
+        {
+          "column": "name",
+          "type": "VARCHAR",
+          "optional": true
+        },
+        {
+          "column": "argb",
+          "type": "INTEGER",
+          "optional": false
+        },
+        {
+          "column": "opacity",
+          "type": "DOUBLE",
+          "optional": false
+        },
+        {
+          "column": "metalness",
+          "type": "DOUBLE",
+          "optional": false
+        },
+        {
+          "column": "roughness",
+          "type": "DOUBLE",
+          "optional": false
+        },
+        {
+          "column": "emissive",
+          "type": "INTEGER",
+          "optional": true
+        },
+        {
+          "column": "ior",
+          "type": "DOUBLE",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "COLOR",
+      "description": "Raw colour override.",
+      "why": "Target of HAS_COLOR; a SEPARATE viewer render mode from MATERIAL (an object can carry both). Colour only — alpha rides the argb byte, so opacity stays MATERIAL-only.",
+      "subtypes": [],
+      "fields": [
+        {
+          "column": "argb",
+          "type": "INTEGER",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "LEVEL",
+      "description": "A storey.",
+      "why": "Target of ON_LEVEL; elevation drives architectural ordering.",
+      "subtypes": [],
+      "fields": [
+        {
+          "column": "name",
+          "type": "VARCHAR",
+          "optional": true
+        },
+        {
+          "column": "elevation",
+          "type": "DOUBLE",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "CONTAINER",
+      "description": "Polymorphic grouping tree.",
+      "why": "The single grouping node; subtype is its only discriminator. Targets of IN_COLLECTION / IN_MODEL / IN_SYSTEM / IN_GROUP; src of NODE_HAS_MATERIAL / NODE_HAS_COLOR (layer/tag appearance).",
+      "subtypes": [
+        "Collection",
+        "Layer",
+        "Folder",
+        "Model",
+        "MEP System",
+        "Network",
+        "Group"
+      ],
+      "fields": [
+        {
+          "column": "name",
+          "type": "VARCHAR",
+          "optional": true
+        },
+        {
+          "column": "def_ref",
+          "type": "INTEGER",
+          "optional": true
+        },
+        {
+          "column": "subtype",
+          "type": "VARCHAR",
+          "optional": false
+        },
+        {
+          "column": "gh_topology",
+          "type": "VARCHAR",
+          "optional": true
+        }
+      ]
+    }
+  ]
+}
