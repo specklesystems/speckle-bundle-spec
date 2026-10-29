@@ -15,7 +15,7 @@ hidden flag (ENG-11304, for the Navisworks reader; named generically). Rationale
   per texture slot of a MATERIAL node, with its `role` (`diffuse | bump | other`), the image
   (`texture`) or, when unresolved, the reference as stored (`uri`, `saved_location`) and a
   `status` (`resolved | not_found | url | invalid`) that tells a receiver with the source
-  application's library how to resolve it later. `uv_transform` maps a mesh's SGEO UVs to
+  application's library how to resolve it later, reading only inside its own library roots. `uv_transform` maps a mesh's SGEO UVs to
   image coordinates per slot; NULL = the image could not be placed.
 - New rel 31 `INSTANCE_HAS_MATERIAL` (INSTANCE → MATERIAL, `reserved`): a placement's own
   look, overriding its geometry's `HAS_MATERIAL`. It becomes the top tier of the material
@@ -28,8 +28,13 @@ hidden flag (ENG-11304, for the Navisworks reader; named generically). Rationale
   `IN_COLLECTION` tree levels, `Group` is only the `IN_GROUP` axis. No value changes.
 - New conformance check: sharded tables sit outside the `eav`/`envelope` groups, so query
   engines never mount them.
-- Additive: new optional files and reserved rels; no existing id, column or precedence
-  changes meaning.
+- Additive: new optional files and reserved rels; no existing id or column changes
+  meaning. The material ladder gains a top tier, but a bundle without rel 31 resolves
+  exactly as before, so `VERSIONING.md`'s major rule for precedence changes (which is about
+  the meaning of existing bundles) doesn't apply.
+- Validator: the texture K-space is dense; rels 31 and 32 target MATERIAL nodes (31 from an
+  INSTANCE); `material_textures` rows sit on MATERIAL nodes, keep `role`/`status` in their
+  sets, and carry `texture` exactly when `status = resolved`.
 
 ## schema_version 1.5.0 — revit_views, link workset and transform, more model health rows (additive)
 

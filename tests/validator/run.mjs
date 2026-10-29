@@ -31,7 +31,9 @@ const FILES = {
   rel_types: 'fx.envelope.rel_types.parquet',
   node_kinds: 'fx.envelope.node_kinds.parquet',
   meta: 'fx.envelope.meta.parquet',
-  geometries: 'fx.geometries.parquet'
+  geometries: 'fx.geometries.parquet',
+  textures: 'fx.textures.parquet',
+  material_textures: 'fx.envelope.material_textures.parquet'
 }
 function writeBundle(dir, fixtureSql) {
   mkdirSync(dir, { recursive: true })
@@ -170,6 +172,56 @@ writeBundle(
 const nmw = validate(nodeMaterialWrongKind)
 check(nmw.status !== 0, `NODE_HAS_MATERIAL to a non-MATERIAL node is a hard error (exit=${nmw.status})`)
 check(nmw.stderr.includes('every target is a MATERIAL node'), 'failure names the NODE_HAS_MATERIAL kind rule')
+
+// 10. healthy textured bundle: an INSTANCE with its own look (INSTANCE_HAS_MATERIAL), the
+// object's assigned material, one resolved and one unresolved slot on that look.
+const texturedNodes = `INSERT INTO objects VALUES (0, 'a');
+   INSERT INTO nodes VALUES
+     (0, 1, 'Def', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+     (1, 2, NULL, 0, '1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1', 'm', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+     (2, 3, 'Brick', NULL, NULL, NULL, NULL, -1, 1.0, 0.0, 1.0, NULL, NULL, NULL, NULL),
+     (3, 4, NULL, NULL, NULL, NULL, NULL, -65536, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   INSERT INTO textures VALUES (0, 'PNG'::BLOB, 'h0', 'png', 'brick.png');`
+const goodTextured = join(tmp, 'good-textured')
+writeBundle(
+  goodTextured,
+  `${texturedNodes}
+   INSERT INTO relations VALUES (8, 0, 1, 0), (31, 1, 2, NULL), (32, 0, 2, NULL);
+   INSERT INTO material_textures VALUES
+     (2, 'diffuse', 0, 'resolved', 0, '1,0,0,0,1,0', 'brick.png', NULL, 'generic_diffuse'),
+     (2, 'bump', 0, 'not_found', NULL, NULL, '1/Mats/brick_bump.png', 'C:/lib/1/Mats/brick_bump.png', 'generic_bump_map');`
+)
+const gt = validate(goodTextured)
+check(gt.status === 0, `healthy textured bundle validates (exit=${gt.status})${gt.stderr}`)
+
+// 11. a resolved slot without bytes draws nothing and says it drew something.
+const resolvedNoBytes = join(tmp, 'resolved-no-bytes')
+writeBundle(
+  resolvedNoBytes,
+  `${texturedNodes}
+   INSERT INTO material_textures VALUES (2, 'diffuse', 0, 'resolved', NULL, NULL, 'brick.png', NULL, NULL);`
+)
+const rnb = validate(resolvedNoBytes)
+check(rnb.status !== 0, `a resolved slot without a texture is a hard error (exit=${rnb.status})`)
+check(rnb.stderr.includes('texture is set exactly when status = resolved'), 'failure names the status/texture pairing rule')
+
+// 12. INSTANCE_HAS_MATERIAL targeting a COLOR node resolves to a null look.
+const instanceMaterialWrongKind = join(tmp, 'instance-material-wrong-kind')
+writeBundle(instanceMaterialWrongKind, `${texturedNodes}
+   INSERT INTO relations VALUES (8, 0, 1, 0), (31, 1, 3, NULL);`)
+const imw = validate(instanceMaterialWrongKind)
+check(imw.status !== 0, `INSTANCE_HAS_MATERIAL to a non-MATERIAL node is a hard error (exit=${imw.status})`)
+check(
+  imw.stderr.includes('INSTANCE_HAS_MATERIAL(31).dst → every target is a MATERIAL node'),
+  'failure names the INSTANCE_HAS_MATERIAL kind rule'
+)
+
+// 13. the texture K-space is dense like the others: renderers index images by K.
+const textureGap = join(tmp, 'texture-gap')
+writeBundle(textureGap, `INSERT INTO textures VALUES (1, 'PNG'::BLOB, 'h1', 'png', NULL);`)
+const tg = validate(textureGap)
+check(tg.status !== 0, `a gap in the texture K-space is a hard error (exit=${tg.status})`)
+check(tg.stderr.includes('textures.texture_index: dense contiguous K-space'), 'failure names the texture K-space rule')
 
 rmSync(tmp, { recursive: true, force: true })
 console.log(fails === 0 ? '\nvalidator tests: PASS' : `\nvalidator tests: ${fails} FAILURE(S)`)

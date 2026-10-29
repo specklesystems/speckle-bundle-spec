@@ -89,7 +89,8 @@ for (const [table, specCols] of Object.entries(byTable)) {
 const kSpaces = [
   { table: 'objects', col: 'object_index' },
   { table: 'nodes', col: 'id' },
-  { table: 'geometries', col: 'geometryIndex' }
+  { table: 'geometries', col: 'geometryIndex' },
+  { table: 'textures', col: 'texture_index' }
 ]
 for (const { table, col } of kSpaces) {
   if (!present(table)) continue
@@ -201,30 +202,81 @@ if (present('relations')) {
   }
 }
 
-// 8. container appearance invariants (NODE_HAS_MATERIAL 28 / NODE_HAS_COLOR 29).
-// Additive like section 7 — vacuous when unemitted. Both are node→node, so the
-// generic endpoint checks can't type them: a NODE_HAS_MATERIAL pointing at a COLOR
-// node (or vice versa) resolves silently to a null appearance on every consumer.
+// 8. appearance-edge kinds (NODE_HAS_MATERIAL 28, NODE_HAS_COLOR 29,
+// INSTANCE_HAS_MATERIAL 31, ASSIGNED_MATERIAL 32). Additive like section 7 — vacuous
+// when unemitted. Their node endpoints can't be typed by the generic checks: an edge
+// pointing at the wrong kind resolves silently to a null appearance on every consumer.
 if (present('relations') && present('nodes')) {
   const relByName = new Map(relTypes().map((r) => [r.name, r.id]))
   const R = pq('relations')
-  for (const [name, kind, kindName] of [
-    ['NODE_HAS_MATERIAL', 3, 'MATERIAL'],
-    ['NODE_HAS_COLOR', 4, 'COLOR'],
+  for (const [name, col, kind, kindName] of [
+    ['NODE_HAS_MATERIAL', 'dst', 3, 'MATERIAL'],
+    ['NODE_HAS_COLOR', 'dst', 4, 'COLOR'],
+    ['INSTANCE_HAS_MATERIAL', 'src', 2, 'INSTANCE'],
+    ['INSTANCE_HAS_MATERIAL', 'dst', 3, 'MATERIAL'],
+    ['ASSIGNED_MATERIAL', 'dst', 3, 'MATERIAL'],
   ]) {
     const rel = relByName.get(name)
     if (!usedRels.includes(rel)) continue
     const [r] = query(
       `SELECT count(*) AS total, count(*) FILTER (WHERE n.kind IS DISTINCT FROM ${kind}) AS bad
-       FROM ${R} r LEFT JOIN ${pq('nodes')} n ON r.dst = n.id WHERE r.rel = ${rel}`,
+       FROM ${R} r LEFT JOIN ${pq('nodes')} n ON r.${col} = n.id WHERE r.rel = ${rel}`,
+      { withSpec: false }
+    )
+    const end = col === 'dst' ? 'target' : 'source'
+    check(
+      Number(r.bad) === 0,
+      `${name}(${rel}).${col} → every ${end} is a ${kindName} node` +
+        (Number(r.bad) ? ` — ${r.bad}/${r.total} ${end} a non-${kindName} kind` : '')
+    )
+  }
+}
+
+// 9. texture slots (material_textures). A slot on a non-MATERIAL node, a resolved slot
+// without bytes, or bytes on an unresolved one all draw nothing (or the wrong image)
+// without an error anywhere downstream.
+if (present('material_textures')) {
+  const M = pq('material_textures')
+  const [v] = query(
+    `SELECT count(*) FILTER (WHERE role NOT IN ('diffuse', 'bump', 'other')) AS role,
+            count(*) FILTER (WHERE status NOT IN ('resolved', 'not_found', 'url', 'invalid')) AS status,
+            count(*) FILTER (WHERE (status = 'resolved') <> (texture IS NOT NULL)) AS pairing
+     FROM ${M}`,
+    { withSpec: false }
+  )
+  check(Number(v.role) === 0, `material_textures.role ∈ {diffuse, bump, other}` + (Number(v.role) ? ` — ${v.role} row(s) outside` : ''))
+  check(
+    Number(v.status) === 0,
+    `material_textures.status ∈ {resolved, not_found, url, invalid}` + (Number(v.status) ? ` — ${v.status} row(s) outside` : '')
+  )
+  check(
+    Number(v.pairing) === 0,
+    `material_textures.texture is set exactly when status = resolved` + (Number(v.pairing) ? ` — ${v.pairing} row(s) break it` : '')
+  )
+  if (present('nodes')) {
+    const [r] = query(
+      `SELECT count(*) AS total, count(*) FILTER (WHERE n.kind IS DISTINCT FROM 3) AS bad
+       FROM ${M} m LEFT JOIN ${pq('nodes')} n ON m.material = n.id`,
       { withSpec: false }
     )
     check(
       Number(r.bad) === 0,
-      `${name}(${rel}).dst → every target is a ${kindName} node` +
-        (Number(r.bad) ? ` — ${r.bad}/${r.total} target a non-${kindName} kind` : '')
+      `material_textures.material → every slot belongs to a MATERIAL node` +
+        (Number(r.bad) ? ` — ${r.bad}/${r.total} do not` : '')
     )
   }
+  const [t] = query(
+    present('textures')
+      ? `SELECT count(*) AS bad FROM ${M} m WHERE m.texture IS NOT NULL
+         AND NOT EXISTS (SELECT 1 FROM ${pq('textures')} t WHERE t.texture_index = m.texture)`
+      : `SELECT count(*) AS bad FROM ${M} WHERE texture IS NOT NULL`,
+    { withSpec: false }
+  )
+  check(
+    Number(t.bad) === 0,
+    `material_textures.texture → every image resolves to textures.texture_index` +
+      (Number(t.bad) ? ` — ${t.bad} dangling` : '')
+  )
 }
 
 console.log(fails === 0 ? '\nvalidate: PASS' : `\nvalidate: ${fails} FAILURE(S)`)

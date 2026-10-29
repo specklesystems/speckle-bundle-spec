@@ -63,7 +63,7 @@ One image file's bytes in the `textures` file, deduped by content.
 A row of `material_textures`: one mapped property of a MATERIAL (diffuse, bump,
 other), pointing at a texture or carrying the source reference it could not
 resolve, plus how the image sits on the mesh's UVs (`uv_transform`).
-_Avoid_: map (ambiguous with the placement), texture (for the slot).
+_Avoid_: texture (for the slot), map (the source asset's word, which also covers the image placement).
 
 **ord**:
 The fourth column of a relation, dual-use: an **ordinal** for ordered rels

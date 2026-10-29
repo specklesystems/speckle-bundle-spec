@@ -87,7 +87,7 @@ views.object_properties = [
   'unit',
   'internal_definition_name'
 ]
-const notMounted = written.filter((n) => /\.geometries(?:\.\d+)?\.parquet$/.test(n))
+const notMounted = written.filter((n) => /\.(?:geometries|textures)(?:\.\d+)?\.parquet$/.test(n))
 const eavRows = 6000
 const typedRows = 199 * 3
 // The virtual applicationId arm: one row per object, since the fixture's path dictionary

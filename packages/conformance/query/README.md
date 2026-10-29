@@ -28,8 +28,9 @@ reference runner, `tests/query-conformance/run.mjs`, is part of `npm test`.
    alias matches `^[a-zA-Z0-9_]{3,}$`. Queries address views as `"<alias>"."<view>"`.
 2. **Filename → view.** `{base}.eav.<view>.parquet` and `{base}.envelope.<view>.parquet`
    mount as `<view>`; the first file wins on a duplicate view name; a derived name outside
-   `^[a-zA-Z0-9_]+$` is skipped. Anything else (geometry shards
-   `{base}.geometries[.N].parquet`, `.viewer.dat`, unknown sidecars) is **never mounted**.
+   `^[a-zA-Z0-9_]+$` is skipped. Anything else (geometry and texture shards
+   `{base}.geometries[.N].parquet` and `{base}.textures[.N].parquet`, `.viewer.dat`,
+   unknown sidecars) is **never mounted**.
    One exception: the paths parquet mounts as **`paths_raw`** — the public `paths` name
    belongs to the synthesized view in rule 3. An engine may additionally reject names its
    own storage layer creates and owns (the browser engine skips the OPFS copy-on-lock
