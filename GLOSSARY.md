@@ -50,6 +50,21 @@ Two deliberately separate node kinds. MATERIAL is a full-PBR render asset
 (HAS_MATERIAL); COLOR is a raw colour override (HAS_COLOR). Kept distinct because
 they drive different viewer render modes and an object can carry both.
 
+**Material ladder**:
+Which MATERIAL a drawn geometry takes: a placement's own look
+(INSTANCE_HAS_MATERIAL) over the geometry's (HAS_MATERIAL) over the object's fill
+(OBJECT_HAS_MATERIAL) over the container's (NODE_HAS_MATERIAL). ASSIGNED_MATERIAL
+is not on the ladder: it records what the source assigned, not what is drawn.
+
+**Texture**:
+One image file's bytes in the `textures` file, deduped by content.
+
+**Texture slot**:
+A row of `material_textures`: one mapped property of a MATERIAL (diffuse, bump,
+other), pointing at a texture or carrying the source reference it could not
+resolve, plus how the image sits on the mesh's UVs (`uv_transform`).
+_Avoid_: map (ambiguous with the placement), texture (for the slot).
+
 **ord**:
 The fourth column of a relation, dual-use: an **ordinal** for ordered rels
 (DISPLAY, SUBELEMENT, *_INSTANCE), or a **scope** tag for graph edges
@@ -58,9 +73,11 @@ The fourth column of a relation, dual-use: an **ordinal** for ordered rels
 ## Identity
 
 **K** (K-space):
-A dense integer id space. Three coexist: **object K** (`objects.object_index`),
-**node K** (`nodes.id`), and **geometry K** (`geometries.geometryIndex`). Node K
-and geometry K overlap numerically — disambiguated by a relation's namespaces.
+A dense integer id space. Four coexist: **object K** (`objects.object_index`),
+**node K** (`nodes.id`), **geometry K** (`geometries.geometryIndex`) and
+**texture K** (`textures.texture_index`, referenced only by
+`material_textures.texture`). Node K and geometry K overlap numerically —
+disambiguated by a relation's namespaces.
 _Avoid_: index (ambiguous), id (ambiguous).
 
 **namespace** (src_ns / dst_ns):
@@ -86,9 +103,9 @@ A vocabulary entry's lifecycle: `live` (emitted), `reserved` (in the vocabulary,
 not yet emitted — e.g. SOLID), `retired` (id kept forever, never reused).
 
 **Sharded**:
-A table rolled across multiple files (only `geometries`): shard 0 is the canonical
-`{base}.geometries.parquet`, overflow shards `{base}.geometries.{N}.parquet`; read
-the glob `{base}.geometries*.parquet`.
+A table rolled across multiple files (`geometries` and `textures`): shard 0 is the
+canonical `{base}.geometries.parquet`, overflow shards `{base}.geometries.{N}.parquet`;
+read the glob `{base}.geometries*.parquet`. `textures` follows the same scheme.
 
 **schema_version**:
 The semver string in `meta` stamping which spec release a bundle was built

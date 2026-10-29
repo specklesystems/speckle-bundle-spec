@@ -13,6 +13,7 @@ const ROW_TABLES = {
   revit_warnings: 'RevitWarning',
   revit_external_links: 'RevitExternalLink',
   revit_views: 'RevitView',
+  material_textures: 'MaterialTexture',
 }
 
 /** Row tables as { table, typeName, fields: [{ column, duckType, optional, defaulted, comment }] }. */

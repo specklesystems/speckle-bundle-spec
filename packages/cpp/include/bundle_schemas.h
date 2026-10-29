@@ -61,6 +61,21 @@ inline std::shared_ptr<arrow::Schema> geometriesSchema() {
   });
 }
 
+// material_textures
+inline std::shared_ptr<arrow::Schema> materialTexturesSchema() {
+  return arrow::schema({
+      arrow::field("material", arrow::int32()),
+      arrow::field("role", arrow::utf8()),
+      arrow::field("ord", arrow::int32()),
+      arrow::field("status", arrow::utf8()),
+      arrow::field("texture", arrow::int32()),
+      arrow::field("uv_transform", arrow::utf8()),
+      arrow::field("uri", arrow::utf8()),
+      arrow::field("saved_location", arrow::utf8()),
+      arrow::field("property", arrow::utf8())
+  });
+}
+
 // model
 inline std::shared_ptr<arrow::Schema> modelSchema() {
   return arrow::schema({
@@ -213,6 +228,17 @@ inline std::shared_ptr<arrow::Schema> structuralResultsSchema() {
       arrow::field("step", arrow::int32()),
       arrow::field("value", arrow::float64()),
       arrow::field("value_text", arrow::utf8())
+  });
+}
+
+// textures
+inline std::shared_ptr<arrow::Schema> texturesSchema() {
+  return arrow::schema({
+      arrow::field("texture_index", arrow::int32()),
+      arrow::field("content", arrow::binary()),
+      arrow::field("id", arrow::utf8()),
+      arrow::field("format", arrow::utf8()),
+      arrow::field("name", arrow::utf8())
   });
 }
 

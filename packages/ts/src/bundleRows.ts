@@ -95,3 +95,16 @@ export type RevitView = {
   sheetPlacements: number | null
   orientation: string | null
 }
+
+/** One `material_textures` row, in column order. */
+export type MaterialTexture = {
+  material: number
+  role: string
+  ord: number
+  status: string
+  texture: number | null
+  uvTransform: string | null
+  uri: string | null
+  savedLocation: string | null
+  property: string | null
+}

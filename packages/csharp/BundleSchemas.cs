@@ -67,6 +67,19 @@ public static class BundleSchemas
         new("type", ArrowType.Utf8, false),
     };
 
+    public static readonly ColumnSpec[] MaterialTextures =
+    {
+        new("material", ArrowType.Int32, false),
+        new("role", ArrowType.Utf8, false),
+        new("ord", ArrowType.Int32, false),
+        new("status", ArrowType.Utf8, false),
+        new("texture", ArrowType.Int32, true),
+        new("uv_transform", ArrowType.Utf8, true),
+        new("uri", ArrowType.Utf8, true),
+        new("saved_location", ArrowType.Utf8, true),
+        new("property", ArrowType.Utf8, true),
+    };
+
     public static readonly ColumnSpec[] Model =
     {
         new("path", ArrowType.Utf8, false),
@@ -198,6 +211,15 @@ public static class BundleSchemas
         new("value_text", ArrowType.Utf8, true),
     };
 
+    public static readonly ColumnSpec[] Textures =
+    {
+        new("texture_index", ArrowType.Int32, false),
+        new("content", ArrowType.Binary, false),
+        new("id", ArrowType.Utf8, false),
+        new("format", ArrowType.Utf8, false),
+        new("name", ArrowType.Utf8, true),
+    };
+
     public static readonly ColumnSpec[] TypeEav =
     {
         new("type_index", ArrowType.Int32, false),
@@ -221,6 +243,7 @@ public static class BundleSchemas
         ["camera_views"] = CameraViews,
         ["eav"] = Eav,
         ["geometries"] = Geometries,
+        ["material_textures"] = MaterialTextures,
         ["model"] = Model,
         ["nodes"] = Nodes,
         ["object_type"] = ObjectType,
@@ -233,6 +256,7 @@ public static class BundleSchemas
         ["revit_warnings"] = RevitWarnings,
         ["scene_views"] = SceneViews,
         ["structural_results"] = StructuralResults,
+        ["textures"] = Textures,
         ["type_eav"] = TypeEav,
         ["types"] = Types,
         };

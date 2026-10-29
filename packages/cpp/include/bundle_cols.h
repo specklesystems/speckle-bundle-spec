@@ -54,6 +54,19 @@ inline constexpr int type = 3;
 inline constexpr int columnCount = 4;
 }  // namespace bundlespec::col::geometries
 
+namespace bundlespec::col::material_textures {
+inline constexpr int material = 0;
+inline constexpr int role = 1;
+inline constexpr int ord = 2;
+inline constexpr int status = 3;
+inline constexpr int texture = 4;
+inline constexpr int uv_transform = 5;
+inline constexpr int uri = 6;
+inline constexpr int saved_location = 7;
+inline constexpr int property = 8;
+inline constexpr int columnCount = 9;
+}  // namespace bundlespec::col::material_textures
+
 namespace bundlespec::col::model {
 inline constexpr int path = 0;
 inline constexpr int value_string = 1;
@@ -184,6 +197,15 @@ inline constexpr int value = 9;
 inline constexpr int value_text = 10;
 inline constexpr int columnCount = 11;
 }  // namespace bundlespec::col::structural_results
+
+namespace bundlespec::col::textures {
+inline constexpr int texture_index = 0;
+inline constexpr int content = 1;
+inline constexpr int id = 2;
+inline constexpr int format = 3;
+inline constexpr int name = 4;
+inline constexpr int columnCount = 5;
+}  // namespace bundlespec::col::textures
 
 namespace bundlespec::col::type_eav {
 inline constexpr int type_index = 0;

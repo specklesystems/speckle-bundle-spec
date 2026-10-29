@@ -113,3 +113,18 @@ class RevitView:
     sheet_number: str | None = None
     sheet_placements: int | None = None
     orientation: str | None = None
+
+
+@dataclass(frozen=True)
+class MaterialTexture:
+    """One material_textures row, in column order."""
+
+    material: int
+    role: str
+    ord: int
+    status: str
+    texture: int | None = None
+    uv_transform: str | None = None
+    uri: str | None = None
+    saved_location: str | None = None
+    property: str | None = None

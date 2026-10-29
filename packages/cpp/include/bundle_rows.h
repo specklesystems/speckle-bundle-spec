@@ -103,4 +103,17 @@ struct RevitView {
   std::optional<std::string> orientation;
 };
 
+// One material_textures row, in column order.
+struct MaterialTexture {
+  int32_t material;
+  std::string role;
+  int32_t ord;
+  std::string status;
+  std::optional<int32_t> texture;
+  std::optional<std::string> uv_transform;
+  std::optional<std::string> uri;
+  std::optional<std::string> saved_location;
+  std::optional<std::string> property;
+};
+
 }  // namespace bundlespec

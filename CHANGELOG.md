@@ -3,6 +3,34 @@
 Schema versions track `meta.schema_version` in `spec/bundle-spec.sql` — the semver
 of every package this repo publishes (see `VERSIONING.md`).
 
+## unreleased (schema_version 1.6.0, additive)
+
+Texture images, texture slots with unresolved references, a material per placement and a
+hidden flag (ENG-11304, for the Navisworks reader; named generically). Rationale:
+`docs/rationale/textures-and-looks.md`.
+
+- New optional file `textures` (`{base}.textures.parquet`, sharded like `geometries`): image
+  bytes as found, one row per distinct image (`id` = SHA-256), with the sniffed `format`.
+- New optional file `material_textures` (`{base}.envelope.material_textures.parquet`): one row
+  per texture slot of a MATERIAL node, with its `role` (`diffuse | bump | other`), the image
+  (`texture`) or, when unresolved, the reference as stored (`uri`, `saved_location`) and a
+  `status` (`resolved | not_found | url | invalid`) that tells a receiver with the source
+  application's library how to resolve it later. `uv_transform` maps a mesh's SGEO UVs to
+  image coordinates per slot; NULL = the image could not be placed.
+- New rel 31 `INSTANCE_HAS_MATERIAL` (INSTANCE → MATERIAL, `reserved`): a placement's own
+  look, overriding its geometry's `HAS_MATERIAL`. It becomes the top tier of the material
+  ladder; bundles without it resolve as before.
+- New rel 32 `ASSIGNED_MATERIAL` (object → MATERIAL, `reserved`): the material the source
+  assigned, kept beside the drawn look when they differ. Not a render edge.
+- Documented eav root path `hidden` (value_boolean, true rows only): the source does not draw
+  the object as saved. No schema change to `eav`.
+- `nodes.subtype` comment names every subtype's axis: `Collection`, `Layer` and `Folder` are
+  `IN_COLLECTION` tree levels, `Group` is only the `IN_GROUP` axis. No value changes.
+- New conformance check: sharded tables sit outside the `eav`/`envelope` groups, so query
+  engines never mount them.
+- Additive: new optional files and reserved rels; no existing id, column or precedence
+  changes meaning.
+
 ## schema_version 1.5.0 — revit_views, link workset and transform, more model health rows (additive)
 
 - New optional file `revit_views` (`{base}.eav.revit_views.parquet`): the source document's

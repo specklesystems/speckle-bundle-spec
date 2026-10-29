@@ -59,6 +59,17 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("id", "string", False),
         ColumnSpec("type", "string", False),
     ],
+    "material_textures": [
+        ColumnSpec("material", "int32", False),
+        ColumnSpec("role", "string", False),
+        ColumnSpec("ord", "int32", False),
+        ColumnSpec("status", "string", False),
+        ColumnSpec("texture", "int32", True),
+        ColumnSpec("uv_transform", "string", True),
+        ColumnSpec("uri", "string", True),
+        ColumnSpec("saved_location", "string", True),
+        ColumnSpec("property", "string", True),
+    ],
     "model": [
         ColumnSpec("path", "string", False),
         ColumnSpec("value_string", "string", True),
@@ -165,6 +176,13 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("step", "int32", True),
         ColumnSpec("value", "float64", True),
         ColumnSpec("value_text", "string", True),
+    ],
+    "textures": [
+        ColumnSpec("texture_index", "int32", False),
+        ColumnSpec("content", "binary", False),
+        ColumnSpec("id", "string", False),
+        ColumnSpec("format", "string", False),
+        ColumnSpec("name", "string", True),
     ],
     "type_eav": [
         ColumnSpec("type_index", "int32", False),

@@ -36,6 +36,8 @@ public enum Rel
     NODE_HAS_MATERIAL = 28,
     NODE_HAS_COLOR = 29,
     CENTERLINE = 30,
+    INSTANCE_HAS_MATERIAL = 31,
+    ASSIGNED_MATERIAL = 32,
 }
 
 public enum NodeKind
@@ -80,6 +82,8 @@ public static class Catalog
         new(28, "NODE_HAS_MATERIAL", "node", "node", "live"),
         new(29, "NODE_HAS_COLOR", "node", "node", "live"),
         new(30, "CENTERLINE", "object", "geometry", "live"),
+        new(31, "INSTANCE_HAS_MATERIAL", "node", "node", "reserved"),
+        new(32, "ASSIGNED_MATERIAL", "object", "node", "reserved"),
     };
 
     public static readonly NodeKindRow[] NodeKinds =

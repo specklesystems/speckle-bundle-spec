@@ -59,6 +59,21 @@ class GEOMETRIES:
     COLUMN_COUNT = 4
 
 
+class MATERIAL_TEXTURES:
+    """Column indices of the material_textures table (spec order)."""
+
+    MATERIAL = 0
+    ROLE = 1
+    ORD = 2
+    STATUS = 3
+    TEXTURE = 4
+    UV_TRANSFORM = 5
+    URI = 6
+    SAVED_LOCATION = 7
+    PROPERTY = 8
+    COLUMN_COUNT = 9
+
+
 class MODEL:
     """Column indices of the model table (spec order)."""
 
@@ -212,6 +227,17 @@ class STRUCTURAL_RESULTS:
     VALUE = 9
     VALUE_TEXT = 10
     COLUMN_COUNT = 11
+
+
+class TEXTURES:
+    """Column indices of the textures table (spec order)."""
+
+    TEXTURE_INDEX = 0
+    CONTENT = 1
+    ID = 2
+    FORMAT = 3
+    NAME = 4
+    COLUMN_COUNT = 5
 
 
 class TYPE_EAV:

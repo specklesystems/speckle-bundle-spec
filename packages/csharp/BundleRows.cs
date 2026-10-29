@@ -21,3 +21,6 @@ public sealed record RevitExternalLink(string Kind, string ElementId, string? Na
 
 /// <summary>One <c>revit_views</c> row, in column order. Columns: <c>element_id</c>, <c>name</c>, <c>view_type</c>, <c>is_template</c>, <c>view_template_id</c>, <c>sheet_number</c>, <c>sheet_placements</c>, <c>orientation</c>.</summary>
 public sealed record RevitView(string ElementId, string? Name, string ViewType, bool IsTemplate, string? ViewTemplateId = null, string? SheetNumber = null, int? SheetPlacements = null, string? Orientation = null);
+
+/// <summary>One <c>material_textures</c> row, in column order. Columns: <c>material</c>, <c>role</c>, <c>ord</c>, <c>status</c>, <c>texture</c>, <c>uv_transform</c>, <c>uri</c>, <c>saved_location</c>, <c>property</c>.</summary>
+public sealed record MaterialTexture(int Material, string Role, int Ord, string Status, int? Texture = null, string? UvTransform = null, string? Uri = null, string? SavedLocation = null, string? Property = null);

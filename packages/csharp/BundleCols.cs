@@ -60,6 +60,20 @@ public static class BundleCols
         public const int ColumnCount = 4;
     }
 
+    public static class MaterialTextures
+    {
+        public const int Material = 0;
+        public const int Role = 1;
+        public const int Ord = 2;
+        public const int Status = 3;
+        public const int Texture = 4;
+        public const int UvTransform = 5;
+        public const int Uri = 6;
+        public const int SavedLocation = 7;
+        public const int Property = 8;
+        public const int ColumnCount = 9;
+    }
+
     public static class Model
     {
         public const int Path = 0;
@@ -201,6 +215,16 @@ public static class BundleCols
         public const int Value = 9;
         public const int ValueText = 10;
         public const int ColumnCount = 11;
+    }
+
+    public static class Textures
+    {
+        public const int TextureIndex = 0;
+        public const int Content = 1;
+        public const int Id = 2;
+        public const int Format = 3;
+        public const int Name = 4;
+        public const int ColumnCount = 5;
     }
 
     public static class TypeEav

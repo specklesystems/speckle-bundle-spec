@@ -92,7 +92,7 @@ check(unknown.length === 0, `node_kinds.columns names only real nodes columns${u
 
 // 7. Every table the row-record emitter names is real: codegen builds a caller-facing
 // record from its columns, so a renamed or dropped table must break the build.
-const rowTables = ['structural_results', 'property_set_definitions', 'camera_views', 'revit_warnings', 'revit_external_links', 'revit_views'];
+const rowTables = ['structural_results', 'property_set_definitions', 'camera_views', 'revit_warnings', 'revit_external_links', 'revit_views', 'material_textures'];
 const missingTables = rowTables.filter((t) => catalogColumns(t).length === 0);
 check(
   missingTables.length === 0,
@@ -137,6 +137,16 @@ check(
 // under (VERSIONING.md), and the release gate compares the two verbatim.
 const sv = schemaVersion()
 check(typeof sv === 'string' && SEMVER_RE.test(sv), `meta.schema_version is a semver string (${sv})`)
+
+// 11. Sharded blob tables sit outside the eav/envelope groups: query engines mount every
+// `{base}.eav.*` / `{base}.envelope.*` file as one view, which a shard set would break.
+const shardedInGroups = query(`SELECT name, file_pattern FROM bundle_files WHERE sharded`).filter((f) =>
+  /\.(eav|envelope)\./.test(f.file_pattern)
+)
+check(
+  shardedInGroups.length === 0,
+  `sharded tables are outside the eav/envelope groups${shardedInGroups.length ? ` (${shardedInGroups.map((f) => f.name).join(', ')})` : ''}`
+)
 
 console.log(fails === 0 ? '\nconformance: PASS' : `\nconformance: ${fails} FAILURE(S)`)
 process.exit(fails === 0 ? 0 : 1)

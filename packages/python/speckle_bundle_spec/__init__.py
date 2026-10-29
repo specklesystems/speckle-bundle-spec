@@ -9,6 +9,7 @@ from speckle_bundle_spec.bundle_cols import (
     CAMERA_VIEWS,
     EAV,
     GEOMETRIES,
+    MATERIAL_TEXTURES,
     MODEL,
     NODES,
     OBJECT_TYPE,
@@ -21,6 +22,7 @@ from speckle_bundle_spec.bundle_cols import (
     REVIT_WARNINGS,
     SCENE_VIEWS,
     STRUCTURAL_RESULTS,
+    TEXTURES,
     TYPE_EAV,
     TYPES,
 )
@@ -34,6 +36,7 @@ from speckle_bundle_spec.bundle_nodes import (
 )
 from speckle_bundle_spec.bundle_rows import (
     CameraView,
+    MaterialTexture,
     PropertySetField,
     RevitExternalLink,
     RevitView,
@@ -56,6 +59,7 @@ __all__ = [
     "CAMERA_VIEWS",
     "EAV",
     "GEOMETRIES",
+    "MATERIAL_TEXTURES",
     "MODEL",
     "NODES",
     "NODE_KINDS",
@@ -71,6 +75,7 @@ __all__ = [
     "SCENE_VIEWS",
     "SCHEMA_VERSION",
     "STRUCTURAL_RESULTS",
+    "TEXTURES",
     "TYPES",
     "TYPE_EAV",
     "CameraView",
@@ -81,6 +86,7 @@ __all__ = [
     "Instance",
     "Level",
     "Material",
+    "MaterialTexture",
     "NodeKind",
     "NodeKindRow",
     "PropertySetField",

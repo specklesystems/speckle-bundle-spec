@@ -30,6 +30,8 @@ export const Rel = {
   NODE_HAS_MATERIAL: 28,
   NODE_HAS_COLOR: 29,
   CENTERLINE: 30,
+  INSTANCE_HAS_MATERIAL: 31,
+  ASSIGNED_MATERIAL: 32,
 } as const
 export type RelName = keyof typeof Rel
 
@@ -84,6 +86,8 @@ export const REL_TYPES: readonly RelTypeMeta[] = [
   { id: 28, name: 'NODE_HAS_MATERIAL', srcNs: 'node', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 29, name: 'NODE_HAS_COLOR', srcNs: 'node', dstNs: 'node', status: 'live', ordSemantics: null },
   { id: 30, name: 'CENTERLINE', srcNs: 'object', dstNs: 'geometry', status: 'live', ordSemantics: 'ordinal' },
+  { id: 31, name: 'INSTANCE_HAS_MATERIAL', srcNs: 'node', dstNs: 'node', status: 'reserved', ordSemantics: null },
+  { id: 32, name: 'ASSIGNED_MATERIAL', srcNs: 'object', dstNs: 'node', status: 'reserved', ordSemantics: null },
 ]
 
 /** Logical table → column names, generated from the DDL. */
@@ -91,6 +95,7 @@ export const TABLES = {
   camera_views: ['view', 'name', 'is_default', 'ord', 'pos_x', 'pos_y', 'pos_z', 'forward_x', 'forward_y', 'forward_z', 'up_x', 'up_y', 'up_z', 'target_x', 'target_y', 'target_z', 'units', 'is_ortho', 'fov', 'lens_mm', 'ortho_height', 'aspect', 'near', 'far'],
   eav: ['object_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   geometries: ['geometryIndex', 'content', 'id', 'type'],
+  material_textures: ['material', 'role', 'ord', 'status', 'texture', 'uv_transform', 'uri', 'saved_location', 'property'],
   model: ['path', 'value_string', 'value_double', 'value_boolean', 'unit'],
   nodes: ['id', 'kind', 'name', 'def_ref', 'transform', 'units', 'subtype', 'argb', 'opacity', 'metalness', 'roughness', 'emissive', 'ior', 'elevation', 'gh_topology'],
   object_type: ['object_index', 'type_index'],
@@ -103,6 +108,7 @@ export const TABLES = {
   revit_warnings: ['warning_index', 'warning_class', 'warning_type', 'warning_kind', 'failure_definition_id', 'description', 'element_id', 'element_application_id', 'element_category'],
   scene_views: ['view', 'name', 'is_default', 'ord', 'source', 'ref'],
   structural_results: ['object_index', 'element_name', 'location', 'result_type', 'load_case', 'component', 'position_label', 'station', 'step', 'value', 'value_text'],
+  textures: ['texture_index', 'content', 'id', 'format', 'name'],
   type_eav: ['type_index', 'path_index', 'value_string', 'value_double', 'value_boolean', 'unit', 'internal_definition_name'],
   types: ['type_index', 'type_key'],
 } as const
