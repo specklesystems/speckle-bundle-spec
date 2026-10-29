@@ -21,7 +21,7 @@ const BASE = 'gold'
 const ALIAS = 'gold'
 // DuckDB rounds ROW_GROUP_SIZE to a multiple of its 2048-row vector; 6000 eav rows → 3 groups.
 const EAV_ROW_GROUP_SIZE = 2048
-// geometries is the only sharded table: shard 0 keeps the canonical name, overflow is `.1`.
+// The fixture splits geometries into two shards: shard 0 keeps the canonical name, overflow is `.1`.
 const GEOMETRY_SHARD_SPLIT = 6
 
 const fixtureSql = readFileSync(join(SUITE, 'fixture.sql'), 'utf8')
