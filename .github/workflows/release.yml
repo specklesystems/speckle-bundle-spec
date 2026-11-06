@@ -133,7 +133,11 @@ jobs:
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: false
-      - run: uv publish out/python/*.whl out/python/*.tar.gz
+      # Without this PEP 740 attestation, PyPI shows the package as no provenance
+      - uses: astral-sh/attest-action@39b6ce43875c196a579e31635b11aa2a2036384a # v0.0.7
+        with:
+          paths: out/python/*
+      - run: uv publish out/python/*.whl out/python/*.tar.gz out/python/*.publish.attestation
 
   publish-nuget:
     name: nuget.org (OIDC)
