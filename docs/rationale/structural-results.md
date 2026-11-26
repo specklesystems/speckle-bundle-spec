@@ -70,10 +70,12 @@ design verdicts later with no schema change.
 | `spandrelForce` | – | SpandrelName | StoryName | Top/Bottom | – | – | P,V2,V3,T,M2,M3 | num | – |
 | `storyDrift` | – | – | Story | X/Y | – | StepNum | drift | num | – |
 | `storyForce` | – | – | Story | Top/Bottom | – | – | axial,majorShear,minorShear,torsion,majorMoment,minorMoment | num | – |
-| `utilization` (TSD) | member→appId | – | – | – | – | – | ratio | 0.87 | – |
-| `designCheck` (TSD) | member→appId | – | – | – | – | – | status | – | `PASS` |
+| `utilization` (TSD) | member→appId | – | Span n | Static/RSA/MemberStability | – | – | ratio | 0.87 | – |
+| `designCheck` (TSD) | member→appId | – | Span n | Static/RSA/MemberStability | – | – | status | – | `PASS` |
 
-(`–` = null.)
+(`–` = null.) A TSD member gets one row per span and check kind. `location` names the span
+only when the member has more than one, and `position_label` carries the check kind, as
+`storyDrift` carries its direction.
 
 ## Locked decisions (structural-engineer review)
 
